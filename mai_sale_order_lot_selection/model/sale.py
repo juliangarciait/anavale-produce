@@ -7,7 +7,7 @@ class SaleOrderLine(models.Model):
     lot_id = fields.Many2one('stock.production.lot', 'Lot', copy=False)
 
     #agregar restantes
-    lot_restante = fields.Float('Stock', related='lot_id.x_restante')
+    lot_restante = fields.Float('Stock', related='lot_id.restante')
 
     # @api.multi
     def _prepare_procurement_values(self, group_id=False):
