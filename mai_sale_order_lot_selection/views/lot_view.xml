@@ -8,8 +8,8 @@
             <xpath expr="//field[@name='ref']" position="move"/>
           </xpath>
           <xpath expr="//form[1]/sheet[1]/group[@name='main_group']/group[1]/div[1]" position="after">
-            <field name="x_reservado" string="Reservada" attrs="{}" readonly="1"/>
-            <field name="x_restante" string="Restante"/>
+            <field name="reservado" string="Reservada" attrs="{}" readonly="1"/>
+            <field name="restante" string="Restante"/>
           </xpath>
         </field>
     </record>
