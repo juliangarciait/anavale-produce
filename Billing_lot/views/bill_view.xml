@@ -2,7 +2,7 @@
 <odoo>
     <record id="view_billing_lot_form" model="ir.ui.view">
         <field name="model">account.move</field>
-        <field name="inherit_id" ref="	account.view_move_form"/>
+        <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
           <xpath expr="//form[1]//sheet[1]//group[1]//group[1]//field[@name='ref']" position="after">
             <field name="LotId" string="Lote gasto" attrs="{}" readonly="0"/>
