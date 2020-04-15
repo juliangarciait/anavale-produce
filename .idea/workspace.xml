@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="90411174-03ad-45ed-a567-3176799d5bbb" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/Billing_lot/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Billing_lot/__manifest__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Billing_lot/model/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Billing_lot/model/accounting.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Billing_lot/static/description/icon.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Billing_lot/static/description/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Billing_lot/static/description/mai_sale_order_lot_selection_1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Billing_lot/static/description/mai_sale_order_lot_selection_2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Billing_lot/static/description/mai_sale_order_lot_selection_3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Billing_lot/static/description/mai_sale_order_lot_selection_4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Billing_lot/static/description/main_screenshot.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Billing_lot/static/description/old.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Billing_lot/views/bill_view.xml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+        <option value="XHTML File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1aYKuwIDxOhLXmBl9iH2CbWbXzr" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="DefaultHtmlFileTemplate" value="XHTML File" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/Billing_lot" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\odoo\staging\anavale-produce\Billing_lot" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <module name="anavale-produce" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\52449\Desktop\odoo\venv\Scripts\python.exe" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="90411174-03ad-45ed-a567-3176799d5bbb" name="Default Changelist" comment="" />
+      <created>1586907313265</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1586907313265</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="223" y="68" width="1089" height="705" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1586907631274">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="223" y="68" width="1089" height="705" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.824@0.0.1536.824" timestamp="1586907631274" />
+    <state x="277" y="56" key="SettingsEditor" timestamp="1586907645045">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="277" y="56" key="SettingsEditor/0.0.1536.824@0.0.1536.824" timestamp="1586907645045" />
+  </component>
+</project>
