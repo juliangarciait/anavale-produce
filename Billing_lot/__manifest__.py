@@ -12,7 +12,7 @@
     "email": 'apps@maisolutionsllc.com',
     "website":'http://maisolutionsllc.com/',
     'license': 'OPL-1',
-    'depends': ['account.move'],
+    'depends': ['account'],
     'data': [
             'views/bill_view.xml',
              ],
