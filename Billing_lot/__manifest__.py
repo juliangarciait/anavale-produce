@@ -15,6 +15,7 @@
     'depends': ['account'],
     'data': [
             'views/bill_view.xml',
+            'views/lot_view.xml'
              ],
     'qweb': [
         ],
