@@ -24,6 +24,7 @@ class SaleOrderLine(models.Model):
         available_lot_ids = []
         if self.order_id.warehouse_id and self.product_id:
             location = self.order_id.warehouse_id.lot_stock_id
+            print("hola")
             quants = self.env['stock.quant'].read_group([
                 ('product_id', '=', self.product_id.id),
                 ('location_id', 'child_of', location.id),
