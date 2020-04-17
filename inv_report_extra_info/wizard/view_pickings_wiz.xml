@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_form_view_picking_product" model="ir.ui.view">
+        <field name="name">view.picking.product.view.form</field>
+        <field name="model">view.picking.product</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <group>
+                        <field name="mode" invisible="1" force_save="1"/>
+                        <field name="quant_id" readonly="1" invisible="1" force_save="1"/>
+                        <field name="product_id" readonly="1" force_save="1"/>
+                        <field name="location_id" readonly="1" force_save="1"/>
+                    </group>
+                    <group>
+                        <field name="inventory_quantity" readonly="1" force_save="1"/>
+                        <field name="reserved_quantity" readonly="1" force_save="1"/>
+                        <field name="qty_to_sale" readonly="1" force_save="1"/>
+                        <field name="incoming_qty" readonly="1" force_save="1"/>
+                    </group>
+                </group>
+                <group string="Ordered Incoming Stock" attrs="{'invisible': [('mode', '=', 'reserved')]}">
+                    <field name="line_ids" nolabel="1">
+                        <tree editable="bottom" create="false">
+                            <field name="wizard_id" readonly="1" invisible="1" force_save="1"/>
+                            <field name="move_id" readonly="1" invisible="1" force_save="1"/>
+                            <field name="picking_id" readonly="1" force_save="1"/>
+                            <field name="scheduled_date" readonly="1" force_save="1"/>
+                            <field name="product_uom_qty" readonly="1" force_save="1"/>
+                            <field name="quantity_done" readonly="1" force_save="1"/>
+                        </tree>
+                    </field>
+                </group>
+                <footer>
+                    <button string="Cancel" class="btn-secondary" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

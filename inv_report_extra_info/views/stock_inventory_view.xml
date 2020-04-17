@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_stock_quant_tree_editable_ext_inventory_advancement" model="ir.ui.view">
+        <field name="name">stock.quant.view.tree.editable.ext.advancement</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree_editable"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='reserved_quantity']" position="after">
+                <field name="qty_to_sale"/>
+                <field name="incoming_qty"/>
+                <field name="qty_to_sale_store" invisible="1"/>
+                <field name="incoming_qty_store" invisible="1"/>
+                <button name="action_view_pickings" type="object" icon="fa-info-circle" aria-label="Ordered Incoming Stock" title="Ordered Incoming Stock"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_stock_quant_tree_ext_inventory_advancement" model="ir.ui.view">
+        <field name="name">stock.quant.view.tree.ext.advancement</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='quantity']" position="after">
+                <field name="qty_to_sale"/>
+                <field name="incoming_qty"/>
+                <field name="qty_to_sale_store" invisible="1"/>
+                <field name="incoming_qty_store" invisible="1"/>
+                <button name="action_view_pickings" type="object" icon="fa-info-circle" aria-label="Ordered Incoming Stock" title="Ordered Incoming Stock"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_stock_quant_pivot_ext_inventory_advancement" model="ir.ui.view">
+        <field name="name">stock.quant.view.pivot.ext.advancement</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_pivot"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='quantity']" position="after">
+                <field name="qty_to_sale_store" type="measure"/>
+                <field name="incoming_qty_store" type="measure"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="quant_search_view_ext_inventory_advancement" model="ir.ui.view">
+        <field name="name">stock.quant.view.search.ext.advancement</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.quant_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_id']" position="before">
+                <field name="qty_to_sale_store"/>
+                <field name="incoming_qty_store"/>
+            </xpath>
+            <xpath expr="//filter[@name='company']" position="after">
+                <filter string="Available Quantity" name="qty_to_sale_store_groupby" domain="[]" context="{'group_by': 'qty_to_sale_store'}"/>
+                <filter string="Ordered Incoming Qty" name="incoming_qty_store_groupby" domain="[]" context="{'group_by': 'incoming_qty_store'}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
