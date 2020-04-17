@@ -16,7 +16,6 @@
     'data': [
             'views/sale_view.xml',
             'views/stock_view.xml',
-            'views/lot_view.xml'
              ],
     'qweb': [
         ],
