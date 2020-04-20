@@ -36,6 +36,6 @@
     'live_test_url': "https://youtu.be/LxxMoPpZrC4",
     'application': True,
     'license': 'LGPL-3',
-    'price': 25.00,
+    'price': 50.00,
     'currency': 'EUR',
 }

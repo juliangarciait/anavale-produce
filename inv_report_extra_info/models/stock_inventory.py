@@ -66,3 +66,15 @@ class StockQuant(models.Model):
             'context': {'default_quant_id': self.id, 'default_mode': 'picking'},
             'target': 'new',
         }
+
+    @api.model
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+        """ Override to handle the "inventory mode" and set the `inventory_quantity`
+        in view list grouped.
+        """
+        result = super(StockQuant, self).read_group(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
+        if self._is_inventory_mode():
+            for record in result:
+                record['qty_to_sale'] = record.get('qty_to_sale_store', 0)
+                record['incoming_qty'] = record.get('incoming_qty_store', 0)
+        return result
