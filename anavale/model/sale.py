@@ -11,7 +11,8 @@ class SaleOrder(models.Model):
         res = super(SaleOrder, self).action_confirm()
         
         for line in self.mapped('order_line').filtered(lambda line: line.lot_id):
-            res = line._get_lots(line.lot_id.id)
+            # Get avail for this lot ommiting this sale.order.line
+            res = line._get_lots(line.lot_id.id, sale_order_line=line.id)
             if line.product_uom_qty > res['quantity']:
                 raise UserError('Maximum %s units for selected Lot for Product %s!' % (res['quantity'], line.product_id.name))
         return res
@@ -55,10 +56,16 @@ class SaleOrderLine(models.Model):
 
         self.lot_available_sell = quantity
      
-    def _get_lots(self, lot_id=False):
+    def _get_lots(self, lot_id=False, sale_order_line=False):
         """ Compute lot availability including real in-stock,
             plus on-transit minus so already confirmed but
-            not yet delivered."""
+            not yet delivered.
+            Params:
+                lot_id: Integer stock.production.lot.id 
+                   get lots only for this lot,
+                   default False to get all lots
+                sale_order_line: Integer sale.order.line.id
+                  ommit this line when calculating avail """
         lot_ids = []        
         avail = {}
         quantity = 0.0        
@@ -74,6 +81,8 @@ class SaleOrderLine(models.Model):
         else:
             domain += [('lot_id', '!=', False)]
             so_domain += [('lot_id', '!=', False)]
+        if sale_order_line:
+            so_domain += [('id', '!=', sale_order_line)]
             
         # Quants already in stock
         for quant in self.env['stock.quant'].search(domain + [('location_id', 'child_of', self.order_id.warehouse_id.lot_stock_id.id)]):
