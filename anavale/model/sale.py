@@ -38,7 +38,8 @@ class SaleOrderLine(models.Model):
         if self.order_id.warehouse_id and self.product_id:
             res = self._get_lots()
             lot_ids = res['lot_ids']  
-
+            self.lot_id = False
+            
         return {
             'domain': {'lot_id': [('id', 'in', lot_ids)],
                        'lot_available_sell': 0.0 }
