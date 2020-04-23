@@ -24,3 +24,9 @@ class StockQuant(models.Model):
             for so in self.env['sale.order.line'].search(domain):
                 quant.sale_order_quantity += so.qty_to_deliver 
             quant.available_quantity = quant.quantity - quant.sale_order_quantity
+            
+    @api.model
+    def _quant_tasks(self):
+        res = super(StockQuant, self)._quant_tasks()
+        self.sudo().search([])._compute_sale_order_qty()
+        return res
