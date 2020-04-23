@@ -15,6 +15,7 @@
     'data': [
             'views/sale_view.xml',
             'views/stock_view.xml',
+            'views/stock_quant_view.xml',
              ],
     'demo': [],
     'test': [],
