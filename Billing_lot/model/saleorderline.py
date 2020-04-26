@@ -9,7 +9,7 @@ class SaleOrderLine(models.Model):
         if self.lot_id:
             domain = [('name', '=', self.lot_id.name)]
             res = self.env['account.analytic.tag'].search(domain)
-            self.analytic_tag_ids = [res]
+            self.analytic_tag_ids = res
 
     # @api.model
     # def create(self, vals_list):
