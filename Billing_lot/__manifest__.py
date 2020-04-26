@@ -12,10 +12,10 @@
     "email": 'apps@maisolutionsllc.com',
     "website":'http://maisolutionsllc.com/',
     'license': 'OPL-1',
-    'depends': ['account'],
+    'depends': ['account','sale_stock'],
     'data': [
-            'views/bill_view.xml',
-            'views/lot_view.xml'
+            # 'views/bill_view.xml',
+            # 'views/lot_view.xml'
              ],
     'qweb': [
         ],

@@ -1,2 +1,2 @@
-from . import accounting
+from . import saleorderline
 from . import lot
