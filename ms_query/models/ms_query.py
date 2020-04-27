@@ -34,9 +34,10 @@ class MsQuery(models.Model):
         if prefix == 'SELECT' :
             result = self._cr.fetchall()
             if result :
-                self.result = "//"
+                tmptext = ''
                 for line in result:
-                    self.result = (line, "//")
+                    tmptext += '{}'.format(line)
+                self.result = tmptext
             else :
                 self.result = "Data not found"
         elif prefix == 'UPDATE' :
