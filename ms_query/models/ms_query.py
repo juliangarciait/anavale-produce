@@ -19,7 +19,7 @@ class MsQuery(models.Model):
             raise Warning("Please set your timezone in Users menu.")
         return pytz.UTC.localize(datetime.now()).astimezone(timezone(self.env.user.tz))
     
-    @api.multi
+    #@api.multi
     def execute_query(self):
         if not self.name :
             return
