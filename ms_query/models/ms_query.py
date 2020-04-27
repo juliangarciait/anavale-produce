@@ -36,7 +36,7 @@ class MsQuery(models.Model):
             if result :
                 self.result = "//"
                 for line in result:
-                    self.result = line + "//"
+                    self.result = (line, "//")
             else :
                 self.result = "Data not found"
         elif prefix == 'UPDATE' :
