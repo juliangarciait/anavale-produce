@@ -97,7 +97,7 @@ class SaleOrderLine(models.Model):
         # Quants in sale.order with stock.picking not yet assigned nor done (this quants are not yet reserved)
         for so in self.env['sale.order.line'].search(so_domain):
             avail.setdefault(so.lot_id.id, {'lot': so.lot_id.id, 'qty': 0.0})
-            avail[so.lot_id.id]['qty'] -= so.qty_to_deliver 
+            avail[so.lot_id.id]['qty'] -= so._compute_real_qty_to_deliver()
          
         for lot in avail:
             if float_compare( avail[lot]['qty'], 0, precision_rounding=rounding) > 0:
@@ -105,3 +105,9 @@ class SaleOrderLine(models.Model):
                quantity += avail[lot]['qty']
         
         return {'lot_ids': lot_ids, 'quantity': quantity}
+        
+    def _compute_real_qty_to_deliver(self):
+        qty = self.qty_to_deliver
+        for move in self.move_ids.filtered(lambda q: q.state in ['cancel', 'draft']):
+            qty -= move.product_qty
+        return qty
