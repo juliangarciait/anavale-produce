@@ -110,4 +110,6 @@ class SaleOrderLine(models.Model):
         qty = self.qty_to_deliver
         for move in self.move_ids.filtered(lambda q: q.state in ['cancel', 'draft']):
             qty -= move.product_qty
+        if qty<0:
+            qty=0
         return qty
