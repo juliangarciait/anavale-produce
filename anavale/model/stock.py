@@ -1,9 +1,42 @@
+# -*- coding: utf-8 -*-
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 class Picking(models.Model):
     _inherit = "stock.picking"
     
+    quality_ids = fields.One2many('stock.quality.check', 'picking_id', 'Checks')
+    quality_count = fields.Integer(compute='_compute_quality_count')
+    quality_check_todo = fields.Boolean('Pending checks', compute='_compute_quality_check_todo')
+        
+    def _compute_quality_count(self):
+        for picking in self:
+            picking.quality_count = len(picking.quality_ids)
+            
+    def _compute_quality_check_todo(self):
+        for record in self:
+            order = self.env['purchase.order'].search([('name', '=', record.origin)])
+            warehouse = self.env['stock.warehouse'].search([('company_id', '=', record.company_id.id)], limit=1)
+            if warehouse and order and record.picking_type_id.code == 'internal' and record.location_dest_id == warehouse.lot_stock_id:
+                record.quality_check_todo = True
+            else:
+                record.quality_check_todo = False
+        
+    # def open_quality_check(self):
+        # """ Boton 'Quality Checks' """
+        # self.ensure_one()
+        
+        # action = self.env.ref('anavale.stock_quality_check_action').read()[0]
+        # action['context'] = dict(self._context, default_picking_id=self.id)
+        # if self.quality_count == 0:
+            # action['view_mode'] = 'form,tree'
+            # action['view_id'] = self.env.ref('anavale.stock_quality_check_view_form').id
+        # else:
+            # action['view_id'] = self.env.ref('anavale.stock_quality_check_view_tree').id
+            # # action['res_id'] = self.quality_ids
+            # action['domain'] = [('id', 'in', self.quality_ids)]
+        # return action
+
     def action_assign(self):
         res = super(Picking, self).action_assign()
         moves = self.mapped('move_lines').filtered(lambda move: move.lot_id)
