@@ -68,7 +68,7 @@
                     <tr>
                         <th name="th_description" class="text-left">Description</th>
                         <th name="th_quantity" class="text-right">Quantity</th>
-                        <th name="th_quantity" class="text-right">Lot</th>
+                        <th name="th_quantity" class="text-left">Lot</th>
                     </tr>
                 </thead>
                 <tbody class="sale_tbody">
