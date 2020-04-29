@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="assets_backend_1" name="dynamic_transparent_theme_1" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <script type="application/javascript" src="/percent_field/static/src/js/basic_fields.js"/>
+            <script type="application/javascript" src="/percent_field/static/src/js/field_utils_format.js"/>
+        </xpath>
+    </template>
+</odoo>
