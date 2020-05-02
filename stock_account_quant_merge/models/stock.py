@@ -8,7 +8,7 @@ from odoo import api, models
 class StockQuant(models.Model):
     _inherit = 'stock.quant'
 
-    @api.multi
+    #@api.multi
     def _mergeable_domain(self):
         domain = super(StockQuant, self)._mergeable_domain()
 
