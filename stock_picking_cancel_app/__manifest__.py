@@ -2,7 +2,7 @@
 {
     'name': 'Stock Picking Cancel and Reset',
     "author": "Edge Technologies",
-    'version': '13.0.1.3',
+    'version': '13.0.1.4',
     'live_test_url': "https://youtu.be/ZTdzRLz0Leo",
     "images":['static/description/main_screenshot.png'],
     'summary': "App Cancel stock picking order cancel delivery order cancel receipt cancel picking cancel internal transfer cancel internal picking cancel reset stock picking reset delivery reverse stock picking reverse delivery cancel Rectify stock picking reset picking",

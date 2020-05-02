@@ -232,10 +232,13 @@ class Inventory_picking(models.Model):
                         
                         in_move._action_done()
 
+
                         
+                        in_move.write({'picking_id' : False})
 
                         
                         
+
 
 
                     else :
@@ -292,6 +295,8 @@ class Inventory_picking(models.Model):
                         
                         
                         in_move._action_done()
+                        in_move.write({'picking_id' : False})
+
 
 
                 elif move.picking_id.picking_type_id.code == 'internal' :
