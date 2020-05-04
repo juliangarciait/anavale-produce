@@ -16,18 +16,74 @@ class SaleOrder(models.Model):
             so res.partner is not added as follower to the chatter."""
         return super(SaleOrder, self.with_context(add_chatter_autofollow=False)).action_quotation_sent()
         
+    # def action_confirm(self):
+        # """ Method for 'Confirm' Button, adds add_chatter_autofollow=False
+            # so res.partner is not added as follower to the chatter, also 
+            # makes sure lot still available before confirming."""
+        # res = super(SaleOrder, self.with_context(add_chatter_autofollow=False)).action_confirm()
+        
+        # for line in self.mapped('order_line').filtered(lambda line: line.lot_id):
+            # # Get avail for this lot ommiting this sale.order.line
+            # res = line._get_lots(line.lot_id.id, sale_order_line=line.id)
+            # if line.product_uom_qty > res['quantity']:
+                # raise UserError('Maximum %s units for selected Lot for Product %s!' % (res['quantity'], line.product_id.name))
+        # return res        
+                  
+    @api.model
+    def get_move_from_line(self, line):
+        move = self.env['stock.move']
+        # i create this counter to check lot's univocity on move line
+        lot_count = 0
+        for p in line.order_id.picking_ids:
+            for m in p.move_lines:
+                move_line_id = m.move_line_ids.filtered(
+                    lambda line: line.lot_id)
+                if move_line_id and line.lot_id == move_line_id[:1].lot_id:
+                    move = m
+                    lot_count += 1
+                    # if counter is 0 or > 1 means that something goes wrong
+                    if lot_count != 1:
+                        raise UserError(_('Can\'t retrieve lot on stock'))
+        return move
+
+    @api.model
+    def _check_move_state(self, line):
+        if line.lot_id:
+            move = self.get_move_from_line(line)
+            if move.state == 'confirmed':
+                move._action_assign()
+                move.refresh()
+            if move.state != 'assigned':
+                raise UserError(_('Can\'t reserve products for lot %s') %
+                                line.lot_id.name)
+        return True
+
+    # @api.multi
     def action_confirm(self):
         """ Method for 'Confirm' Button, adds add_chatter_autofollow=False
             so res.partner is not added as follower to the chatter, also 
             makes sure lot still available before confirming."""
-        res = super(SaleOrder, self.with_context(add_chatter_autofollow=False)).action_confirm()
-        
+        res = super(SaleOrder, self.with_context(sol_lot_id=True,add_chatter_autofollow=False))\
+            .action_confirm()
+        for line in self.order_line:
+            if line.lot_id:
+                unreserved_moves = line.move_ids.filtered(
+                    lambda move: move.product_uom_qty !=
+                    move.reserved_availability
+                )
+                if unreserved_moves:
+                    raise UserError(
+                        _('Can\'t reserve products for lot %s')
+                        % line.lot_id.name
+                    )
+            self._check_move_state(line)
+            
         for line in self.mapped('order_line').filtered(lambda line: line.lot_id):
             # Get avail for this lot ommiting this sale.order.line
             res = line._get_lots(line.lot_id.id, sale_order_line=line.id)
             if line.product_uom_qty > res['quantity']:
                 raise UserError('Maximum %s units for selected Lot for Product %s!' % (res['quantity'], line.product_id.name))
-        return res        
+        return res
         
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
@@ -46,7 +102,12 @@ class SaleOrderLine(models.Model):
         self._onchange_lot_id(self.product_uom_qty)
         if self.product_id and self.lot_id and self.product_uom_qty > self.lot_available_sell:
             raise UserError('Maximum %s units for selected Lot!' % self.lot_available_sell)
-            
+     
+    @api.onchange('product_id')
+    def product_id_change(self):
+        super(SaleOrderLine, self).product_id_change()
+        self.lot_id = False
+        
     @api.onchange('product_id')
     def _onchange_product_id_set_lot_domain(self):
         lot_ids = []
