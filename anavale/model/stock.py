@@ -59,11 +59,11 @@ class StockMove(models.Model):
                 vals.update({'lot_id': sale_line_id.lot_id.id})
         return super(StockMove, self).create(vals)
 
-    def write(self,vals):
-        res = super(StockMove, self).write(vals)
-        for rec in self:
-            if rec.sale_line_id and rec.picking_id and rec.lot_id and rec.move_line_ids and sum(rec.move_line_ids.mapped('qty_done')) == 0.0:
-                for line in rec.move_line_ids:
-                    line.lot_id = rec.lot_id.id
-                    line.qty_done = rec.product_uom_qty
-        return res
+    # def write(self,vals):
+        # res = super(StockMove, self).write(vals)
+        # for rec in self:
+            # if rec.sale_line_id and rec.picking_id and rec.lot_id and rec.move_line_ids and sum(rec.move_line_ids.mapped('qty_done')) == 0.0:
+                # for line in rec.move_line_ids:
+                    # line.lot_id = rec.lot_id.id
+                    # line.qty_done = rec.product_uom_qty
+        # return res
