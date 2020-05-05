@@ -54,8 +54,8 @@ class SaleOrder(models.Model):
                 move._action_assign()
                 move.refresh()
             if move.state != 'assigned':
-                raise UserError(_('Can\'t reserve products for lot %s') %
-                                line.lot_id.name)
+                raise UserError(_('Can\'t reserve products for lot %s [%s]') %
+                                (line.lot_id.name,move.state))
         return True
 
     # @api.multi
