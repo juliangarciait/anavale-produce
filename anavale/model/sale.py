@@ -28,7 +28,8 @@ class SaleOrder(models.Model):
             # if line.product_uom_qty > res['quantity']:
                 # raise UserError('Maximum %s units for selected Lot for Product %s!' % (res['quantity'], line.product_id.name))
         # return res        
-      @api.model
+  
+   @api.model
     def get_move_from_line(self, line):
         move = self.env["stock.move"]
         # i create this counter to check lot's univocity on move line
