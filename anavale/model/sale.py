@@ -52,12 +52,10 @@ class SaleOrder(models.Model):
             move = self.get_move_from_line(line)
             if move.state == "confirmed":
                 move._action_assign()
-                raise UserError(_('_action_assign %s') %
-                                move.id)
                 move.refresh()
             if move.state != "assigned":
                 raise UserError(
-                    _("11 Can't reserve products for lot %s") % line.lot_id.name
+                    _("Can't reserve products for lot %s") % line.lot_id.name
                 )
         return True
 
@@ -76,7 +74,7 @@ class SaleOrder(models.Model):
                 )
                 if unreserved_moves:
                     raise UserError(
-                        _("22 Can't reserve products for lot %s") % line.lot_id.name
+                        _("Can't reserve products for lot %s") % line.lot_id.name
                     )
             self._check_move_state(line)
         return True

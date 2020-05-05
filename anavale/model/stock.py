@@ -97,3 +97,11 @@ class StockMove(models.Model):
         if reserved_quant and self.sale_line_id:
             vals["lot_id"] = self.sale_line_id.lot_id.id
         return vals
+        
+        
+    def _action_assign(self):
+        raise UserError("FILTERED %s") % self.filtered(lambda m: m.state in ['confirmed', 'waiting', 'partially_available']))
+    
+        res = super()._action_assign()
+        
+        return res
