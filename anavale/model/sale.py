@@ -73,8 +73,8 @@ class SaleOrder(models.Model):
                 )
                 if unreserved_moves:
                     raise UserError(
-                        _('Can\'t reserve products for lot %s [%s]')
-                        % (line.lot_id.name, line.move_ids)
+                        _('Can\'t reserve products for lot %s [%s unreserved_moves=%s lot=%s]')
+                        % (line.lot_id.name, line.move_ids,unreserved_moves,unreserved_moves[0].lot_id.name )
                     )
             self._check_move_state(line)
             
