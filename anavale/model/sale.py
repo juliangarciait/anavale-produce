@@ -32,7 +32,7 @@ class SaleOrder(models.Model):
     @api.model
     def get_move_from_line(self, line):
         move = self.env["stock.move"]
-        # i create this counter to check lot's univocity on move lines
+        # i create this counter to check lot's univocity on move line
         lot_count = 0
         for m in line.order_id.picking_ids.mapped("move_lines"):
             move_line_id = m.move_line_ids.filtered(lambda line: line.lot_id)
@@ -52,6 +52,8 @@ class SaleOrder(models.Model):
             move = self.get_move_from_line(line)
             if move.state == "confirmed":
                 move._action_assign()
+                raise UserError(_('_action_assign %s') %
+                                move.id)
                 move.refresh()
             if move.state != "assigned":
                 raise UserError(
