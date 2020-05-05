@@ -60,7 +60,7 @@ class SaleOrder(models.Model):
         return True
 
     def action_confirm(self):
-        res = super(SaleOrder, self.with_context(sol_lot_id=True)).action_confirm()
+        res = super(SaleOrder, self.with_context(sol_lot_id=True, skip_check_lot_selection_qty=True)).action_confirm()
         self._check_related_moves()
         return res
 
