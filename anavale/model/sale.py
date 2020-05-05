@@ -60,24 +60,24 @@ class SaleOrder(models.Model):
         return True
 
     def action_confirm(self):
-        res = super(SaleOrder, self.with_context(sol_lot_id=True)).action_confirm()
+        res = super(SaleOrder, self).action_confirm()
         # self._check_related_moves()
         return res
 
-    def _check_related_moves(self):
-        if self.env.context.get("skip_check_lot_selection_qty", False):
-            return True
-        for line in self.order_line:
-            if line.lot_id:
-                unreserved_moves = line.move_ids.filtered(
-                    lambda move: move.product_uom_qty != move.reserved_availability
-                )
-                if unreserved_moves:
-                    raise UserError(
-                        _("Can not reserve products for lot %s") % line.lot_id.name
-                    )
-            self._check_move_state(line)
-        return True
+    # def _check_related_moves(self):
+        # if self.env.context.get("skip_check_lot_selection_qty", False):
+            # return True
+        # for line in self.order_line:
+            # if line.lot_id:
+                # unreserved_moves = line.move_ids.filtered(
+                    # lambda move: move.product_uom_qty != move.reserved_availability
+                # )
+                # if unreserved_moves:
+                    # raise UserError(
+                        # _("Can not reserve products for lot %s") % line.lot_id.name
+                    # )
+            # self._check_move_state(line)
+        # return True
         
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
