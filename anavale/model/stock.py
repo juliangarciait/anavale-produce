@@ -99,9 +99,9 @@ class StockMove(models.Model):
         return vals
         
         
-    def _action_assign(self):
-        raise UserError("FILTERED %s" % self.filtered(lambda m: m.state in ['confirmed', 'waiting', 'partially_available']))
+    # def _action_assign(self):
+        # raise UserError("FILTERED %s" % self.filtered(lambda m: m.state in ['confirmed', 'waiting', 'partially_available']))
     
-        res = super(StockMove, self)._action_assign()
+        # res = super(StockMove, self)._action_assign()
         
-        return res
+        # return res
