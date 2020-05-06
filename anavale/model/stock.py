@@ -38,6 +38,9 @@ class Picking(models.Model):
         # return action
 
     def action_assign(self):
+        """ Confirma que todos los stock.move.line
+            correspondan con los lotes del stock.move,
+            el cual a su vez es el mismo que el sale.order"""
         res = super(Picking, self).action_assign()
         moves = self.mapped('move_lines').filtered(lambda move: move.lot_id)
         if self.picking_type_id.code == 'outgoing' and moves:
@@ -59,11 +62,39 @@ class StockMove(models.Model):
                 vals.update({'lot_id': sale_line_id.lot_id.id})
         return super(StockMove, self).create(vals)
 
-    def write(self,vals):
-        res = super(StockMove, self).write(vals)
-        for rec in self:
-            if rec.sale_line_id and rec.picking_id and rec.lot_id and rec.move_line_ids and sum(rec.move_line_ids.mapped('qty_done')) == 0.0:
-                for line in rec.move_line_ids:
-                    line.lot_id = rec.lot_id.id
-                    line.qty_done = rec.product_uom_qty
-        return res
+    # def write(self,vals):
+        # res = super(StockMove, self).write(vals)
+        # for rec in self:
+            # if rec.sale_line_id and rec.picking_id and rec.lot_id and rec.move_line_ids and sum(rec.move_line_ids.mapped('qty_done')) == 0.0:
+                # for line in rec.move_line_ids:
+                    # line.lot_id = rec.lot_id.id
+                    # line.qty_done = line.product_uom_qty #rec.product_uom_qty
+        # return res
+
+    def _update_reserved_quantity(
+        self,
+        need,
+        available_quantity,
+        location_id,
+        lot_id=None,
+        package_id=None,
+        owner_id=None,
+        strict=True,
+    ):
+        return super()._update_reserved_quantity(
+            need,
+            available_quantity,
+            location_id,
+            lot_id=self.sale_line_id.lot_id,
+            package_id=package_id,
+            owner_id=owner_id,
+            strict=strict,
+        )
+
+    def _prepare_move_line_vals(self, quantity=None, reserved_quant=None):
+        vals = super()._prepare_move_line_vals(
+            quantity=quantity, reserved_quant=reserved_quant
+        )
+        if reserved_quant and self.sale_line_id:
+            vals["lot_id"] = self.sale_line_id.lot_id.id
+        return vals
