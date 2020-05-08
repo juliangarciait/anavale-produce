@@ -1,8 +1,8 @@
 {
-    'name': 'Billing Lot',
+    'name': 'Sale report with lots',
     'version': '13.0.2',
     'category': 'Sales Management',
-    'summary': 'Agrega la opcion de seleccionar lote en el billing para seguimiento en el lote',
+    'summary': 'Agrega la opcion de seleccionar lote reporte de ventas',
     'description': """ Automatically lot number in inventory form Sale Order
     """,
     'price': 10,

@@ -7,9 +7,12 @@ class SaleOrderLine(models.Model):
     @api.onchange('lot_id')
     def _onchange_lot_sel_account(self):
         if self.lot_id:
-            domain = [('name', '=', self.lot_id.name)]
+            domain = [('name', '=', self.lot_id.name[2:12])]
             res = self.env['account.analytic.tag'].search(domain)
             self.analytic_tag_ids = res
+
+
+
 
     # @api.model
     # def create(self, vals_list):

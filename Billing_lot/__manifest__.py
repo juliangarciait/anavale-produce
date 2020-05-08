@@ -15,6 +15,8 @@
     'depends': ['account','sale_stock'],
     'data': [
             # 'views/bill_view.xml',
+            #'view/sale_report_views.xml',
+
             # 'views/lot_view.xml'
              ],
     'qweb': [

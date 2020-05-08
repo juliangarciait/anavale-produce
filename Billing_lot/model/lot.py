@@ -9,10 +9,13 @@ class LotDatos(models.Model):
         for lot in res:
             if not lot['ref']:
                 lot['ref'] = 'ORG'
+            tag_lot = lot.name[2:12]
             vals = {
-                'name':lot.name
+                'name': tag_lot
             }
-            self.env['account.analytic.tag'].create(vals)
+            account_tag = self.env['account.analytic.tag'].search([('name', '=', tag_lot),])
+            if not account_tag:
+                self.env['account.analytic.tag'].create(vals)
         return res
 
 #     ExtBills = fields.One2many('account.move', 'LotId', help='bill en este lote')
