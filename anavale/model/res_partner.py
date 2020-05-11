@@ -13,16 +13,16 @@ class ResPartner(models.Model):
     #   ('lot_code_prefix_uniq', 'unique (lot_code_prefix)', "This Lot Code Prefix is already used in another Vendor!.")
     #]
     
-    def action_create_vendor_sequence(self):
-        self.ensure_one()
-        if not self.lot_code_prefix:
-            raise ValidationError('Enter "Lot Code" and try again!')
-        data = {'name': 'Vendor Lot Sequence - %s' % self.lot_code_prefix,
-                'code': 'production.lot.%s.sequence' % self.lot_code_prefix.lower(),
-                'prefix': '%(y)s-',
-                'padding': 4 }
-        seq = self.env['ir.sequence'].create(data)
-        self.sequence_id = seq.id
+    #def action_create_vendor_sequence(self):
+    #    self.ensure_one()
+    #    if not self.lot_code_prefix:
+    #        raise ValidationError('Enter "Lot Code" and try again!')
+    #    data = {'name': 'Vendor Lot Sequence - %s' % self.lot_code_prefix,
+    #            'code': 'production.lot.%s.sequence' % self.lot_code_prefix.lower(),
+    #            'prefix': '%(y)s-',
+    #            'padding': 4 }
+    #    seq = self.env['ir.sequence'].create(data)
+    #    self.sequence_id = seq.id
 
     def action_change_vendor_sequence(self):
         wiz = self.env['partner.sequence.change.wizard'].create({'partner_id': self.id, 'sequence_id': self.sequence_id.id})
