@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models
 from odoo.exceptions import UserError
+from odoo.tools.float_utils import float_compare, float_is_zero
 
 class Picking(models.Model):
     _inherit = "stock.picking"
@@ -8,7 +9,20 @@ class Picking(models.Model):
     quality_ids = fields.One2many('stock.quality.check', 'picking_id', 'Checks')
     quality_count = fields.Integer(compute='_compute_quality_count')
     quality_check_todo = fields.Boolean('Pending checks', compute='_compute_quality_check_todo')
-        
+    create_lot_name = fields.Boolean('Create Lot Names', default=True)
+    display_create_lot_name = fields.Boolean(compute='_compute_display_create_lot_name')
+           
+    @api.depends('state', 'picking_type_id', 
+        'partner_id.sequence_id','partner_id.lot_code_prefix', 'location_dest_id')
+    def _compute_display_create_lot_name(self):
+        for picking in self:
+            picking.display_create_lot_name = (
+                # picking.partner_id.sequence_id and
+                # picking.partner_id.lot_code_prefix and
+                picking.picking_type_id.code == 'incoming' and 
+                picking.state not in ('done', 'cancel') 
+            )
+             
     def _compute_quality_count(self):
         for picking in self:
             picking.quality_count = len(picking.quality_ids)
@@ -22,21 +36,6 @@ class Picking(models.Model):
             else:
                 record.quality_check_todo = False
         
-    # def open_quality_check(self):
-        # """ Boton 'Quality Checks' """
-        # self.ensure_one()
-        
-        # action = self.env.ref('anavale.stock_quality_check_action').read()[0]
-        # action['context'] = dict(self._context, default_picking_id=self.id)
-        # if self.quality_count == 0:
-            # action['view_mode'] = 'form,tree'
-            # action['view_id'] = self.env.ref('anavale.stock_quality_check_view_form').id
-        # else:
-            # action['view_id'] = self.env.ref('anavale.stock_quality_check_view_tree').id
-            # # action['res_id'] = self.quality_ids
-            # action['domain'] = [('id', 'in', self.quality_ids)]
-        # return action
-
     def action_assign(self):
         """ Confirma que todos los stock.move.line
             correspondan con los lotes del stock.move,
@@ -49,6 +48,66 @@ class Picking(models.Model):
                     raise UserError('Only same %s Lot allowed to deliver for product %s!' % (ml.move_id.lot_id.name, ml.product_id.name))        
         return res      
  
+    def button_validate(self):
+        """ Si es necesario crea lotes """
+        picking_type = self.picking_type_id
+        precision_digits = self.env['decimal.precision'].precision_get('Product Unit of Measure')
+        no_quantities_done = all(float_is_zero(move_line.qty_done, precision_digits=precision_digits) for move_line in self.move_line_ids.filtered(lambda m: m.state not in ('done', 'cancel')))
+        no_reserved_quantities = all(float_is_zero(move_line.product_qty, precision_rounding=move_line.product_uom_id.rounding) for move_line in self.move_line_ids)
+        # if no_reserved_quantities and no_quantities_done:
+            # raise UserError(_('You cannot validate a transfer if no quantites are reserved nor done. To force the transfer, switch in edit more and encode the done quantities.'))
+
+        if self.display_create_lot_name and self.create_lot_name: # and not (no_reserved_quantities and no_quantities_done): # and (picking_type.use_create_lots or picking_type.use_existing_lots):
+            lines_to_check = self.move_line_ids
+            if not no_quantities_done:
+                lines_to_check = lines_to_check.filtered(
+                    lambda line: float_compare(line.qty_done, 0,
+                                               precision_rounding=line.product_uom_id.rounding)
+                )
+            #se calcula el numero de lote, se cambio aqui para mantenga el mismo numero
+            next_number = self.env['ir.sequence'].next_by_code('production.lot.%s.sequence' % self.partner_id.lot_code_prefix.lower())
+            for line in lines_to_check:
+                product = line.product_id
+                if product and product.tracking != 'none':
+                    if not line.lot_name and not line.lot_id:
+                        lot_name = self.get_next_lot_name(line.product_id, line.picking_id, next_number)
+                        
+                        lot = self.env['stock.production.lot'].create(
+                            {'name': lot_name, 'product_id': line.product_id.id, 'company_id': line.move_id.company_id.id}
+                        )
+                        line.write({'lot_name': lot.name, 'lot_id': lot.id})
+
+        return super().button_validate()
+    
+    def get_next_lot_name(self, product_id, picking_id, next_number):
+        """ Method called by button "Create Lot Numbers", it automatically
+            generates Lot names based on:
+            - product.template.lot_code_prefix: 2 integers
+            - res.partner.lot_code_prefix: 3 letters
+            - Two digits Year
+            - One dash "-"
+            - res.partner.sequence.id: 4 integers sequence
+            - product.product.variant: 2-3 chrs
+            
+            Samples: 02LMX20-0001#230
+                     02FDP20-0016#230 """
+        if not product_id.product_tmpl_id.lot_code_prefix:        
+            raise UserError('Enter Product [%s] Lot Code and try again!.' % product_id.name)     
+        if not picking_id.partner_id.lot_code_prefix:        
+            raise UserError('Enter Vendor [%s] Lot Code and try again!.' % picking_id.partner_id.name)       
+        if not picking_id.partner_id.sequence_id:        
+            raise UserError('Assing a sequence to Vendor [%s] and try again!.' % picking_id.partner_id.name)             
+        #next_number = self.env['ir.sequence'].next_by_code('production.lot.%s.sequence' % picking_id.partner_id.lot_code_prefix.lower())
+        try:   #revisa si la variante es numero y agrega simbolo antes del numero
+            attribute = int(product_id.product_template_attribute_value_ids[0].product_attribute_value_id.name)
+            attribute = '#%s' % (str(attribute))
+        except ValueError:
+            attribute = product_id.product_template_attribute_value_ids[0].product_attribute_value_id.name
+        return '%s%s%s%s' % (product_id.product_tmpl_id.lot_code_prefix, 
+                picking_id.partner_id.lot_code_prefix,
+                next_number,
+                attribute)
+                
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
@@ -83,7 +142,7 @@ class StockMove(models.Model):
     ):
         if self._context.get('sol_lot_id'):
             lot_id = self.sale_line_id.lot_id
-            
+                      
         return super()._update_reserved_quantity(
             need,
             available_quantity,

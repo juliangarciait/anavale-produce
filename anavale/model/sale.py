@@ -15,20 +15,7 @@ class SaleOrder(models.Model):
         """ Metodo heredado to adds add_chatter_autofollow=False
             so res.partner is not added as follower to the chatter."""
         return super(SaleOrder, self.with_context(add_chatter_autofollow=False)).action_quotation_sent()
-        
-    # def action_confirm(self):
-        # """ Method for 'Confirm' Button, adds add_chatter_autofollow=False
-            # so res.partner is not added as follower to the chatter, also 
-            # makes sure lot still available before confirming."""
-        # res = super(SaleOrder, self.with_context(add_chatter_autofollow=False)).action_confirm()
-        
-        # for line in self.mapped('order_line').filtered(lambda line: line.lot_id):
-            # # Get avail for this lot ommiting this sale.order.line
-            # res = line._get_lots(line.lot_id.id, sale_order_line=line.id)
-            # if line.product_uom_qty > res['quantity']:
-                # raise UserError('Maximum %s units for selected Lot for Product %s!' % (res['quantity'], line.product_id.name))
-        # return res        
-  
+   
     @api.model
     def get_move_from_line(self, line):
         move = self.env["stock.move"]
