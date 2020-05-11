@@ -5,6 +5,7 @@ from odoo.exceptions import ValidationError
 class ResPartner(models.Model):
     _inherit = "res.partner"
     
+    lot_code_prefix = fields.Char()
     #lot_code_prefix = fields.Char('Lot Code', help='Code used to compute automatic Lot Numbers, 3 letters.', size=3)
     sequence_id = fields.Many2one('ir.sequence', string='Lot Sequence',
         help="This field contains the information related to the numbering of the Lots purchased to this Vendor", copy=False)
