@@ -7,7 +7,7 @@
         <field name="inherit_id" ref="stock.view_partner_stock_form"/>
         <field name="arch" type="xml">       
             <!-- Lot code -->      
-            <xpath expr="//group[@name='container_row_stock']" position="inside">
+            <xpath expr="//group[@name='misc']" position="inside">
                 <group string="Lots" name="lots" colspan="2">
                     <field name="lot_code_prefix" attrs="{'invisible': [('type', '!=', 'contact')]}"/>
                     <field name="sequence_id" />

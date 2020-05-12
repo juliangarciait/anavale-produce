@@ -98,15 +98,20 @@ class Picking(models.Model):
         if not picking_id.partner_id.sequence_id:        
             raise UserError('Assing a sequence to Vendor [%s] and try again!.' % picking_id.partner_id.name)             
         #next_number = self.env['ir.sequence'].next_by_code('production.lot.%s.sequence' % picking_id.partner_id.lot_code_prefix.lower())
-        try:   #revisa si la variante es numero y agrega simbolo antes del numero
-            attribute = int(product_id.product_template_attribute_value_ids[0].product_attribute_value_id.name)
-            attribute = '#%s' % (str(attribute))
-        except ValueError:
-            attribute = product_id.product_template_attribute_value_ids[0].product_attribute_value_id.name
-        return '%s%s%s%s' % (product_id.product_tmpl_id.lot_code_prefix, 
-                picking_id.partner_id.lot_code_prefix,
-                next_number,
-                attribute)
+        if len(product_id.product_template_attribute_value_ids) == 0:
+            return '%s%s%s' % (product_id.product_tmpl_id.lot_code_prefix,
+                                 picking_id.partner_id.lot_code_prefix,
+                                 next_number)
+        else:
+            try:   #revisa si la variante es numero y agrega simbolo antes del numero
+                attribute = int(product_id.product_template_attribute_value_ids[0].product_attribute_value_id.name)
+                attribute = '#%s' % (str(attribute))
+            except ValueError:
+                attribute = product_id.product_template_attribute_value_ids[0].product_attribute_value_id.name
+            return '%s%s%s%s' % (product_id.product_tmpl_id.lot_code_prefix,
+                                 picking_id.partner_id.lot_code_prefix,
+                                 next_number,
+                                 attribute)
                 
 class StockMove(models.Model):
     _inherit = 'stock.move'
