@@ -10,7 +10,7 @@ class ResPartner(models.Model):
         help="This field contains the information related to the numbering of the Lots purchased to this Vendor", copy=False)
     
     _sql_constraints = [
-        ('lot_code_prefix_uniq', 'unique (lot_code_prefix)', "This Lot Code Prefix is already used in another Vendor!.")
+       ('lot_code_prefix_uniq', 'unique (lot_code_prefix)', "This Lot Code Prefix is already used in another Vendor!.")
     ]
     
     def action_create_vendor_sequence(self):
@@ -23,7 +23,7 @@ class ResPartner(models.Model):
                 'padding': 4 }
         seq = self.env['ir.sequence'].create(data)
         self.sequence_id = seq.id
-        
+
     def action_change_vendor_sequence(self):
         wiz = self.env['partner.sequence.change.wizard'].create({'partner_id': self.id, 'sequence_id': self.sequence_id.id})
         return {'type': 'ir.actions.act_window',
