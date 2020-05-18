@@ -16,7 +16,7 @@ class LotData(models.Model):
                 lot['ref'] = 'ORG'
             # busqueda de elementos del account tag
             lot_name = lot.name
-            vendor_prefix_idx = [x.isdigit() for x in lot_name].index(True)  # inicio del vendor
+            vendor_prefix_idx = [x.isalpha() for x in lot_name].index(True)  # inicio del vendor
             vendor_prefix_len = [x.isdigit() for x in lot_name[vendor_prefix_idx:]].index(
                 True)  # encuentra los caracteres del vendor pueden ser 2 o 3
             tag_lot = lot_name[vendor_prefix_idx: (
