@@ -4,7 +4,7 @@ from odoo import api, fields, models
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
-    @api.onchange('lot_id')
+    @api.onchange('lot_id', 'product_id')
     def _onchange_lot_sel_account(self):
         if self.lot_id:
             #domain = [('name', '=', self.lot_id.account_tag_id)]

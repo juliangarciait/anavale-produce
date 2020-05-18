@@ -64,12 +64,12 @@ class Picking(models.Model):
                     lambda line: float_compare(line.qty_done, 0,
                                                precision_rounding=line.product_uom_id.rounding)
                 )
-
+            next_number = self.env['ir.sequence'].next_by_code('production.lot.%s.sequence' % self.partner_id.lot_code_prefix.lower())
             for line in lines_to_check:
                 product = line.product_id
                 if product and product.tracking != 'none':
                     if not line.lot_name and not line.lot_id:
-                        lot_name = self.get_next_lot_name(line.product_id, line.picking_id)
+                        lot_name = self.get_next_lot_name(line.product_id, line.picking_id, next_number)
                         
                         lot = self.env['stock.production.lot'].create(
                             {'name': lot_name, 'product_id': line.product_id.id, 'company_id': line.move_id.company_id.id}
@@ -78,7 +78,7 @@ class Picking(models.Model):
 
         return super().button_validate()
     
-    def get_next_lot_name(self, product_id, picking_id):
+    def get_next_lot_name(self, product_id, picking_id, next_number):
         """ Method called by button "Create Lot Numbers", it automatically
             generates Lot names based on:
             - product.template.lot_code_prefix: 2 integers
@@ -97,12 +97,22 @@ class Picking(models.Model):
         if not picking_id.partner_id.sequence_id:        
             raise UserError('Assing a sequence to Vendor [%s] and try again!.' % picking_id.partner_id.name)             
         next_number = self.env['ir.sequence'].next_by_code('production.lot.%s.sequence' % picking_id.partner_id.lot_code_prefix.lower())
-        
-        return '%s%s%s%s' % (product_id.product_tmpl_id.lot_code_prefix, 
-                picking_id.partner_id.lot_code_prefix,
-                next_number,
-                product_id.product_template_attribute_value_ids[0].product_attribute_value_id.name)
-                
+        if len(product_id.product_template_attribute_value_ids) == 0:
+            return '%s%s%s' % (product_id.product_tmpl_id.lot_code_prefix,
+                                 picking_id.partner_id.lot_code_prefix,
+                                 next_number)
+        else:
+            try:   #revisa si la variante es numero y agrega simbolo antes del numero
+                attribute = int(product_id.product_template_attribute_value_ids[0].product_attribute_value_id.name)
+                attribute = '#%s' % (str(attribute))
+            except ValueError:
+                attribute = product_id.product_template_attribute_value_ids[0].product_attribute_value_id.name
+            return '%s%s%s%s' % (product_id.product_tmpl_id.lot_code_prefix,
+                                 picking_id.partner_id.lot_code_prefix,
+                                 next_number,
+                                 attribute)
+
+                                 
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
