@@ -23,6 +23,9 @@ class LotData(models.Model):
                         vendor_prefix_idx + vendor_prefix_len + 7)]  # se saca determina nombre para tag venxx-xxxx
             account_tag = self.env['account.analytic.tag'].search([('name', '=', tag_lot)])  # busca account_tag
             if not account_tag:
-                account_tag = self.env['account.analytic.tag'].create([('name', '=', tag_lot)])  # si no existe la crea
+                vals = {
+                    'name': tag_lot
+                        }
+                account_tag = self.env['account.analytic.tag'].create([vals)  # si no existe la crea
             lot.account_tag_id = account_tag
         return res
