@@ -1,7 +1,5 @@
 from odoo import api, fields, models
 
-from odoo import api, fields, models
-
 
 class LotData(models.Model):
     _inherit = 'stock.production.lot'
@@ -11,8 +9,8 @@ class LotData(models.Model):
                                      copy=False)
 
     @api.model
-    def create(self):
-        res = super(LotData, self).create()
+    def create(self, vals_list):
+        res = super(LotData, self).create(vals_list)
         for lot in res:
             if not lot['ref']:
                 lot['ref'] = 'ORG'
