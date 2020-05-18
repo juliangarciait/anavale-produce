@@ -26,6 +26,6 @@ class LotData(models.Model):
                 vals = {
                     'name': tag_lot
                         }
-                account_tag = self.env['account.analytic.tag'].create([vals)  # si no existe la crea
+                account_tag = self.env['account.analytic.tag'].create(vals)  # si no existe la crea
             lot.account_tag_id = account_tag
         return res
