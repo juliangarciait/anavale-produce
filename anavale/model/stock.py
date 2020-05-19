@@ -64,7 +64,6 @@ class Picking(models.Model):
                     lambda line: float_compare(line.qty_done, 0,
                                                precision_rounding=line.product_uom_id.rounding)
                 )
-            #se calcula el numero de lote, se cambio aqui para mantenga el mismo numero
             next_number = self.env['ir.sequence'].next_by_code('production.lot.%s.sequence' % self.partner_id.lot_code_prefix.lower())
             for line in lines_to_check:
                 product = line.product_id
@@ -97,7 +96,7 @@ class Picking(models.Model):
             raise UserError('Enter Vendor [%s] Lot Code and try again!.' % picking_id.partner_id.name)       
         if not picking_id.partner_id.sequence_id:        
             raise UserError('Assing a sequence to Vendor [%s] and try again!.' % picking_id.partner_id.name)             
-        #next_number = self.env['ir.sequence'].next_by_code('production.lot.%s.sequence' % picking_id.partner_id.lot_code_prefix.lower())
+        next_number = self.env['ir.sequence'].next_by_code('production.lot.%s.sequence' % picking_id.partner_id.lot_code_prefix.lower())
         if len(product_id.product_template_attribute_value_ids) == 0:
             return '%s%s%s' % (product_id.product_tmpl_id.lot_code_prefix,
                                  picking_id.partner_id.lot_code_prefix,
@@ -112,7 +111,8 @@ class Picking(models.Model):
                                  picking_id.partner_id.lot_code_prefix,
                                  next_number,
                                  attribute)
-                
+
+                                 
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
@@ -145,7 +145,7 @@ class StockMove(models.Model):
         owner_id=None,
         strict=True,
     ):
-        if self._context.get('sol_lot_id'):
+        if self.sale_line_id and self.sale_line_id.lot_id and self.product_id and self.product_id.tracking == 'lot':
             lot_id = self.sale_line_id.lot_id
                       
         return super()._update_reserved_quantity(
