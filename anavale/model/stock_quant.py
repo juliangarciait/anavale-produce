@@ -17,17 +17,18 @@ class StockQuant(models.Model):
     def _compute_sale_order_qty(self):
         for quant in self.sudo():        
             domain = [('product_id', '=', quant.product_id.id),
-                # ('qty_to_deliver', '>', 0),
+                ('qty_to_deliver', '>', 0),
                 ('order_id.state', '=', 'sale'),
                 ('lot_id', '=', quant.lot_id.id)]
                 
-            sale_order_quantity = 0    
-            for sol in self.env['sale.order.line'].search(domain):
-                # sale_order_quantity += sol._compute_real_qty_to_deliver() 
+            quant.sale_order_quantity = 0    
+            for so in self.env['sale.order.line'].search(domain):
+                quant.sale_order_quantity += so._compute_real_qty_to_deliver() 
                 # sol._compute_qty_delivered()
-                sale_order_quantity += sol.product_uom_qty - sol.qty_delivered
-            available_quantity = quant.quantity - sale_order_quantity
-            quant.write({'sale_order_quantity': sale_order_quantity, 'available_quantity': available_quantity})
+            quant.available_quantity = quant.quantity - quant.sale_order_quantity
+            #     sale_order_quantity += sol.product_uom_qty - sol.qty_delivered
+            # available_quantity = quant.quantity - sale_order_quantity
+            # quant.write({'sale_order_quantity': sale_order_quantity, 'available_quantity': available_quantity})
 
     @api.model
     def _quant_tasks(self):
