@@ -23,7 +23,7 @@ class StockQuant(models.Model):
                 
             quant.sale_order_quantity = 0    
             for so in self.env['sale.order.line'].search(domain):
-                sale_order_quantity += so._compute_real_qty_to_deliver() 
+                quant.sale_order_quantity += so._compute_real_qty_to_deliver() 
                 # sol._compute_qty_delivered()
             quant.available_quantity = quant.quantity - quant.sale_order_quantity
             #     sale_order_quantity += sol.product_uom_qty - sol.qty_delivered
