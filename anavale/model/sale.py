@@ -106,7 +106,10 @@ class SaleOrderLine(models.Model):
     def _onchange_lot_id(self, qty=0.0):
         quantity = 0.0
         if self.lot_id:
-            res = self._get_lots(self.lot_id.id)
+            if len(self.ids)>0:
+                res = self._get_lots(self.lot_id.id,self.ids[0])
+            else:
+                res = self._get_lots(self.lot_id.id)
             quantity = res['quantity']
             self.product_uom_qty = qty
 
