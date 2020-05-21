@@ -129,7 +129,7 @@ class SaleOrderLine(models.Model):
         
         domain = [('product_id', '=', self.product_id.id), ('quantity', '>', 0)]
         so_domain = [('product_id', '=', self.product_id.id),
-            # ('qty_to_deliver', '>', 0),
+            ('qty_to_deliver', '>', 0),
             ('order_id.state', '=', 'sale')]
         if lot_id:
             domain += [('lot_id', '=', lot_id)]
@@ -153,8 +153,8 @@ class SaleOrderLine(models.Model):
         # Quants in sale.order with stock.picking not yet assigned nor done (this quants are not yet reserved)
         for so in self.env['sale.order.line'].search(so_domain):
             avail.setdefault(so.lot_id.id, {'lot': so.lot_id.id, 'qty': 0.0})
-            # avail[so.lot_id.id]['qty'] -= so._compute_real_qty_to_deliver()
-            avail[so.lot_id.id]['qty'] -= so.qty_to_deliver
+            avail[so.lot_id.id]['qty'] -= so._compute_real_qty_to_deliver()
+            #avail[so.lot_id.id]['qty'] -= so.qty_to_deliver
          
         for lot in avail:
             if float_compare( avail[lot]['qty'], 0, precision_rounding=rounding) > 0:
@@ -169,10 +169,10 @@ class SaleOrderLine(models.Model):
     # cuando estos esten relacionados al sale.order y pertenezcan al mismo producto y lote.
     # TBD mantener liga stock.move.sale_line_id y stock.move.lot_id cuando el stock.picking
     # se crea manualmente viniendo de un sale.order
-    # def _compute_real_qty_to_deliver(self):
-        # qty = self.qty_to_deliver
-        # for move in self.move_ids.filtered(lambda q: q.state in ['cancel', 'draft']):
-            # qty -= move.product_qty
-        # if qty<0:
-            # qty=0
-        # return qty
+    def _compute_real_qty_to_deliver(self):
+        qty = self.qty_to_deliver
+        for move in self.move_ids.filtered(lambda q: q.state in ['cancel', 'draft']):
+            qty -= move.product_qty
+        if qty<0:
+            qty=0
+        return qty
