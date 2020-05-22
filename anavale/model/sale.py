@@ -80,7 +80,7 @@ class SaleOrderLine(models.Model):
 
     @api.onchange('product_uom_qty')
     def onchange_quantity(self):
-        self._onchange_lot_id(self.product_uom_qty)
+        self._onchange_lot_id(self.product_uom_qty, self._origin.id)
         if self.product_id and self.lot_id and self.product_uom_qty > self.lot_available_sell:
             raise UserError('Maximum %s units for selected Lot!' % self.lot_available_sell)
      
@@ -103,13 +103,10 @@ class SaleOrderLine(models.Model):
         }    
         
     @api.onchange('lot_id')
-    def _onchange_lot_id(self, qty=0.0):
+    def _onchange_lot_id(self, qty=0.0, sale_order_line=False):
         quantity = 0.0
         if self.lot_id:
-            if len(self.ids)>0:
-                res = self._get_lots(self.lot_id.id,self.ids[0])
-            else:
-                res = self._get_lots(self.lot_id.id)
+            res = self._get_lots(self.lot_id.id,sale_order_line)
             quantity = res['quantity']
             self.product_uom_qty = qty
 
@@ -132,7 +129,7 @@ class SaleOrderLine(models.Model):
         
         domain = [('product_id', '=', self.product_id.id), ('quantity', '>', 0)]
         so_domain = [('product_id', '=', self.product_id.id),
-            ('qty_to_deliver', '>', 0),
+            # ('qty_to_deliver', '>', 0),
             ('order_id.state', '=', 'sale')]
         if lot_id:
             domain += [('lot_id', '=', lot_id)]
