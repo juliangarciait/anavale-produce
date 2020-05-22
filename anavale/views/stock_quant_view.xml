@@ -7,6 +7,8 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='reserved_quantity']" position="after">
                 <field name="sale_order_quantity"/>
+                <button name="call_view_sale_order" attrs="{'invisible': [('sale_order_quantity', '&lt;=', 0)]}"  
+                        string="View Sale Order" type="object" class="oe_highlight"/>   
                 <field name="available_quantity"/>
             </xpath>
         </field>
@@ -20,8 +22,6 @@
             <xpath expr="//field[@name='quantity']" position="after">
                 <field name="sale_order_quantity"/>
                 <field name="available_quantity"/>
-                <button name="call_view_sale_order" attrs="{'invisible': [('sale_order_quantity', '&lt;=', 0)]}"  
-                        string="View Sale Order" type="object" class="oe_highlight"/>   
             </xpath>
         </field>
     </record>
