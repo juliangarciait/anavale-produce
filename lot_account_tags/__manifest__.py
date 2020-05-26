@@ -17,7 +17,8 @@
             # 'views/bill_view.xml',
             #'view/sale_report_views.xml',
 
-            'views/lot_view.xml'
+            'views/lot_view.xml',
+            'views/product_view.xml',
              ],
     'qweb': [
         ],
