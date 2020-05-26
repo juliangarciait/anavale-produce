@@ -17,3 +17,10 @@ class AccountMoveLine(models.Model):
         for line in rec:
             if line.product_id:
                 line.analytic_account_id = line.product_id.product_tmpl_id.analytic_account_id
+
+    @api.model
+    def create(self, vals):
+        rec = super(AccountMoveLine, self).create(vals)
+        for line in rec:
+            if line.product_id:
+                line.analytic_account_id = line.product_id.product_tmpl_id.analytic_account_id
