@@ -10,8 +10,7 @@ class SaleOrderLine(models.Model):
             #domain = [('name', '=', self.lot_id.account_tag_id)]
             #res = self.env['account.analytic.tag'].search(domain)
             self.analytic_tag_ids = self.lot_id.account_tag_id
-        if self.product_template_id:
-            self.analytic_line_ids  = self.product_template_id.analytic_account_id
+
 
 
 
