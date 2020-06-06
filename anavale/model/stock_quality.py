@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+
+from odoo.exceptions import ValidationError
 from odoo import api, fields, models
 
 class StockQualityCheck(models.Model):
@@ -6,6 +8,7 @@ class StockQualityCheck(models.Model):
     _description = "Stock Quality Control"
     
     name = fields.Char('Name', readonly=True, compute='_compute_name', store=True)
+    template_id = fields.Many2one('stock.quality.template', 'Template')  
     picking_id = fields.Many2one('stock.picking', 'Picking', readonly=True)  
     product_id = fields.Many2one(
         'product.product', 'Product',
@@ -43,21 +46,24 @@ class StockQualityCheck(models.Model):
         }    
         
     @api.onchange('product_id')
-    def _onchange_product_id_set_lot_domain(self):
+    def _onchange_product_id(self):
         lot_ids = []
         for line in self.picking_id.move_line_ids_without_package.filtered(lambda q: q.product_id == self.product_id):
             lot_ids.append(line.lot_id.id)
-            
+        
+        templates = self.env['stock.quality.template'].search([]).filtered(lambda t: t.default or self.product_id.id in t.product_ids.ids )
+        
         return {
-            'domain': {'lot_id': [('id', 'in', lot_ids)] }
+            'domain': {'lot_id': [('id', 'in', lot_ids)] ,
+                       'template_id': [('id', 'in', templates.mapped('id'))] }
         }              
         
 class StockQualityCheckLine(models.Model):
     _name = 'stock.quality.check.line'
     _description = "Stock Quality Control Line"
         
-    brand = fields.Char('Brand/Product')      
     quality_id = fields.Many2one('stock.quality.check', 'Quality Control Reference', index=True)  
+    template_id = fields.Many2one('stock.quality.template', related="quality_id.template_id")  
     weight = fields.Float(string='Weight', digits='Product Unit of Measure', default=0.0)
     count = fields.Integer(string='Count')    
     point_ids = fields.One2many('stock.quality.check.point', 'line_id', string="Quality Points")
@@ -85,13 +91,39 @@ class StockQualityCheckPoint(models.Model):
     _name = 'stock.quality.check.point'
     _description = "Stock Quality Control Check Points"
     
-    line_id = fields.Many2one('stock.quality.check.line', 'Quality Line Reference')  
-    point_id = fields.Many2one('stock.quality.point', string='Name', ondelete='restrict')
-    value = fields.Integer(string='Value')  
-    percentaje = fields.Percent(string='Percentaje')   
+    def _get_point_id_domain(self):
+        template_id = self.env.context.get('default_template_id', False)
+        if template_id:
+            template_rec = self.env['stock.quality.template'].browse(template_id)
+            
+            return [('id', 'in', template_rec.mapped('point_ids').mapped('id'))]
+        return []
         
-    @api.onchange('value')
+    line_id = fields.Many2one('stock.quality.check.line', 'Quality Line Reference')  
+    point_id = fields.Many2one('stock.quality.point', string='Name', ondelete='restrict', required=True, domain=lambda self:self._get_point_id_domain())
+    type = fields.Selection(related='point_id.type')
+    value_int = fields.Integer(' ', help="Value if type Integer or Percentaje")  
+    value_str = fields.Char(' ', help="Value if type String")
+    value_boolean = fields.Boolean(' ', help="Selection if type Boolean")
+    percentaje = fields.Percent(string='Percentaje')   
+    help = fields.Char('Help', help="Type of value required for this quality point")
+  
+    @api.onchange('point_id')
+    def _onchange_point_id(self):  
+        if self.point_id.type == 'percentaje':
+            self.help = 'Enter the number of ocurrences (integer), percentaje will be automatically calculated.'
+        if self.point_id.type == 'integer':
+            self.help = 'Enter the number of ocurrences (integer).'
+        if self.point_id.type == 'boolean':
+            self.help = 'Toggle Yes/No the button.'
+            
+    @api.onchange('value_int')
     def _onchange_picking_id(self):
         for record in self:
-            if record.value and record.line_id.count > 0:
-                record.percentaje = int((record.value * 100) / record.line_id.count)
+            count = self.env.context.get('count', False)
+            if record.type == 'integer' and count and record.value_int > count:
+                raise ValidationError("Number must be less than or equal to %s" % count)
+            
+            elif record.value_int and record.type == 'percentaje' and record.line_id.count > 0:
+                record.percentaje = int((record.value_int * 100) / record.line_id.count)
+             

@@ -12,6 +12,7 @@
                 <field name="date"/>
                 <field name="product_id" />
                 <field name="lot_id"/>
+                <field name="template_id"/>
                 <field name="responsible_id"/>
             </tree>
         </field>
@@ -31,18 +32,20 @@
                         <field name="date"/>
                         <field name="product_id" options="{'no_create': True}" required="1"/>
                         <field name="lot_id" options="{'no_create': True}" required="1"/>
+                        <field name="template_id" options="{'no_create': True}" required="1"/>
                         <field name="responsible_id"/>
                     </group>
                     <notebook>
                         <page string="Products">
                             <field name="quality_lines"> 
                                 <tree string="Quality Checks" class="tree_no_open" editable="bottom" >
-                                    <field name="brand"/>
                                     <field name="weight"/>
                                     <field name="count"/>     
                                     <field name="size"/>     
+                                    <field name="template_id" invisible="1"/>     
                                     <button name="action_open_quality_points" 
                                             string="Quality Points"
+                                            context="{'default_template_id': template_id}"
                                             type="object" 
                                             icon="fa-star"/>  
                                 </tree>
@@ -64,18 +67,25 @@
             <form>
                 <sheet>
                     <group>
-                        <field name="brand"/>
                         <field name="weight"/>
                         <field name="count"/>     
                         <field name="size"/>     
+                        <field name="template_id" invisible="1"/>     
                     </group>
                     <notebook>
-                        <page string="Products">
-                            <field name="point_ids"> 
+                        <page string="Quality Checks">
+                            <field name="point_ids" context="{'default_template_id': template_id, 'count': count}"> 
                                 <tree string="Quality Checks Points" class="tree_no_open" editable="bottom" >                                   
                                     <field name="point_id"/>
-                                    <field name="value"/>
-                                    <field name="percentaje" readonly="1" force_save="1"/>
+                                    <field name="type" invisible="1"/>
+                                    <field name="value_int" 
+                                           attrs="{'invisible': [('type', 'not in', ('integer','percentaje'))], 'required': [('type', 'in', ('integer','percentaje'))]}" />
+                                    <field name="value_str" 
+                                           attrs="{'invisible': [('type', '!=', 'string')], 'required': [('type', '=', 'string')]}" />
+                                    <field name="value_boolean" widget="boolean_toggle"
+                                           attrs="{'invisible': [('type', '!=', 'boolean')], 'required': [('type', '=', 'boolean')]}" />
+                                    <field name="percentaje" readonly="1" force_save="1" attrs="{'invisible': [('type', '!=', 'percentaje')]}" />
+                                    <field name="help" readonly="1" />
                                 </tree>
                             </field>  
                         </page>
@@ -93,6 +103,7 @@
             <tree>
                 <field name="sequence" widget="handle" />
                 <field name="name"/>
+                <field name="type"/>
             </tree>
         </field>
     </record>
@@ -106,6 +117,7 @@
                 <sheet>
                     <group>
                         <field name="name"/>
+                        <field name="type"/>
                         <field name="sequence" invisible="1"/>
                     </group>
                 </sheet>
@@ -113,18 +125,51 @@
         </field>
     </record>    
     
+    <!-- "Stock Quality Template" Form View -->
+    <record id="stock_quality_template_view_form" model="ir.ui.view">
+        <field name="name">stock.quality.template.view.form</field>
+        <field name="model">stock.quality.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="point_ids" widget="many2many_tags"/>
+                        <field name="product_ids" widget="many2many_tags"/>
+                        <field name="default"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+      
     <!-- Stock Quality Check Point Menu item and action -->
     <record id="action_stock_quality_check_point" model="ir.actions.act_window">
-        <field name="name">Stock Quality Check Point</field>
+        <field name="name">Stock Quality Check Points</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">stock.quality.point</field>
         <field name="view_mode">tree,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Create a new Sotck Quality Check Point
+                Create a new Stock Quality Check Point
             </p>
         </field>
     </record>
     <menuitem id="menu_stock_quality_point" name="Stock Quality Points" action="action_stock_quality_check_point"
-        parent="stock.menu_stock_config_settings" sequence="1"/>
+        parent="stock.menu_stock_config_settings" sequence="10"/>
+      
+    <!-- Stock Quality Check Template Menu item and action -->
+    <record id="action_stock_quality_template" model="ir.actions.act_window">
+        <field name="name">Stock Quality Templates</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">stock.quality.template</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Stock Quality Template
+            </p>
+        </field>
+    </record>
+    <menuitem id="menu_stock_quality_template" name="Stock Quality Templates" action="action_stock_quality_template"
+        parent="stock.menu_stock_config_settings" sequence="20"/>
 </odoo>
