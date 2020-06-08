@@ -15,7 +15,23 @@ class SaleOrder(models.Model):
         """ Metodo heredado to adds add_chatter_autofollow=False
             so res.partner is not added as follower to the chatter."""
         return super(SaleOrder, self.with_context(add_chatter_autofollow=False)).action_quotation_sent()
-   
+
+    def action_confirm(self):
+        lines = self.order_line
+        for line in lines:
+            if not line.lot_id:
+                raise UserError("Can't confirm without lot ")
+        self.check_still_quantity()
+        res = super(SaleOrder, self).action_confirm()
+        return res
+
+    def check_still_quantity(self):
+        for line in self.order_line:
+            line._onchange_lot_id(qty=line.product_uom_qty, sale_order_line=line.order_id.id)
+            if line.product_id and line.lot_id and line.product_uom_qty > line.lot_available_sell:
+                raise UserError('Maximum {} units for selected Lot {}! Please update before tried again'.format(
+                    str(line.lot_available_sell), line.lot_id.name))
+
     # @api.model
     # def get_move_from_line(self, line):
         # move = self.env["stock.move"]
@@ -65,6 +81,7 @@ class SaleOrder(models.Model):
                     # )
             # self._check_move_state(line)
         # return True
+
         
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
@@ -176,3 +193,15 @@ class SaleOrderLine(models.Model):
         if qty<0:
             qty=0
         return qty
+
+    def create(self, vals):
+        so = vals[0]['order_id']
+        so = self.env['sale.order'].browse(so)
+        if so.state == 'sale':
+            for line in vals:
+                try:
+                    if not line['lot_id']:
+                        raise UserError("Can't create line without lot")
+                except:
+                    raise UserError("Can't create line without lot")
+        res = super(SaleOrderLine, self).create(vals)
