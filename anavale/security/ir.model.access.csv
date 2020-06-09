@@ -3,3 +3,4 @@ access_stock_quality_check,stock.quality.check.manager,anavale.model_stock_quali
 access_stock_quality_check_line,stock.quality.check.line.manager,anavale.model_stock_quality_check_line,base.group_user,1,1,1,1
 access_stock_quality_check_point,stock.quality.check.point.manager,anavale.model_stock_quality_check_point,base.group_user,1,1,1,1
 access_stock_quality_point,stock.quality.point.manager,anavale.model_stock_quality_point,base.group_user,1,1,1,1
+access_stock_quality_template,stock.quality.template.manager,anavale.model_stock_quality_template,base.group_user,1,1,1,1

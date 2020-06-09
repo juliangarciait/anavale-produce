@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from odoo.exceptions import ValidationError
 from odoo import api, fields, models
 
 class StockQualityPoint(models.Model):
@@ -15,3 +14,9 @@ class StockQualityPoint(models.Model):
         
     name = fields.Char('Name',required=True)
     sequence = fields.Integer(default=_default_sequence_id, help="Sequence")  
+    type = fields.Selection([
+        ('percentaje', 'Percentaje'),
+        ('integer', 'Integer'),
+        ('boolean', 'Boolean')], default='percentaje', required=True, help="What kind of Quality Point this is?.")
+        
+        

@@ -29,8 +29,9 @@ class SaleOrder(models.Model):
         for line in self.order_line:
             line._onchange_lot_id(qty=line.product_uom_qty, sale_order_line=line.order_id.id)
             if line.product_id and line.lot_id and line.product_uom_qty > line.lot_available_sell:
-                raise UserError('Maximum {} units for selected Lot {}! Please update before tried again'.format(str(line.lot_available_sell), line.lot_id.name))
-   
+                raise UserError('Maximum {} units for selected Lot {}! Please update before tried again'.format(
+                    str(line.lot_available_sell), line.lot_id.name))
+
     # @api.model
     # def get_move_from_line(self, line):
         # move = self.env["stock.move"]
@@ -80,6 +81,7 @@ class SaleOrder(models.Model):
                     # )
             # self._check_move_state(line)
         # return True
+
         
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
