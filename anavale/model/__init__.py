@@ -7,3 +7,4 @@ from . import stock_quality
 from . import stock_quality_point
 from . import stock_quality_template
 from . import mail_thread
+#from . import lot
