@@ -7,6 +7,7 @@ class LotData(models.Model):
     account_tag_id = fields.Many2one('account.analytic.tag', string='Accounting Tag',
                                      help="This field contains the information related to the account tag for this lot",
                                      copy=False)
+    qb_class = fields.Char(help="qb class")
 
     @api.model
     def create(self, vals_list):
@@ -28,4 +29,8 @@ class LotData(models.Model):
                         }
                 account_tag = self.env['account.analytic.tag'].create(vals)  # si no existe la crea
             lot.account_tag_id = account_tag
+            #agregar qb class
+            post_class = lot_name[0:(lot_name.find('-')-2)]
+            pre_class = '{}-18'.format(post_class[0:2])
+            lot['qb_class'] = '{}:{}'.format(pre_class, post_class)
         return res

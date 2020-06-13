@@ -64,7 +64,7 @@
         <field name="name">stock.quality.check.line.view.form</field>
         <field name="model">stock.quality.check.line</field>
         <field name="arch" type="xml">
-            <form>
+            <form create="0">
                 <sheet>
                     <group>
                         <field name="weight"/>
@@ -78,10 +78,9 @@
                                 <tree string="Quality Checks Points" class="tree_no_open" editable="bottom" >                                   
                                     <field name="point_id"/>
                                     <field name="type" invisible="1"/>
-                                    <field name="value_int" 
-                                           attrs="{'invisible': [('type', 'not in', ('integer','percentaje'))], 'required': [('type', 'in', ('integer','percentaje'))]}" />
-                                    <field name="value_str" 
-                                           attrs="{'invisible': [('type', '!=', 'string')], 'required': [('type', '=', 'string')]}" />
+                                    <!-- Value for intenger/float/percentaje/string (Excepto boolean)-->
+                                    <field name="value" 
+                                           attrs="{'invisible': [('type', '=', 'boolean')], 'required': [('type', '!=', 'boolean')]}" />                                   
                                     <field name="value_boolean" widget="boolean_toggle"
                                            attrs="{'invisible': [('type', '!=', 'boolean')], 'required': [('type', '=', 'boolean')]}" />
                                     <field name="percentaje" readonly="1" force_save="1" attrs="{'invisible': [('type', '!=', 'percentaje')]}" />

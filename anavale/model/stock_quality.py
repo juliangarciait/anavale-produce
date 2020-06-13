@@ -102,8 +102,7 @@ class StockQualityCheckPoint(models.Model):
     line_id = fields.Many2one('stock.quality.check.line', 'Quality Line Reference')  
     point_id = fields.Many2one('stock.quality.point', string='Name', ondelete='restrict', required=True, domain=lambda self:self._get_point_id_domain())
     type = fields.Selection(related='point_id.type')
-    value_int = fields.Integer(' ', help="Value if type Integer or Percentaje")  
-    value_str = fields.Char(' ', help="Value if type String")
+    value = fields.Char(' ', help="Value")
     value_boolean = fields.Boolean(' ', help="Selection if type Boolean")
     percentaje = fields.Percent(string='Percentaje')   
     help = fields.Char('Help', help="Type of value required for this quality point")
@@ -114,16 +113,33 @@ class StockQualityCheckPoint(models.Model):
             self.help = 'Enter the number of ocurrences (integer), percentaje will be automatically calculated.'
         if self.point_id.type == 'integer':
             self.help = 'Enter the number of ocurrences (integer).'
+        if self.point_id.type == 'float':
+            self.help = 'Enter the a number.'
+        if self.point_id.type == 'string':
+            self.help = 'Enter the value.'
         if self.point_id.type == 'boolean':
             self.help = 'Toggle Yes/No the button.'
-            
-    @api.onchange('value_int')
+                   
+    @api.onchange('value')
     def _onchange_picking_id(self):
         for record in self:
+            value = record.value
             count = self.env.context.get('count', False)
-            if record.type == 'integer' and count and record.value_int > count:
+            if record.type in ('integer', 'percentaje'):
+                try:
+                    value = int(value)
+                except:
+                    raise ValidationError("You have to enter an integer!")
+                
+            if record.type == 'float':
+                try:
+                    value = float(value)
+                except:
+                    raise ValidationError("You have to enter an integer or number with decimals!")
+                    
+            if record.type == 'integer' and count and value > count:
                 raise ValidationError("Number must be less than or equal to %s" % count)
             
-            elif record.value_int and record.type == 'percentaje' and record.line_id.count > 0:
-                record.percentaje = int((record.value_int * 100) / record.line_id.count)
+            elif value and record.type == 'percentaje' and record.line_id.count > 0:
+                record.percentaje = int((value * 100) / record.line_id.count)
              

@@ -17,6 +17,8 @@ class StockQualityPoint(models.Model):
     type = fields.Selection([
         ('percentaje', 'Percentaje'),
         ('integer', 'Integer'),
+        ('float', 'Float'),
+        ('string', 'String'),
         ('boolean', 'Boolean')], default='percentaje', required=True, help="What kind of Quality Point this is?.")
         
         
