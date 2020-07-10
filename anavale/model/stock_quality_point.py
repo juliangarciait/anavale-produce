@@ -32,7 +32,7 @@ class StockQualityPoint(models.Model):
             value = point.value
             
         elif self.type == 'float':
-            value = "{:.2f}".format(point.value)
+            value = "{:.2f}".format(float(point.value))
                         
         elif self.type == 'boolean':
             value = 'Yes' if point.value_boolean else 'No'

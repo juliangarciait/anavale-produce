@@ -5,8 +5,8 @@
 
         <t t-call="web.html_container">
             <t t-call="web.external_layout">
-                <t t-set="o" t-value="o.with_context(lang=o.partner_id.lang)"/>
-                <t t-set="partner" t-value="o.picking_id.partner_id or False"/>
+                <t t-set="o" t-value="o.with_context(lang='en_US')"/>
+                <t t-set="partner" t-value="o.partner_id or user.partner_id or False"/>
                 <t t-if="partner" name="partner_header">
                     <t t-set="address">
                         <div t-esc="partner" t-options="{&quot;widget&quot;: &quot;contact&quot;, &quot;fields&quot;: [&quot;address&quot;, &quot;name&quot;, &quot;phone&quot;], &quot;no_marker&quot;: True}"/>
@@ -17,7 +17,7 @@
                     <div class="row mt32 mb32">
                         <div class="col-auto" name="div_vendor">
                             <strong>Vendor:</strong>
-                            <p t-field="o.picking_id.partner_id.name"/>
+                            <p t-if="o.partner_id" t-field="o.partner_id.name"/>
                         </div>
                         <div class="col-auto" name="div_name">
                             <strong>Name:</strong>
@@ -51,25 +51,6 @@
 									<span t-esc="val"/>
 								</td>
                             </tr>
-                            <!-- <tr t-foreach="o.quality_lines" t-as="line"> -->
-                                <!-- <td><span t-field="line.weight"/></td> -->
-                                <!-- <td><span t-field="line.count"/></td> -->
-                                <!-- <td><span t-field="line.size"/></td>			 -->
-								<!-- <td t-foreach="line.point_ids" t-as="point"> -->
-									<!-- <t t-if="point.type != 'percentaje' and point.type != 'boolean'">  -->
-										<!-- <span t-field="point.value"/> -->
-									<!-- </t> -->
-									<!-- <t t-if="point.type == 'boolean' and point.value_boolean">  -->
-										<!-- <span>Yes</span> -->
-									<!-- </t> -->
-									<!-- <t t-if="point.type == 'boolean' and not point.value_boolean">  -->
-										<!-- <span>No</span> -->
-									<!-- </t> -->
-									<!-- <t t-if="point.type == 'percentaje'">  -->
-										<!-- <span t-field="point.percentaje"/> -->
-									<!-- </t> -->
-								<!-- </td> -->
-                            <!-- </tr> -->
                         </tbody>
                     </table>
                     <div class="row mt32 mb32">
@@ -86,7 +67,7 @@
 
     <template id="report_quality_check">
         <t t-foreach="docs" t-as="o">
-            <t t-call="anavale.report_quality_check_document" t-lang="o.partner_id.lang"/>
+            <t t-call="anavale.report_quality_check_document" t-lang="'en_US'"/>
         </t>
     </template>
 
