@@ -58,6 +58,25 @@ class StockQualityCheck(models.Model):
                        'template_id': [('id', 'in', templates.mapped('id'))] }
         }              
         
+    def get_print_lines(self):
+        lines = []
+        
+        # Loop thru all Check Lines
+        for ql in self.quality_lines:
+            line = [ql.weight, ql.count,ql.size.upper()]
+            
+            # Loop thru all Template Points
+            for tmpl_point in self.template_id.point_ids:
+                point = ql.point_ids.filtered(lambda q: q.point_id.id == tmpl_point.id)
+                if point:
+                    line.append(point.point_id._report_format_value(point))
+                else:
+                    line.append('')
+                    
+            lines.append(line)
+            
+        return lines
+    
 class StockQualityCheckLine(models.Model):
     _name = 'stock.quality.check.line'
     _description = "Stock Quality Control Line"

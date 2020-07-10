@@ -21,4 +21,23 @@ class StockQualityPoint(models.Model):
         ('string', 'String'),
         ('boolean', 'Boolean')], default='percentaje', required=True, help="What kind of Quality Point this is?.")
         
+    def _report_format_value(self, point):
+        """ Format value for PDF report"""
+        
+        if self.type == 'percentaje':
+            percentaje = float(point.percentaje) / 100
+            value = "{:.2%}".format(percentaje)
+            
+        elif self.type in ('integer', 'string'):
+            value = point.value
+            
+        elif self.type == 'float':
+            value = "{:.2f}".format(point.value)
+                        
+        elif self.type == 'boolean':
+            value = 'Yes' if point.value_boolean else 'No'
+            
+        return value
+
+
         

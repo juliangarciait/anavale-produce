@@ -29,9 +29,9 @@ class Picking(models.Model):
             
     def _compute_quality_check_todo(self):
         for record in self:
-            order = self.env['purchase.order'].search([('name', '=', record.origin)])
+            #order = self.env['purchase.order'].search([('name', '=', record.origin)])
             warehouse = self.env['stock.warehouse'].search([('company_id', '=', record.company_id.id)], limit=1)
-            if warehouse and order and record.picking_type_id.code == 'internal' and record.location_dest_id == warehouse.lot_stock_id:
+            if warehouse and record.picking_type_id.code == 'internal' and record.location_dest_id == warehouse.lot_stock_id:
                 record.quality_check_todo = True
             else:
                 record.quality_check_todo = False

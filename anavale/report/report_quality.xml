@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <template id="report_quality_check_document">
+
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <t t-set="o" t-value="o.with_context(lang=o.partner_id.lang)"/>
+                <t t-set="partner" t-value="o.picking_id.partner_id or False"/>
+                <t t-if="partner" name="partner_header">
+                    <t t-set="address">
+                        <div t-esc="partner" t-options="{&quot;widget&quot;: &quot;contact&quot;, &quot;fields&quot;: [&quot;address&quot;, &quot;name&quot;, &quot;phone&quot;], &quot;no_marker&quot;: True}"/>
+                   </t>
+                </t>
+
+                <div class="page">
+                    <div class="row mt32 mb32">
+                        <div class="col-auto" name="div_vendor">
+                            <strong>Vendor:</strong>
+                            <p t-field="o.picking_id.partner_id.name"/>
+                        </div>
+                        <div class="col-auto" name="div_name">
+                            <strong>Name:</strong>
+                            <p t-field="o.name"/>
+                        </div>
+                        <div class="col-auto" name="div_lot">
+                            <strong>Lot:</strong>
+                            <p t-field="o.lot_id.name"/>
+                        </div>
+                        <div class="col-auto" name="div_date">
+                            <strong>Date:</strong>
+                            <p t-field="o.date" t-options="{&quot;widget&quot;: &quot;date&quot;}"/>
+                        </div>
+                    </div>
+                    
+                    <table class="table table-sm mt48" name="quality_line_table">
+                        <t t-set="template" t-value="o.template_id" />
+                        <thead>
+                            <tr>	
+                                <th name="th_weight"><strong>Weight</strong></th>							
+                                <th name="th_count"><strong>Count</strong></th>							
+                                <th name="th_size"><strong>Size</strong></th>							
+								<th t-foreach="template.point_ids" t-as="point">
+									<strong><span t-field="point.name"/></strong>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="o.get_print_lines()" t-as="line">
+								<td t-foreach="line" t-as="val">
+									<span t-esc="val"/>
+								</td>
+                            </tr>
+                            <!-- <tr t-foreach="o.quality_lines" t-as="line"> -->
+                                <!-- <td><span t-field="line.weight"/></td> -->
+                                <!-- <td><span t-field="line.count"/></td> -->
+                                <!-- <td><span t-field="line.size"/></td>			 -->
+								<!-- <td t-foreach="line.point_ids" t-as="point"> -->
+									<!-- <t t-if="point.type != 'percentaje' and point.type != 'boolean'">  -->
+										<!-- <span t-field="point.value"/> -->
+									<!-- </t> -->
+									<!-- <t t-if="point.type == 'boolean' and point.value_boolean">  -->
+										<!-- <span>Yes</span> -->
+									<!-- </t> -->
+									<!-- <t t-if="point.type == 'boolean' and not point.value_boolean">  -->
+										<!-- <span>No</span> -->
+									<!-- </t> -->
+									<!-- <t t-if="point.type == 'percentaje'">  -->
+										<!-- <span t-field="point.percentaje"/> -->
+									<!-- </t> -->
+								<!-- </td> -->
+                            <!-- </tr> -->
+                        </tbody>
+                    </table>
+                    <div class="row mt32 mb32">
+                        <div class="col-auto" name="div_vendor">
+                            <strong>Responsible:</strong>
+                            <p t-field="o.responsible_id"/>
+                        </div>
+                    </div>
+                </div>
+            </t>
+         </t>
+    
+    </template>
+
+    <template id="report_quality_check">
+        <t t-foreach="docs" t-as="o">
+            <t t-call="anavale.report_quality_check_document" t-lang="o.partner_id.lang"/>
+        </t>
+    </template>
+
+</odoo>

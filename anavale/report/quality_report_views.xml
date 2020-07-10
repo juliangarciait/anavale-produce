@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <report
+            string="Quality Report"
+            id="action_report_picking"
+            model="stock.quality.check"
+            report_type="qweb-pdf"
+            name="anavale.report_quality_check"
+            file="anavale.report_quality_check"
+			paperformat="paperformat_quality_landscape"
+            print_report_name="'Quality Report - %s - %s' % (object.lot_id.name or '', object.name)"
+        />
+    </data>
+</odoo>
