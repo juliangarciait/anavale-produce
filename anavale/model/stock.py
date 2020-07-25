@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
-from odoo import api, fields, models
+from odoo import api, fields, models,_
 from odoo.exceptions import UserError
 from odoo.tools.float_utils import float_compare, float_is_zero
+from itertools import groupby
+import logging
+_logger = logging.getLogger(__name__)
 
 class Picking(models.Model):
     _inherit = "stock.picking"
@@ -76,7 +79,168 @@ class Picking(models.Model):
                         )
                         line.write({'lot_name': lot.name, 'lot_id': lot.id})
 
+        #Check lot Traceability
+        try:
+            is_iconsistent = self.sync_moves_with_sale_order()
+        except Exception as e:
+            raise UserError(_("Please check the following: %s" % str(e)))
+        if is_iconsistent:
+            return is_iconsistent
         return super().button_validate()
+
+
+    def search_inconsistencies(self):
+        list_setted_moves = []
+        is_inconsistency = False
+        for line in self.move_line_ids:
+            move_id = False
+            for move in self.move_lines:
+                if (line.lot_id == move.lot_id
+                        and move.id not in list_setted_moves):
+                    list_setted_moves.append(move.id)
+                    move_id = move
+                    break
+            if not move_id:
+                is_inconsistency = True
+        return is_inconsistency
+
+
+    def sync_moves_with_sale_order(self):
+        """
+            From the moves_lines_ids
+            The necessary stock moves are generated
+            to separate by Lot
+            @param: self : stock.picking ref
+
+        """
+        #analizar si hay inconsistencias
+        list_setted_moves = []
+        is_inconsistency = self.search_inconsistencies()
+        if is_inconsistency:
+            #Inconsistency, FIX SO.
+            order_id_ref = self.sale_id
+            list_ids_to_recreate = self.get_list_new_quotation()
+            self.action_cancel()
+            #Clear Delivery
+            self.move_lines.sudo().unlink()
+            self.move_line_ids.sudo().unlink()
+            self.move_line_ids_without_package.unlink()
+            self.move_line_nosuggest_ids.unlink()
+            #Order fix
+            order_id_ref.action_unlock()
+            order_id_ref.action_cancel()
+            order_id_ref.action_draft()
+            # Serching first Tax on Company
+            domain = [('company_id', '=', order_id_ref.company_id.id)]
+            tax_id_id = order_id_ref.env['account.tax'].sudo().search(domain, limit=1).id
+            for line in order_id_ref.order_line:
+                if line.tax_id:
+                    tax_id_id = line.tax_id.id
+                    order_id_ref.order_line.unlink()
+                    break
+            #Set new orderlines
+            self.create_sale_order_lines(order_id_ref, tax_id_id, list_ids_to_recreate)
+            order_id_ref.action_confirm()
+            #return refresh stock.picking
+            return self.custom_action_return_view_form(order_id_ref)
+        return False
+
+
+
+
+    def custom_action_return_view_form(self, sale_id):
+        domain = [('sale_id','=',sale_id.id),('state','=','confirmed')]
+        sp = self.env['stock.picking'].sudo().search(domain)
+        if sp:
+            try:
+                form_view_id = self.env.ref("stock.view_picking_form").id
+            except Exception as e:
+                form_view_id = False
+            return {
+                'type': 'ir.actions.act_window',
+                'name': 'My Action Name',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'stock.picking',
+                'views': [(form_view_id, 'form')],
+                'target': 'current',
+            }
+
+    def get_list_new_quotation(self):
+        list = []
+        for lines in self.move_line_ids:
+            vals = {
+                'product_id': lines.product_id.id,
+                'name': lines.product_id.name,
+                'order_id': self.sale_id.id,
+                'lot_id': lines.lot_id.id,
+                'product_uom': lines.product_id.uom_id.id,
+                'product_uom_qty': lines.qty_done
+            }
+            list.append(vals)
+        return list
+
+    def create_sale_order_lines(self,sale_id,tax_id,list_ids):
+        line_env = self.env['sale.order.line']
+        for item in list_ids:
+            new_line = line_env.sudo().create([{
+                'product_id': item.get('product_id'),
+                'name': item.get('name'),
+                'order_id': sale_id.id,
+                'lot_id': item.get('lot_id'),
+                'tax_id': [[6, False, [tax_id]]],
+                'product_uom': item.get('product_uom'),
+                'product_uom_qty': item.get('product_uom_qty'),
+            }])
+
+
+
+
+
+
+    def create_sale_order_line_from_line_move(self, line_by_lot):
+        """
+            Create new sale.order.line associated
+            to sale_id
+            @param: self : stock.picking ref
+            @param: line_by_lot : stock.move.line
+        """
+        line_env = self.env['sale.order.line']
+        self.sale_id.sudo().write({'state': 'sale'})
+        vals = {
+            'product_id': line_by_lot.product_id.id,
+            'name': line_by_lot.product_id.name,
+            'order_id': self.sale_id.id,
+            'lot_id' : line_by_lot.lot_id.id,
+            'product_uom': line_by_lot.product_id.uom_id.id}
+        new_line = line_env.create([vals])
+        self.sale_id.sudo().write({'state': 'done'})
+        # Calling an onchange method to update the record
+        new_line.product_id_change()
+        return new_line
+
+
+
+    def create_stock_move_from_line_move(self, line_by_lot, sale_order_line):
+        """
+            Create new stock.move associated
+            to stock.picking and sale.order.line
+            @param: self : stock.picking ref
+            @param: line_by_lot : stock.move.line
+        """
+        return self.env['stock.move'].create({
+            'name': line_by_lot.product_id.name,
+            'product_id': line_by_lot.product_id.id,
+            'product_uom_qty': line_by_lot.qty_done,
+            'product_uom': line_by_lot.product_uom_id.id,
+            'picking_id': line_by_lot.picking_id.id,
+            'location_id': line_by_lot.location.id.id,
+            'location_dest_id': line_by_lot.location_dest_id.id,
+            'sale_line_id': sale_order_line.id
+        })
+
+
+
     
     def get_next_lot_name(self, product_id, picking_id, next_number):
         """ Method called by button "Create Lot Numbers", it automatically
