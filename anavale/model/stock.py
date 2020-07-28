@@ -80,18 +80,21 @@ class Picking(models.Model):
                         line.write({'lot_name': lot.name, 'lot_id': lot.id})
 
         #Check lot Traceability
-        try:
-            is_iconsistent = self.sync_moves_with_sale_order()
-        except Exception as e:
-            raise UserError(_("Please check the following: %s" % str(e)))
-        if is_iconsistent:
-            return is_iconsistent
+        if self.picking_type_id.code == 'outgoing':
+            try:
+                is_iconsistent = self.sync_moves_with_sale_order()
+                #is_iconsistent = False
+                #if is_iconsistent:
+                #    return is_iconsistent
+            except Exception as e:
+                raise UserError(_("Please check the following: %s" % str(e)))
         return super().button_validate()
 
 
     def search_inconsistencies(self):
         list_setted_moves = []
         is_inconsistency = False
+        list_inconsistencies = []
         for line in self.move_line_ids:
             move_id = False
             for move in self.move_lines:
@@ -102,7 +105,61 @@ class Picking(models.Model):
                     break
             if not move_id:
                 is_inconsistency = True
-        return is_inconsistency
+                list_inconsistencies.append(line)
+        return list_inconsistencies
+
+
+    def clear_delivery_lines(self):
+        for move in self.move_line_ids:
+            if move.product_uom_qty == 0:
+                move.unlink()
+
+
+    def update_empty_delivery_lines(self,list_ids_to_recreate):
+        for move in self.move_line_ids:
+            if (move.product_uom_qty != 0 and
+                    move.lot_id.id in list(map(lambda x: x.get('lot_id'), list_ids_to_recreate))):
+                        move.qty_done = move.product_uom_qty
+                        # self.env.cr.execute(
+                        #     """
+                        #
+                        #     UPDATE stock_move_line SET product_qty = '%s', qty_done = '%s' WHERE id = %s ;
+                        #
+                        #     """
+                        #     % (move.product_uom_qty,move.product_uom_qty,move.id)
+                        # )
+                        # self.env.cr.commit()
+
+
+
+    def force_do_unreserved_quants(self):
+        for move in self.move_line_ids:
+            if move.product_uom_qty > 0:
+                # update reserverd stock quant
+                result = self.env['stock.quant']._update_available_quantity(
+                    move.product_id,
+                    move.location_id,
+                    move.product_uom_qty,
+                    lot_id=move.lot_id)
+
+                quants = self.env['stock.quant']._gather(move.product_id, move.location_id, lot_id=move.lot_id,strict=True)
+                for quant in quants:
+                    quant.write({"reserved_quantity": 0})
+            self.env.cr.execute(
+                """ 
+
+                UPDATE stock_move_line SET product_uom_qty = 0, product_qty = 0 WHERE id = %s ;
+
+                """
+                % move.id
+            )
+            self.env.cr.commit()
+
+
+
+
+
+
 
 
     def sync_moves_with_sale_order(self):
@@ -115,34 +172,41 @@ class Picking(models.Model):
         """
         #analizar si hay inconsistencias
         list_setted_moves = []
-        is_inconsistency = self.search_inconsistencies()
-        if is_inconsistency:
+        list_inconsistencies = self.search_inconsistencies()
+        if len(list_inconsistencies)>0:
             #Inconsistency, FIX SO.
             order_id_ref = self.sale_id
-            list_ids_to_recreate = self.get_list_new_quotation()
-            self.action_cancel()
+            list_ids_to_recreate = self.get_list_new_quotation(list_inconsistencies)
+            # Reset Inventory
+            #self.force_do_unreserved_quants()
+            #self.action_cancel()
+            #self.set_to_draft()
             #Clear Delivery
-            self.move_lines.sudo().unlink()
-            self.move_line_ids.sudo().unlink()
-            self.move_line_ids_without_package.unlink()
-            self.move_line_nosuggest_ids.unlink()
+            #self.sudo().unlink()
+            #self.clear_delivery_lines()
+
+            #return True
             #Order fix
             order_id_ref.action_unlock()
-            order_id_ref.action_cancel()
-            order_id_ref.action_draft()
+            #order_id_ref.action_cancel()
+            #order_id_ref.action_draft()
             # Serching first Tax on Company
             domain = [('company_id', '=', order_id_ref.company_id.id)]
             tax_id_id = order_id_ref.env['account.tax'].sudo().search(domain, limit=1).id
             for line in order_id_ref.order_line:
                 if line.tax_id:
                     tax_id_id = line.tax_id.id
-                    order_id_ref.order_line.unlink()
+                    #order_id_ref.order_line.unlink()
                     break
             #Set new orderlines
-            self.create_sale_order_lines(order_id_ref, tax_id_id, list_ids_to_recreate)
-            order_id_ref.action_confirm()
+            order_id_ref.env['stock.picking'].create_sale_order_lines(order_id_ref, tax_id_id, list_ids_to_recreate)
+            order_id_ref.action_done()
+            self.clear_delivery_lines()
+            self.update_empty_delivery_lines(list_ids_to_recreate)
+            #order_id_ref.write({'state': 'done'})
             #return refresh stock.picking
-            return self.custom_action_return_view_form(order_id_ref)
+            #return self.custom_action_return_view_form(order_id_ref)
+            return True
         return False
 
 
@@ -166,9 +230,9 @@ class Picking(models.Model):
                 'target': 'current',
             }
 
-    def get_list_new_quotation(self):
+    def get_list_new_quotation(self, list_inconsistencies):
         list = []
-        for lines in self.move_line_ids:
+        for lines in list_inconsistencies:
             vals = {
                 'product_id': lines.product_id.id,
                 'name': lines.product_id.name,
@@ -192,7 +256,15 @@ class Picking(models.Model):
                 'product_uom': item.get('product_uom'),
                 'product_uom_qty': item.get('product_uom_qty'),
             }])
-
+        #update_sale_oder
+        for line in sale_id.order_line:
+            if line.lot_available_sell == 0 and line.product_uom_qty != 0:
+                lot_id = line.lot_id
+                qty = line.product_uom_qty
+                line.product_id_change()  # Calling an onchange method to update the
+                line.lot_id = lot_id
+                line._onchange_lot_id()
+                line.product_uom_qty = qty
 
 
 
