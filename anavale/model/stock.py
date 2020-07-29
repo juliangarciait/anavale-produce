@@ -230,6 +230,16 @@ class Picking(models.Model):
                 'target': 'current',
             }
 
+    def get_custom_product_price(self, sale_id, product_id):
+        for line in sale_id.order_line:
+            if line.product_id.id == product_id.id:
+                return line.price_unit
+        if product_id.product_tmpl_id.list_price > 0:
+            return
+        return False
+
+
+
     def get_list_new_quotation(self, list_inconsistencies):
         list = []
         for lines in list_inconsistencies:
@@ -241,13 +251,17 @@ class Picking(models.Model):
                 'product_uom': lines.product_id.uom_id.id,
                 'product_uom_qty': lines.qty_done
             }
+            price_unit = self.get_custom_product_price(self.sale_id,lines.product_id)
+            if price_unit:
+                vals['price_unit'] = price_unit
+
             list.append(vals)
         return list
 
     def create_sale_order_lines(self,sale_id,tax_id,list_ids):
         line_env = self.env['sale.order.line']
         for item in list_ids:
-            new_line = line_env.sudo().create([{
+            vals = {
                 'product_id': item.get('product_id'),
                 'name': item.get('name'),
                 'order_id': sale_id.id,
@@ -255,16 +269,21 @@ class Picking(models.Model):
                 'tax_id': [[6, False, [tax_id]]],
                 'product_uom': item.get('product_uom'),
                 'product_uom_qty': item.get('product_uom_qty'),
-            }])
+            }
+            if item.get('price_unit'):
+                vals['price_unit'] = item.get('price_unit')
+            line_env.sudo().create([vals])
         #update_sale_oder
         for line in sale_id.order_line:
             if line.lot_available_sell == 0 and line.product_uom_qty != 0:
                 lot_id = line.lot_id
                 qty = line.product_uom_qty
+                price_unit = line.price_unit
                 line.product_id_change()  # Calling an onchange method to update the
                 line.lot_id = lot_id
                 line._onchange_lot_id()
                 line.product_uom_qty = qty
+                line.price_unit = price_unit
 
 
 
