@@ -266,7 +266,7 @@ class Picking(models.Model):
                 'name': item.get('name'),
                 'order_id': sale_id.id,
                 'lot_id': item.get('lot_id'),
-                'tax_id': [[6, False, [tax_id]]],
+                #'tax_id': [[6, False, [tax_id]]],
                 'product_uom': item.get('product_uom'),
                 'product_uom_qty': item.get('product_uom_qty'),
             }
