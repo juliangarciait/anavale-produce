@@ -82,10 +82,7 @@ class Picking(models.Model):
         #Check lot Traceability
         if self.picking_type_id.code == 'outgoing':
             try:
-                is_iconsistent = self.sync_moves_with_sale_order()
-                #is_iconsistent = False
-                #if is_iconsistent:
-                #    return is_iconsistent
+                self.sync_moves_with_sale_order()
             except Exception as e:
                 raise UserError(_("Please check the following: %s" % str(e)))
         return super().button_validate()
@@ -157,7 +154,18 @@ class Picking(models.Model):
 
 
 
-
+    def get_default_tax_id(self,order_id_ref):
+        #domain = [('company_id', '=', order_id_ref.company_id.id)]
+        #default_company_tax = order_id_ref.env['account.tax'].sudo().search(domain, limit=1)
+        tax_id_id = False
+        #if default_company_tax:
+        #    tax_id_id = default_company_tax.id
+        for line in order_id_ref.order_line:
+            if line.tax_id:
+                tax_id_id = line.tax_id.id
+                # order_id_ref.order_line.unlink()
+                break
+        return tax_id_id
 
 
 
@@ -170,44 +178,20 @@ class Picking(models.Model):
             @param: self : stock.picking ref
 
         """
-        #analizar si hay inconsistencias
-        list_setted_moves = []
         list_inconsistencies = self.search_inconsistencies()
         if len(list_inconsistencies)>0:
             #Inconsistency, FIX SO.
             order_id_ref = self.sale_id
             list_ids_to_recreate = self.get_list_new_quotation(list_inconsistencies)
-            # Reset Inventory
-            #self.force_do_unreserved_quants()
-            #self.action_cancel()
-            #self.set_to_draft()
-            #Clear Delivery
-            #self.sudo().unlink()
-            #self.clear_delivery_lines()
-
-            #return True
             #Order fix
             order_id_ref.action_unlock()
-            #order_id_ref.action_cancel()
-            #order_id_ref.action_draft()
-            # Serching first Tax on Company
-            domain = [('company_id', '=', order_id_ref.company_id.id)]
-            tax_id_id = order_id_ref.env['account.tax'].sudo().search(domain, limit=1).id
-            for line in order_id_ref.order_line:
-                if line.tax_id:
-                    tax_id_id = line.tax_id.id
-                    #order_id_ref.order_line.unlink()
-                    break
+            #Serching default Tax
+            tax_id_id = self.get_default_tax_id(order_id_ref)
             #Set new orderlines
             order_id_ref.env['stock.picking'].create_sale_order_lines(order_id_ref, tax_id_id, list_ids_to_recreate)
             order_id_ref.action_done()
             self.clear_delivery_lines()
             self.update_empty_delivery_lines(list_ids_to_recreate)
-            #order_id_ref.write({'state': 'done'})
-            #return refresh stock.picking
-            #return self.custom_action_return_view_form(order_id_ref)
-            return True
-        return False
 
 
 
@@ -234,8 +218,6 @@ class Picking(models.Model):
         for line in sale_id.order_line:
             if line.product_id.id == product_id.id:
                 return line.price_unit
-        if product_id.product_tmpl_id.list_price > 0:
-            return
         return False
 
 
@@ -266,10 +248,11 @@ class Picking(models.Model):
                 'name': item.get('name'),
                 'order_id': sale_id.id,
                 'lot_id': item.get('lot_id'),
-                'tax_id': [[6, False, [tax_id]]],
                 'product_uom': item.get('product_uom'),
                 'product_uom_qty': item.get('product_uom_qty'),
             }
+            if tax_id:
+                vals['tax_id']: [[6, False, [tax_id]]]
             if item.get('price_unit'):
                 vals['price_unit'] = item.get('price_unit')
             line_env.sudo().create([vals])
@@ -284,6 +267,8 @@ class Picking(models.Model):
                 line._onchange_lot_id()
                 line.product_uom_qty = qty
                 line.price_unit = price_unit
+                if not tax_id:
+                    line.tax_id = False
 
 
 
