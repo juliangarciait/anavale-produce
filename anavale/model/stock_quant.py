@@ -62,3 +62,4 @@ class StockQuant(models.Model):
             'context': dict(self.env.context),
             'target': 'self',
         }
+        #commit

@@ -15,7 +15,7 @@ class StockQualityCheck(models.Model):
         domain="[('type', 'in', ['consu', 'product'])]")
     lot_id = fields.Many2one('stock.production.lot', 'Lot', domain="[('product_id', '=', product_id)]")    
     responsible_id = fields.Char('Responsible')
-    partner_id = fields.Many2one('res.partner', string='Vendor', readonly=True)
+    partner_id = fields.Many2one('res.partner', string='Vendor', related="picking_id.partner_id", readonly=True)
     quality_lines = fields.One2many('stock.quality.check.line', 'quality_id', string="Quality Lines", copy=False)
     notes = fields.Html('Notes')
     date = fields.Datetime(string='Date', required=True, copy=False, default=fields.Datetime.now, 
@@ -32,11 +32,11 @@ class StockQualityCheck(models.Model):
             return
 
         picking_id = self.picking_id
-        order = self.env['purchase.order'].search([('name', '=', picking_id.origin)])
-        if order and order.partner_id:
-            self.partner_id = order.partner_id.id
-        else:
-            self.partner_id = False
+        # order = self.env['purchase.order'].search([('name', '=', picking_id.origin)])
+        # if order and order.partner_id:
+            # self.partner_id = order.partner_id.id
+        # else:
+            # self.partner_id = False
         
         product_ids = []
         for line in self.picking_id.move_line_ids_without_package:
@@ -58,6 +58,25 @@ class StockQualityCheck(models.Model):
                        'template_id': [('id', 'in', templates.mapped('id'))] }
         }              
         
+    def get_print_lines(self):
+        lines = []
+        
+        # Loop thru all Check Lines
+        for ql in self.quality_lines:
+            line = [ql.weight, ql.count,ql.size.upper()]
+            
+            # Loop thru all Template Points
+            for tmpl_point in self.template_id.point_ids:
+                point = ql.point_ids.filtered(lambda q: q.point_id.id == tmpl_point.id)
+                if point:
+                    line.append(point.point_id._report_format_value(point))
+                else:
+                    line.append('')
+                    
+            lines.append(line)
+            
+        return lines
+    
 class StockQualityCheckLine(models.Model):
     _name = 'stock.quality.check.line'
     _description = "Stock Quality Control Line"
