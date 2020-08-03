@@ -117,53 +117,27 @@ class Picking(models.Model):
             if (move.product_uom_qty != 0 and
                     move.lot_id.id in list(map(lambda x: x.get('lot_id'), list_ids_to_recreate))):
                         move.qty_done = move.product_uom_qty
-                        # self.env.cr.execute(
-                        #     """
-                        #
-                        #     UPDATE stock_move_line SET product_qty = '%s', qty_done = '%s' WHERE id = %s ;
-                        #
-                        #     """
-                        #     % (move.product_uom_qty,move.product_uom_qty,move.id)
-                        # )
-                        # self.env.cr.commit()
 
 
 
-    def force_do_unreserved_quants(self):
+    def button_force_do_unreserve(self):
+        """
+            Button Action
+            Force Unreserved
+            Deleted all qtys reserved on move lines
+        """
         for move in self.move_line_ids:
             if move.product_uom_qty > 0:
-                # update reserverd stock quant
-                result = self.env['stock.quant']._update_available_quantity(
-                    move.product_id,
-                    move.location_id,
-                    move.product_uom_qty,
-                    lot_id=move.lot_id)
-
-                quants = self.env['stock.quant']._gather(move.product_id, move.location_id, lot_id=move.lot_id,strict=True)
-                for quant in quants:
-                    quant.write({"reserved_quantity": 0})
-            self.env.cr.execute(
-                """ 
-
-                UPDATE stock_move_line SET product_uom_qty = 0, product_qty = 0 WHERE id = %s ;
-
-                """
-                % move.id
-            )
-            self.env.cr.commit()
+                move.update_force_unreserve_move_line(is_force=True)
+        return True
 
 
 
     def get_default_tax_id(self,order_id_ref):
-        #domain = [('company_id', '=', order_id_ref.company_id.id)]
-        #default_company_tax = order_id_ref.env['account.tax'].sudo().search(domain, limit=1)
         tax_id_id = False
-        #if default_company_tax:
-        #    tax_id_id = default_company_tax.id
         for line in order_id_ref.order_line:
             if line.tax_id:
                 tax_id_id = line.tax_id.id
-                # order_id_ref.order_line.unlink()
                 break
         return tax_id_id
 
@@ -196,23 +170,7 @@ class Picking(models.Model):
 
 
 
-    def custom_action_return_view_form(self, sale_id):
-        domain = [('sale_id','=',sale_id.id),('state','=','confirmed')]
-        sp = self.env['stock.picking'].sudo().search(domain)
-        if sp:
-            try:
-                form_view_id = self.env.ref("stock.view_picking_form").id
-            except Exception as e:
-                form_view_id = False
-            return {
-                'type': 'ir.actions.act_window',
-                'name': 'My Action Name',
-                'view_type': 'form',
-                'view_mode': 'form',
-                'res_model': 'stock.picking',
-                'views': [(form_view_id, 'form')],
-                'target': 'current',
-            }
+
 
     def get_custom_product_price(self, sale_id, product_id):
         for line in sale_id.order_line:
@@ -406,3 +364,47 @@ class StockMove(models.Model):
         if reserved_quant and self.sale_line_id:
             vals["lot_id"] = self.sale_line_id.lot_id.id
         return vals
+
+
+class StockMoveLine(models.Model):
+    _inherit = 'stock.move.line'
+
+    @api.onchange('lot_id')
+    def _onchange_lot_id(self):
+        """
+        Onchange_lod_id
+        """
+        if self.picking_id and self.product_uom_qty>0 and self.lot_id:
+            self.update_force_unreserve_move_line()
+
+
+
+
+    def update_force_unreserve_move_line(self, is_force=False):
+        """
+          Update reserve quants if lot_id is changed!!!
+          @param: is_force: True if is inmediatally Change on press (Force Unreserved Button)
+                            False if is onchange_method (Commit on save)
+        """
+        if self.picking_id.state not in ('done','cancel'):
+            quants = self.env['stock.quant']._gather(self.product_id, self.location_id, lot_id=self.lot_id, strict=True)
+            for quant in quants:
+                # Unreserved Quants
+                quant.write({"reserved_quantity": 0})
+            # Update for SQL Field
+            if quants:
+                self.env.cr.execute(
+                    """ 
+    
+                    UPDATE stock_move_line SET product_uom_qty = 0, product_qty = 0 WHERE id = %s ;
+    
+                    """
+                    % self._origin.id
+                )
+                if is_force:
+                    self.env.cr.commit()
+                self.product_uom_qty = 0
+
+
+
+
