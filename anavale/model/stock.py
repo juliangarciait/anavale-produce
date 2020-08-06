@@ -145,29 +145,29 @@ class Picking(models.Model):
             @param: self : stock.picking ref
 
         """
-        if self.search_inconsistencies():
-            _logger.info("There is inconsistencie")
-            #Inconsistency, FIX SO.
-            order_id_ref = self.sale_id
-            list_ids_to_recreate = self.get_list_new_quotation()
-            #Force Unreserve
-            self.button_force_do_unreserve()
-            #Order fix
-            order_id_ref.action_unlock()
-            order_id_ref.action_cancel()
-            order_id_ref.action_draft()
-            order_id_ref.order_line.unlink()
-            #CleanDelivery
-            self.set_to_draft()
-            #Secure unreserve qty
-            self.button_force_do_unreserve()
-            self.move_lines.unlink()
-            self.move_line_ids.unlink()
-            _logger.info("delete order")
-            #Set new orderlines
-            order_id_ref.env['stock.picking'].create_sale_order_lines(order_id_ref, list_ids_to_recreate)
-            order_id_ref.action_confirm()
-            self.update_empty_delivery_lines()
+        #if self.search_inconsistencies():
+        _logger.info("There is inconsistencie")
+        #Inconsistency, FIX SO.
+        order_id_ref = self.sale_id
+        list_ids_to_recreate = self.get_list_new_quotation()
+        #Force Unreserve
+        self.button_force_do_unreserve()
+        #Order fix
+        order_id_ref.action_unlock()
+        order_id_ref.action_cancel()
+        order_id_ref.action_draft()
+        order_id_ref.order_line.unlink()
+        #CleanDelivery
+        self.set_to_draft()
+        #Secure unreserve qty
+        self.button_force_do_unreserve()
+        self.move_lines.unlink()
+        self.move_line_ids.unlink()
+        _logger.info("delete order")
+        #Set new orderlines
+        order_id_ref.env['stock.picking'].create_sale_order_lines(order_id_ref, list_ids_to_recreate)
+        order_id_ref.action_confirm()
+        self.update_empty_delivery_lines()
 
 
 
