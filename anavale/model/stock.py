@@ -163,6 +163,7 @@ class Picking(models.Model):
             self.button_force_do_unreserve()
             self.move_lines.unlink()
             self.move_line_ids.unlink()
+            _logger.info("delete order")
             #Set new orderlines
             order_id_ref.env['stock.picking'].create_sale_order_lines(order_id_ref, list_ids_to_recreate)
             order_id_ref.action_confirm()
