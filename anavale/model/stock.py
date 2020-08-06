@@ -80,7 +80,7 @@ class Picking(models.Model):
                         line.write({'lot_name': lot.name, 'lot_id': lot.id})
 
         #Check lot Traceability
-        if self.picking_type_id.code == 'outgoing' and self.sale_id:
+        if self.picking_type_id.code == 'outgoing':
             try:
                 self.sync_moves_with_sale_order()
             except Exception as e:
