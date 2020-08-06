@@ -33,7 +33,7 @@ class StockQuant(models.Model):
     @api.model
     def _quant_tasks(self):
         res = super(StockQuant, self)._quant_tasks()
-        self.sudo().search([['create_date', '>', '2020-06-14 00:33:01.516179'],])._compute_sale_order_qty()
+        self.sudo().search([['create_date', '>', '2020-06-27 00:33:01.516179'],])._compute_sale_order_qty()
         return res
 
     def call_view_sale_order(self):
