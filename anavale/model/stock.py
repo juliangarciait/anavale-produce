@@ -83,7 +83,8 @@ class Picking(models.Model):
         #Check lot Traceability
         if self.picking_type_id.code == 'outgoing':
             try:
-                self.sync_moves_with_sale_order()
+                #self.sync_moves_with_sale_order()
+                pass
             except Exception as e:
                 raise UserError(_("Please check the following: %s" % str(e)))
         return super().button_validate()
