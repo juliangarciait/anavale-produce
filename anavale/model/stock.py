@@ -48,7 +48,8 @@ class Picking(models.Model):
         if self.picking_type_id.code == 'outgoing' and moves:
             for ml in moves.mapped('move_line_ids'):
                 if ml.product_id == ml.move_id.product_id and ml.lot_id != ml.move_id.lot_id:
-                    raise UserError('Only same %s Lot allowed to deliver for product %s!' % (ml.move_id.lot_id.name, ml.product_id.name))        
+                    pass
+                    #raise UserError('Only same %s Lot allowed to deliver for product %s!' % (ml.move_id.lot_id.name, ml.product_id.name))        
         return res      
  
     def button_validate(self):
@@ -182,7 +183,7 @@ class Picking(models.Model):
                 return line.price_unit
         #Searching other recent orders
         domain = [('product_id','=',product_id.id)]
-        line = self.env['sale.order.line'].search(domain,limit=1,order='desc')
+        line = self.env['sale.order.line'].search(domain,limit=1)
         if line:
             return line.price_unit
         return False
