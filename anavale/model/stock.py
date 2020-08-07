@@ -182,7 +182,7 @@ class Picking(models.Model):
                 return line.price_unit
         #Searching other recent orders
         domain = [('product_id','=',product_id.id)]
-        line = self.env['sale.order.line'].search(domain,limit=1,order='desc')
+        line = self.env['sale.order.line'].search(domain,limit=1)
         if line:
             return line.price_unit
         return False
