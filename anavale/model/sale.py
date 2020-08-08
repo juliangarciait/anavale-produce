@@ -21,7 +21,8 @@ class SaleOrder(models.Model):
         for line in lines:
             if not line.lot_id:
                 raise UserError("Can't confirm without lot ")
-        self.check_still_quantity()
+        if not self.env.context.get('is_force'):
+            self.check_still_quantity()
         res = super(SaleOrder, self).action_confirm()
         return res
 

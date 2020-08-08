@@ -368,7 +368,7 @@ class stock_move_line(models.Model):
                     else:
                         raise
         moves = self.mapped('move_id')
-        if flag == False :
+        if flag == False or self.env.context.get('is_force'):
             if moves:
                 moves._recompute_state()
             res = super(stock_move_line, self).unlink()
