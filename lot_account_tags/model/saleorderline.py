@@ -14,7 +14,6 @@ class SaleOrderLine(models.Model):
 
 
 
-
     # @api.model
     # def create(self, vals_list):
     #     res = super(SaleOrderLine, self).create(vals_list)
