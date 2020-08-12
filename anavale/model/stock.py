@@ -1,44 +1,48 @@
 # -*- coding: utf-8 -*-
-from odoo import api, fields, models,_
+from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 from odoo.tools.float_utils import float_compare, float_is_zero
 from itertools import groupby
+from datetime import datetime, timedelta
 import logging
+
+
 _logger = logging.getLogger(__name__)
+
 
 class Picking(models.Model):
     _inherit = "stock.picking"
-    
+
     quality_ids = fields.One2many('stock.quality.check', 'picking_id', 'Checks')
     quality_count = fields.Integer(compute='_compute_quality_count')
     quality_check_todo = fields.Boolean('Pending checks', compute='_compute_quality_check_todo')
     create_lot_name = fields.Boolean('Create Lot Names', default=True)
     display_create_lot_name = fields.Boolean(compute='_compute_display_create_lot_name')
-           
-    @api.depends('state', 'picking_type_id', 
-        'partner_id.sequence_id','partner_id.lot_code_prefix', 'location_dest_id')
+
+    @api.depends('state', 'picking_type_id',
+                 'partner_id.sequence_id', 'partner_id.lot_code_prefix', 'location_dest_id')
     def _compute_display_create_lot_name(self):
         for picking in self:
             picking.display_create_lot_name = (
                 # picking.partner_id.sequence_id and
                 # picking.partner_id.lot_code_prefix and
-                picking.picking_type_id.code == 'incoming' and 
-                picking.state not in ('done', 'cancel') 
+                    picking.picking_type_id.code == 'incoming' and
+                    picking.state not in ('done', 'cancel')
             )
-             
+
     def _compute_quality_count(self):
         for picking in self:
             picking.quality_count = len(picking.quality_ids)
-            
+
     def _compute_quality_check_todo(self):
         for record in self:
-            #order = self.env['purchase.order'].search([('name', '=', record.origin)])
+            # order = self.env['purchase.order'].search([('name', '=', record.origin)])
             warehouse = self.env['stock.warehouse'].search([('company_id', '=', record.company_id.id)], limit=1)
             if warehouse and record.picking_type_id.code == 'internal' and record.location_dest_id == warehouse.lot_stock_id:
                 record.quality_check_todo = True
             else:
                 record.quality_check_todo = False
-        
+
     def action_assign(self):
         """ Confirma que todos los stock.move.line
             correspondan con los lotes del stock.move,
@@ -48,72 +52,178 @@ class Picking(models.Model):
         if self.picking_type_id.code == 'outgoing' and moves:
             for ml in moves.mapped('move_line_ids'):
                 if ml.product_id == ml.move_id.product_id and ml.lot_id != ml.move_id.lot_id:
-                    pass
-                    #raise UserError('Only same %s Lot allowed to deliver for product %s!' % (ml.move_id.lot_id.name, ml.product_id.name))        
-        return res      
- 
+                    raise UserError('Only same %s Lot allowed to deliver for product %s!' % (
+                        ml.move_id.lot_id.name, ml.product_id.name))
+        return res
+
     def button_validate(self):
         """ Si es necesario crea lotes """
         picking_type = self.picking_type_id
         precision_digits = self.env['decimal.precision'].precision_get('Product Unit of Measure')
-        no_quantities_done = all(float_is_zero(move_line.qty_done, precision_digits=precision_digits) for move_line in self.move_line_ids.filtered(lambda m: m.state not in ('done', 'cancel')))
-        no_reserved_quantities = all(float_is_zero(move_line.product_qty, precision_rounding=move_line.product_uom_id.rounding) for move_line in self.move_line_ids)
+        no_quantities_done = all(float_is_zero(move_line.qty_done, precision_digits=precision_digits) for move_line in
+                                 self.move_line_ids.filtered(lambda m: m.state not in ('done', 'cancel')))
+        no_reserved_quantities = all(
+            float_is_zero(move_line.product_qty, precision_rounding=move_line.product_uom_id.rounding) for move_line in
+            self.move_line_ids)
         # if no_reserved_quantities and no_quantities_done:
-            # raise UserError(_('You cannot validate a transfer if no quantites are reserved nor done. To force the transfer, switch in edit more and encode the done quantities.'))
+        # raise UserError(_('You cannot validate a transfer if no quantites are reserved nor done. To force the transfer, switch in edit more and encode the done quantities.'))
 
-        if self.display_create_lot_name and self.create_lot_name: # and not (no_reserved_quantities and no_quantities_done): # and (picking_type.use_create_lots or picking_type.use_existing_lots):
+        if self.display_create_lot_name and self.create_lot_name:  # and not (no_reserved_quantities and no_quantities_done): # and (picking_type.use_create_lots or picking_type.use_existing_lots):
             lines_to_check = self.move_line_ids
             if not no_quantities_done:
                 lines_to_check = lines_to_check.filtered(
                     lambda line: float_compare(line.qty_done, 0,
                                                precision_rounding=line.product_uom_id.rounding)
                 )
-            next_number = self.env['ir.sequence'].next_by_code('production.lot.%s.sequence' % self.partner_id.lot_code_prefix.lower())
+            next_number = self.env['ir.sequence'].next_by_code(
+                'production.lot.%s.sequence' % self.partner_id.lot_code_prefix.lower())
             for line in lines_to_check:
                 product = line.product_id
                 if product and product.tracking != 'none':
                     if not line.lot_name and not line.lot_id:
                         lot_name = self.get_next_lot_name(line.product_id, line.picking_id, next_number)
-                        
+
                         lot = self.env['stock.production.lot'].create(
-                            {'name': lot_name, 'product_id': line.product_id.id, 'company_id': line.move_id.company_id.id}
+                            {'name': lot_name, 'product_id': line.product_id.id,
+                             'company_id': line.move_id.company_id.id}
                         )
                         line.write({'lot_name': lot.name, 'lot_id': lot.id})
-
-        #Check lot Traceability
-        if self.picking_type_id.code == 'outgoing':
-            try:
-                #self.sync_moves_with_sale_order()
-                pass
-            except Exception as e:
-                raise UserError(_("Please check the following: %s" % str(e)))
+        # Check lot Traceability
+        self.action_fix_order_with_move_lines()
         return super().button_validate()
 
+    def action_fix_order_with_move_lines(self):
+        _logger.info("Action")
+        if self.picking_type_id.code == 'outgoing' and self.sale_id:
+            try:
+                if self.search_inconsistencies_with_so():
+                    _logger.info('There are inconsistencies')
+                    self.sync_moves_with_sale_order()
+                else:
+                    _logger.info('The order is correct in relation to the move lines')
+            except Exception as e:
+                raise UserError(_("Please check the following: %s" % str(e)))
+        else:
+            _logger.info("No is outgoing picking or there is not sale_id")
 
-    def search_inconsistencies(self):
-        list_setted_moves = []
-        move_id = False
-        for line in self.move_line_ids:
-            for move in self.move_lines:
-                if (line.lot_id == move.lot_id
-                        and move.id not in list_setted_moves):
-                    list_setted_moves.append(move.id)
-                    move_id = move
+    def action_fix_quants_un_reserved(self, last_days=''):
+        domain = []
+        if last_days != '':
+            expiration_date = datetime.now() - timedelta(days=int(last_days))
+            domain = [('create_date', '>=', expiration_date.strftime("%Y-%m-%d"))]
+        quants = self.env["stock.quant"].search(domain)
+        move_line_ids = []
+        warning = ""
+        for quant in quants:
+            move_lines = self.env["stock.move.line"].search(
+                [
+                    ("product_id", "=", quant.product_id.id),
+                    ("location_id", "=", quant.location_id.id),
+                    ("lot_id", "=", quant.lot_id.id),
+                    ("package_id", "=", quant.package_id.id),
+                    ("owner_id", "=", quant.owner_id.id),
+                    ("product_qty", "!=", 0),
+                ]
+            )
+            move_line_ids += move_lines.ids
+            reserved_on_move_lines = sum(move_lines.mapped("product_qty"))
+            move_line_str = str.join(
+                ", ", [str(move_line_id) for move_line_id in move_lines.ids]
+            )
+            if quant.location_id.should_bypass_reservation():
+                # If a quant is in a location that should bypass the reservation, its `reserved_quantity` field
+                # should be 0.
+                if quant.reserved_quantity != 0:
+                    quant.write({"reserved_quantity": 0})
+            else:
+                # If a quant is in a reservable location, its `reserved_quantity` should be exactly the sum
+                # of the `product_qty` of all the partially_available / assigned move lines with the same
+                # characteristics.
+                if quant.reserved_quantity == 0:
+                    if move_lines:
+                        move_lines.with_context(bypass_reservation_update=True).write(
+                            {"product_uom_qty": 0}
+
+                        )
+                elif quant.reserved_quantity < 0:
+                    quant.write({"reserved_quantity": 0})
+                    if move_lines:
+                        move_lines.with_context(bypass_reservation_update=True).write(
+                            {"product_uom_qty": 0}
+                        )
+                else:
+                    if reserved_on_move_lines != quant.reserved_quantity:
+                        move_lines.with_context(bypass_reservation_update=True).write(
+                            {"product_uom_qty": 0}
+                        )
+                        quant.write({"reserved_quantity": 0})
+                    else:
+                        if any(move_line.product_qty < 0 for move_line in move_lines):
+                            move_lines.with_context(bypass_reservation_update=True).write(
+                                {"product_uom_qty": 0}
+                            )
+                            quant.write({"reserved_quantity": 0})
+        move_lines = self.env["stock.move.line"].search(
+            [
+                ("product_id.type", "=", "product"),
+                ("product_qty", "!=", 0),
+                ("id", "not in", move_line_ids),
+            ]
+        )
+        move_lines_to_unreserve = []
+        for move_line in move_lines:
+            if not move_line.location_id.should_bypass_reservation():
+                move_lines_to_unreserve.append(move_line.id)
+        if len(move_lines_to_unreserve) > 1:
+            self.env.cr.execute(
+                """ 
+
+                    UPDATE stock_move_line SET product_uom_qty = 0, product_qty = 0 WHERE id in %s ;
+
+                """
+                % (tuple(move_lines_to_unreserve),)
+            )
+        elif len(move_lines_to_unreserve) == 1:
+            self.env.cr.execute(
+                """ 
+
+                UPDATE stock_move_line SET product_uom_qty = 0, product_qty = 0 WHERE id = %s ;
+
+                """
+                % (move_lines_to_unreserve[0])
+            )
+
+
+    def search_inconsistencies_with_so(self):
+        """
+            See if the lines of the stock move line are the same as the so
+            If there are inconsistencies return True
+            else return False
+        """
+        # First Len SO Lines and SO Moves
+        if len(self.sale_id.order_line) != len(self.move_lines):
+            return True
+        # Second Lot_ID is change or Qty lot ID Change.
+        for move_line in self.move_line_ids:
+            line_founded = False
+            for line in self.sale_id.order_line:
+                if (line.lot_id == move_line.lot_id
+                        and line.product_id == move_line.product_id
+                        and line.product_uom_qty == move_line.qty_done):
+                    line_founded = True
                     break
-            if not move_id:
+            if not line_founded:
                 return True
+        # All lines is correct in SO, return False
         return False
 
-
-
-
-
-    def update_empty_delivery_lines(self):
+    def update_empty_delivery_lines(self, list_to_recreate):
         for move in self.move_line_ids:
-            if (move.product_uom_qty != 0):
-                        move.qty_done = move.product_uom_qty
-
-
+            if (move.qty_done == 0):
+                for line in list_to_recreate:
+                    if (line.get('product_id') == move.product_id.id
+                            and line.get('lot_id') == move.lot_id.id):
+                        move.qty_done = line.get('product_uom_qty')
 
     def button_force_do_unreserve(self):
         """
@@ -126,7 +236,32 @@ class Picking(models.Model):
                 move.update_force_unreserve_move_line()
         return True
 
+    def button_load_move_line_ids(self):
+        """
+            Button Action
+            Load stock.move.lines from SO
+            Without reserved
+        """
+        move_line_vals_list = []
+        for line in self.move_line_ids:
+            # Validate qty reserved or done
+            if line.product_uom_qty > 0 or line.qty_done > 0:
+                raise UserError('The line with Product [%s] is a line with reserve o qty done, '
+                                'for recreate lines should be empty, please you clean it!.' % line.product_id.name)
+            if line.state in ('done', 'cancel'):
+                raise UserError('You cannot recreate the lines with the delivery in canceled or done status. '
+                                'Please you fix it')
 
+        # Force Unlink operations ()
+        self.move_line_ids.with_context(is_force=True).unlink()
+        for move in self.move_lines:
+            # Create Lines
+            vals = move._prepare_move_line_vals()
+            vals['lot_id'] = move.lot_id.id
+            move_line_vals_list.append(vals)
+        if len(move_line_vals_list) > 0:
+            self.env['stock.move.line'].create(move_line_vals_list)
+        return True
 
     def get_default_tax_id(self):
         tax_id_id = False
@@ -136,9 +271,6 @@ class Picking(models.Model):
                 break
         return tax_id_id
 
-
-
-
     def sync_moves_with_sale_order(self):
         """
             From the moves_lines_ids
@@ -147,49 +279,44 @@ class Picking(models.Model):
             @param: self : stock.picking ref
 
         """
-        #if self.search_inconsistencies():
-        _logger.info("There is inconsistencie")
-        #Inconsistency, FIX SO.
+        # Inconsistency, FIX SO.
         order_id_ref = self.sale_id
-        list_ids_to_recreate = self.get_list_new_quotation()
-        #Force Unreserve
+        # Get and filter move_lines_ids with qty > 0
+        list_ids_to_recreate = list(filter(lambda line: line.get('product_uom_qty') > 0, self.get_list_new_quotation()))
+        if len(list_ids_to_recreate) == 0:
+            raise UserError('Nothing line has products to validate, please check it')
+
+        # Force Unreserve
         self.button_force_do_unreserve()
-        #Order fix
+        # Order fix
         order_id_ref.action_unlock()
         order_id_ref.action_cancel()
         order_id_ref.action_draft()
         order_id_ref.order_line.unlink()
-        #CleanDelivery
+        # CleanDelivery
         self.set_to_draft()
-        #Secure unreserve qty
+        # Secure unreserve qty
         self.button_force_do_unreserve()
+        # Force Unlink operations ()
         self.move_lines.unlink()
-        self.move_line_ids.unlink()
+        self.move_line_ids.with_context(is_force=True).unlink()
         _logger.info("delete order")
-        #Set new orderlines
+        # Set new orderlines
         order_id_ref.env['stock.picking'].create_sale_order_lines(order_id_ref, list_ids_to_recreate)
-        order_id_ref.action_confirm()
-        self.update_empty_delivery_lines()
-
-
-
-
-
-
-
+        order_id_ref.with_context(is_force=True).action_confirm()
+        self.button_load_move_line_ids()
+        self.update_empty_delivery_lines(list_ids_to_recreate)
 
     def get_custom_product_price(self, sale_id, product_id):
         for line in sale_id.order_line:
             if line.product_id.id == product_id.id:
                 return line.price_unit
-        #Searching other recent orders
-        domain = [('product_id','=',product_id.id)]
-        line = self.env['sale.order.line'].search(domain,limit=1)
+        # Searching other recent orders
+        domain = [('product_id', '=', product_id.id)]
+        line = self.env['sale.order.line'].search(domain, limit=1)
         if line:
             return line.price_unit
         return False
-
-
 
     def get_list_new_quotation(self):
         list = []
@@ -206,14 +333,14 @@ class Picking(models.Model):
             tax_id_id = self.get_default_tax_id()
             if tax_id_id:
                 vals['tax_id_id'] = tax_id_id
-            price_unit = self.get_custom_product_price(self.sale_id,lines.product_id)
+            price_unit = self.get_custom_product_price(self.sale_id, lines.product_id)
             if price_unit:
                 vals['price_unit'] = price_unit
 
             list.append(vals)
         return list
 
-    def create_sale_order_lines(self,sale_id,list_ids):
+    def create_sale_order_lines(self, sale_id, list_ids):
         line_env = self.env['sale.order.line']
         for item in list_ids:
             vals = {
@@ -229,7 +356,7 @@ class Picking(models.Model):
             if item.get('price_unit'):
                 vals['price_unit'] = item.get('price_unit')
             line_env.sudo().create([vals])
-        #update_sale_oder
+        # update_sale_oder
         for line in sale_id.order_line:
             if line.lot_available_sell == 0 and line.product_uom_qty != 0:
                 lot_id = line.lot_id
@@ -240,12 +367,8 @@ class Picking(models.Model):
                 line._onchange_lot_id()
                 line.product_uom_qty = qty
                 line.price_unit = price_unit
-                #if not tax_id:
+                # if not tax_id:
                 #    line.tax_id = False
-
-
-
-
 
     def create_sale_order_line_from_line_move(self, line_by_lot):
         """
@@ -260,15 +383,13 @@ class Picking(models.Model):
             'product_id': line_by_lot.product_id.id,
             'name': line_by_lot.product_id.name,
             'order_id': self.sale_id.id,
-            'lot_id' : line_by_lot.lot_id.id,
+            'lot_id': line_by_lot.lot_id.id,
             'product_uom': line_by_lot.product_id.uom_id.id}
         new_line = line_env.create([vals])
         self.sale_id.sudo().write({'state': 'done'})
         # Calling an onchange method to update the record
         new_line.product_id_change()
         return new_line
-
-
 
     def create_stock_move_from_line_move(self, line_by_lot, sale_order_line):
         """
@@ -288,9 +409,6 @@ class Picking(models.Model):
             'sale_line_id': sale_order_line.id
         })
 
-
-
-    
     def get_next_lot_name(self, product_id, picking_id, next_number):
         """ Method called by button "Create Lot Numbers", it automatically
             generates Lot names based on:
@@ -303,20 +421,20 @@ class Picking(models.Model):
             
             Samples: 02LMX20-0001#230
                      02FDP20-0016#230 """
-        if not product_id.product_tmpl_id.lot_code_prefix:        
-            raise UserError('Enter Product [%s] Lot Code and try again!.' % product_id.name)     
-        if not picking_id.partner_id.lot_code_prefix:        
-            raise UserError('Enter Vendor [%s] Lot Code and try again!.' % picking_id.partner_id.name)       
-        if not picking_id.partner_id.sequence_id:        
-            raise UserError('Assing a sequence to Vendor [%s] and try again!.' % picking_id.partner_id.name)             
-        #next_number = self.env['ir.sequence'].next_by_code('production.lot.%s.sequence' % picking_id.partner_id.lot_code_prefix.lower())
+        if not product_id.product_tmpl_id.lot_code_prefix:
+            raise UserError('Enter Product [%s] Lot Code and try again!.' % product_id.name)
+        if not picking_id.partner_id.lot_code_prefix:
+            raise UserError('Enter Vendor [%s] Lot Code and try again!.' % picking_id.partner_id.name)
+        if not picking_id.partner_id.sequence_id:
+            raise UserError('Assing a sequence to Vendor [%s] and try again!.' % picking_id.partner_id.name)
+        # next_number = self.env['ir.sequence'].next_by_code('production.lot.%s.sequence' % picking_id.partner_id.lot_code_prefix.lower())
         # se remueve anterior ya que aumenta contador cuando se piden varios articulos juntos
         if len(product_id.product_template_attribute_value_ids) == 0:
             return '%s%s%s' % (product_id.product_tmpl_id.lot_code_prefix,
-                                 picking_id.partner_id.lot_code_prefix,
-                                 next_number)
+                               picking_id.partner_id.lot_code_prefix,
+                               next_number)
         else:
-            try:   #revisa si la variante es numero y agrega simbolo antes del numero
+            try:  # revisa si la variante es numero y agrega simbolo antes del numero
                 attribute = int(product_id.product_template_attribute_value_ids[0].product_attribute_value_id.name)
                 attribute = '#%s' % (str(attribute))
             except ValueError:
@@ -326,7 +444,7 @@ class Picking(models.Model):
                                  next_number,
                                  attribute)
 
-                                 
+
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
@@ -341,27 +459,27 @@ class StockMove(models.Model):
         return super(StockMove, self).create(vals)
 
     # def write(self,vals):
-        # res = super(StockMove, self).write(vals)
-        # for rec in self:
-            # if rec.sale_line_id and rec.picking_id and rec.lot_id and rec.move_line_ids and sum(rec.move_line_ids.mapped('qty_done')) == 0.0:
-                # for line in rec.move_line_ids:
-                    # line.lot_id = rec.lot_id.id
-                    # line.qty_done = line.product_uom_qty #rec.product_uom_qty
-        # return res
+    # res = super(StockMove, self).write(vals)
+    # for rec in self:
+    # if rec.sale_line_id and rec.picking_id and rec.lot_id and rec.move_line_ids and sum(rec.move_line_ids.mapped('qty_done')) == 0.0:
+    # for line in rec.move_line_ids:
+    # line.lot_id = rec.lot_id.id
+    # line.qty_done = line.product_uom_qty #rec.product_uom_qty
+    # return res
 
     def _update_reserved_quantity(
-        self,
-        need,
-        available_quantity,
-        location_id,
-        lot_id=None,
-        package_id=None,
-        owner_id=None,
-        strict=True,
+            self,
+            need,
+            available_quantity,
+            location_id,
+            lot_id=None,
+            package_id=None,
+            owner_id=None,
+            strict=True,
     ):
         if self.sale_line_id and self.sale_line_id.lot_id and self.product_id and self.product_id.tracking == 'lot':
             lot_id = self.sale_line_id.lot_id
-                      
+
         return super()._update_reserved_quantity(
             need,
             available_quantity,
@@ -389,11 +507,8 @@ class StockMoveLine(models.Model):
         """
         Onchange_lod_id
         """
-        if self.picking_id and self.product_uom_qty>0 and self.lot_id:
+        if self.picking_id and self.product_uom_qty > 0 and self.lot_id:
             self.update_force_unreserve_move_line()
-
-
-
 
     def update_force_unreserve_move_line(self):
         """
@@ -401,9 +516,5 @@ class StockMoveLine(models.Model):
           @param: is_force: True if is inmediatally Change on press (Force Unreserved Button)
                             False if is onchange_method (Commit on save)
         """
-        if self.picking_id.state not in ('done','cancel'):
+        if self.picking_id.state not in ('done', 'cancel'):
             self.product_uom_qty = 0
-
-
-
-
