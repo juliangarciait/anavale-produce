@@ -258,6 +258,7 @@ class Picking(models.Model):
             # Create Lines
             vals = move._prepare_move_line_vals()
             vals['lot_id'] = move.lot_id.id
+            vals['qty_done'] = move.product_qty
             move_line_vals_list.append(vals)
         if len(move_line_vals_list) > 0:
             self.env['stock.move.line'].create(move_line_vals_list)
@@ -390,6 +391,36 @@ class Picking(models.Model):
         # Calling an onchange method to update the record
         new_line.product_id_change()
         return new_line
+
+    @api.onchange('move_line_ids')
+    def onchange_move_line_ids(self):
+        list_mapped = []
+        for line in self.move_line_ids:
+            if (line.product_id, line.lot_id) in list_mapped:
+                raise UserError('Product {} with Lot {}! Already exist on the Operations Lines. Please add amount in '
+                                'existing Operation line'.format(
+                    str(line.product_id.name), line.lot_id.name))
+            list_mapped.append((line.product_id, line.lot_id))
+
+    @api.onchange('move_line_ids_without_package')
+    def onchange_move_line_ids_without_package(self):
+        list_mapped = []
+        for line in self.move_line_ids_without_package:
+            if (line.product_id, line.lot_id) in list_mapped:
+                raise UserError('Product {} with Lot {}! Already exist on the Operations Lines. Please add amount in '
+                                'existing Operation line'.format(
+                    str(line.product_id.name), line.lot_id.name))
+            list_mapped.append((line.product_id, line.lot_id))
+
+    @api.onchange('move_line_nosuggest_ids')
+    def onchange_nosuggest_ids(self):
+        list_mapped = []
+        for line in self.move_line_nosuggest_ids:
+            if (line.product_id, line.lot_id) in list_mapped:
+                raise UserError('Product {} with Lot {}! Already exist on the Operations Lines. Please add amount in '
+                                'existing Operation line'.format(
+                    str(line.product_id.name), line.lot_id.name))
+            list_mapped.append((line.product_id, line.lot_id))
 
     def create_stock_move_from_line_move(self, line_by_lot, sale_order_line):
         """
