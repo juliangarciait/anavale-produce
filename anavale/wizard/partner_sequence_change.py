@@ -32,3 +32,5 @@ class PartnerChangeSequenceWizard(models.TransientModel):
     def update_number_next(self):
         for record in self:
             record.sequence_id.number_next = record.new_number_next
+
+

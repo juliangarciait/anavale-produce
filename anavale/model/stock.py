@@ -6,18 +6,31 @@ from itertools import groupby
 from datetime import datetime, timedelta
 import logging
 
-
 _logger = logging.getLogger(__name__)
 
 
 class Picking(models.Model):
     _inherit = "stock.picking"
 
+    def _get_default_custom_state_delivery(self):
+        _logger.info(self)
+        return
+
     quality_ids = fields.One2many('stock.quality.check', 'picking_id', 'Checks')
     quality_count = fields.Integer(compute='_compute_quality_count')
     quality_check_todo = fields.Boolean('Pending checks', compute='_compute_quality_check_todo')
     create_lot_name = fields.Boolean('Create Lot Names', default=True)
     display_create_lot_name = fields.Boolean(compute='_compute_display_create_lot_name')
+    custom_state_delivery = fields.Selection([
+        ('draft', 'Draft'),
+        ('waiting', 'Waiting Another Operation'),
+        ('confirmed', 'Waiting'),
+        ('assigned', 'Ready (No Delivered)'),
+        ('done', 'Done (Delivered)'),
+        ('cancel', 'Cancel')], string='State Delivery',
+        compute='_compute_sync_with_state',store=True,
+        help='Automatic assignation state from state delivery:\n'
+             '\tNote: It can be modified manually')
 
     @api.depends('state', 'picking_type_id',
                  'partner_id.sequence_id', 'partner_id.lot_code_prefix', 'location_dest_id')
@@ -192,7 +205,6 @@ class Picking(models.Model):
                 """
                 % (move_lines_to_unreserve[0])
             )
-
 
     def search_inconsistencies_with_so(self):
         """
@@ -391,6 +403,21 @@ class Picking(models.Model):
         # Calling an onchange method to update the record
         new_line.product_id_change()
         return new_line
+
+    @api.depends('state')
+    def _compute_sync_with_state(self):
+        for stock in self:
+            originally_states = list(dict(stock._fields['state'].selection).keys())
+            if not stock.custom_state_delivery:
+                _logger.info('Custom state was set')
+                stock.custom_state_delivery = stock.state
+            elif stock.custom_state_delivery in originally_states:
+                stock.custom_state_delivery = stock.state
+                _logger.info('Custom state was set')
+            else:
+                _logger.info('Custom state was not set')
+
+
 
     @api.onchange('move_line_ids')
     def onchange_move_line_ids(self):
