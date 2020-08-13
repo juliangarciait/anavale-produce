@@ -9,7 +9,27 @@ import logging
 _logger = logging.getLogger(__name__)
 
 class SaleOrder(models.Model):
-    _inherit = "sale.order"    
+    _inherit = "sale.order"
+
+    custom_state_delivery = fields.Char(string='State Delivery',
+        compute='_compute_get_delivery_custom_state',
+        help='Automatic assignation state from custom state delivery:\n')
+
+
+    def _compute_get_delivery_custom_state(self):
+        for record in self:
+            pickings = self.mapped('picking_ids')
+            if len(pickings)>0:
+                sorte_list = pickings.sorted(key=lambda r: r.id)
+                for picking in sorte_list:
+                    if picking.state != 'cancel':
+                        record.custom_state_delivery = dict(
+                            picking._fields['custom_state_delivery'].selection).get(
+                            picking.custom_state_delivery)
+                        return
+            record.custom_state_delivery = 'No status'
+
+
 
     def action_quotation_send(self):
         ''' Opens a wizard to compose an email, with relevant mail template loaded by default '''

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="portal_my_orders_no_amounts" inherit_id="sale.sale_order_portal_template">
+        <xpath expr="//h2[hasclass('mb-0')]" position="before">
+            <div class="alert alert-info" role="alert">
+                Delivery Status<br/>
+                <b><span t-field="sale_order.custom_state_delivery"/></b>
+            </div>
+        </xpath>    
+    </template>
+
+
+
+
+</odoo>
