@@ -24,6 +24,10 @@
             <xpath expr="//button[@name='button_validate']" position="before">
                 <button name="button_load_move_line_ids" attrs="{'invisible': [('state', 'in', ('done', 'cancel'))]}" string="Load Operations - SO" type="object" groups="stock.group_stock_user" class="btn btn-primary"/>
             </xpath>
+
+            <xpath expr="//button[@name='action_assign']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
         
             <!-- Boton Quality -->
             <div name="button_box" position="inside">                
