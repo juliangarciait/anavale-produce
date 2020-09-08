@@ -20,6 +20,7 @@
             'views/stock_quality_view.xml',
             'views/product_view.xml',
             'views/res_partner_views.xml',
+            'views/sale_portal_sidebar_template.xml',
             'wizard/partner_sequence_change_view.xml',
             'data/report_paperformat.xml',
             'report/sale_report.xml',

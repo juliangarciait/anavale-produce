@@ -3,8 +3,33 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 from odoo.tools.float_utils import float_compare
 
+import logging
+
+
+_logger = logging.getLogger(__name__)
+
 class SaleOrder(models.Model):
-    _inherit = "sale.order"    
+    _inherit = "sale.order"
+
+    custom_state_delivery = fields.Char(string='State Delivery',
+        compute='_compute_get_delivery_custom_state',
+        help='Automatic assignation state from custom state delivery:\n')
+
+
+    def _compute_get_delivery_custom_state(self):
+        for record in self:
+            pickings = self.mapped('picking_ids')
+            if len(pickings)>0:
+                sorte_list = pickings.sorted(key=lambda r: r.id)
+                for picking in sorte_list:
+                    if picking.state != 'cancel':
+                        record.custom_state_delivery = dict(
+                            picking._fields['custom_state_delivery'].selection).get(
+                            picking.custom_state_delivery)
+                        return
+            record.custom_state_delivery = 'No status'
+
+
 
     def action_quotation_send(self):
         ''' Opens a wizard to compose an email, with relevant mail template loaded by default '''
@@ -32,6 +57,20 @@ class SaleOrder(models.Model):
             if line.product_id and line.lot_id and line.product_uom_qty > line.lot_available_sell:
                 raise UserError('Maximum {} units for selected Lot {}! Please update before tried again'.format(
                     str(line.lot_available_sell), line.lot_id.name))
+
+    @api.onchange('order_line')
+    def onchange_order_line(self):
+        list_mapped = []
+        for line in self.order_line:
+            if (line.product_id, line.lot_id) in list_mapped:
+                raise UserError('Product {} with Lot {}! Already exist on the Order Lines. Please add amount in '
+                                'existing line'.format(
+                    str(line.product_id.name), line.lot_id.name))
+            list_mapped.append((line.product_id, line.lot_id))
+
+        #self._onchange_lot_id(self.product_uom_qty, self._origin.id)
+        #if self.product_id and self.lot_id and self.product_uom_qty > self.lot_available_sell:
+        #    raise UserError('Maximum %s units for selected Lot!' % self.lot_available_sell)
 
     # @api.model
     # def get_move_from_line(self, line):
