@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding='UTF-8'?>
+<odoo>
+    <record id="anavale_view_production_lot_form_inherit" model="ir.ui.view">
+        <field name="name">stock.production.lot.inherit.form</field>
+        <field name="model">stock.production.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_form" />
+        <field name="arch" type="xml">
+            <field name="product_id" position="before">
+                <field name="parent_lod_id"/>
+            </field>
+            <xpath expr="//page[@name='description']" position="after">
+                <page string="Child Lots" name="child_lots">
+                    <field name="child_lot_ids" readonly="1" force_save="1"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+
+</odoo>
