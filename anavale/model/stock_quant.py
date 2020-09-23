@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models
+from dateutil.relativedelta import relativedelta
 
 class StockQuant(models.Model):
     _inherit = 'stock.quant'
@@ -15,14 +16,23 @@ class StockQuant(models.Model):
         store=True, readonly=True)
         
     def _compute_sale_order_qty(self):
-        for quant in self.sudo():        
-            domain = [('product_id', '=', quant.product_id.id),
-                # ('qty_to_deliver', '>', 0),
-                ('order_id.state', '=', 'sale'),
-                ('lot_id', '=', quant.lot_id.id)]
-                
-            sale_order_quantity = 0    
-            for so in self.env['sale.order.line'].search(domain):
+        for quant in self.sudo():
+            args = [quant.product_id.id]
+            sql = """
+                        SELECT sol.id
+                            FROM sale_order_line sol
+                            LEFT JOIN sale_order o
+                                on sol.order_id = o.id
+                            where o.state = 'sale'
+                                and product_id = %s                                
+                    """
+            if quant.lot_id:
+                sql += """ and lot_id = %s """
+                args.append(quant.lot_id.id)
+            self._cr.execute(sql, tuple(args))
+            ids = [item.get('id') for item in self._cr.dictfetchall()]
+            sale_order_quantity = 0
+            for so in self.env['sale.order.line'].browse(ids):
                 sale_order_quantity += so._compute_real_qty_to_deliver() 
                 # sol._compute_qty_delivered()
             # quant.available_quantity = quant.quantity - quant.sale_order_quantity
@@ -33,7 +43,14 @@ class StockQuant(models.Model):
     @api.model
     def _quant_tasks(self):
         res = super(StockQuant, self)._quant_tasks()
-        self.sudo().search([['create_date', '>', '2020-07-14 00:33:01.516179'],])._compute_sale_order_qty()
+        date = fields.Datetime.today() - relativedelta(months=1)
+        self._cr.execute("""
+                            SELECT id 
+                                FROM stock_quant
+                            WHERE create_date > %s 
+                        """, (date, ))
+        ids = [item.get('id') for item in self._cr.dictfetchall()]
+        self.sudo().browse(ids)._compute_sale_order_qty()
         return res
 
     def call_view_sale_order(self):
