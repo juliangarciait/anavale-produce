@@ -25,17 +25,19 @@ class SaleReportAvg(models.TransientModel):
 
         #context.update(invoice_state=self.invoice_state)
 
-        #if self.from_date:
-        #    context.update(date_from=self.from_date)
+        if self.from_date:
+            context.update(date_from=self.from_date)
 
-        #if self.to_date:
-        #    context.update(date_to=self.to_date)
+        if self.to_date:
+            context.update(date_to=self.to_date)
+
+        self.env['sale.report.avg'].with_context(context).init()
 
         views = [
             (tree_view_id, 'tree')
         ]
         return {
-            'name': _('Product Margins'),
+            'name': _('Sale Report AVG'),
             'context': context,
             "view_mode": 'tree,form',
             'res_model': 'sale.report.avg',

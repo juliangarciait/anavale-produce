@@ -12,7 +12,7 @@ class SaleReportAvg(models.Model):
     _order = 'create_date DESC'
 
     product_id = fields.Many2one('product.product', string='Product', readonly=True)
-    create_date = fields.Date("Ticket Create Date", readonly=True)
+    create_date = fields.Date("Sale Create Date", readonly=True)
     lot_id = fields.Many2one('stock.production.lot', string='Lot',readonly=True)
     total_amount = fields.Float(string='Total Amount',readonly=True)
     qty_invoiced = fields.Float(string='Qty Invoiced',readonly=True)
@@ -21,10 +21,12 @@ class SaleReportAvg(models.Model):
     cogs_qty = fields.Float(string='Qty Cogs',readonly=True)
     company_id = fields.Many2one('res.company', string='Company', readonly=True)
 
+
+
     def init(self):
         tools.drop_view_if_exists(self.env.cr, 'sale_report_avg')
         self.env.cr.execute("""
-            CREATE VIEW sale_report_avg AS (
+            CREATE OR REPLACE VIEW sale_report_avg AS (
                 SELECT	row_number() OVER () as id,s.company_id as company_id,l.product_id as product_id, l.create_date,
                         lot.id as lot_id,
                         (ROUND(sum(l.price_total / CASE COALESCE(s.currency_rate, 0) WHEN 0 THEN 1.0 ELSE s.currency_rate END),2))+
@@ -106,6 +108,8 @@ class SaleReportAvg(models.Model):
                         AND s.state NOT IN ('cancel','draft')
                         AND lot.name IS NOT NULL 
                         AND lot.parent_lod_id IS NULL
+                        AND l.create_date >= %s
+						AND l.create_date <= %s
                     --and lot.name = '09UPC20-0051'
                      GROUP BY 
                         s.company_id,
@@ -114,4 +118,4 @@ class SaleReportAvg(models.Model):
                         lot.id,
                         lot_purchase_cost.price_total
                 )
-            """)
+            """,(self.env.context.get('date_from'),self.env.context.get('date_to')))
