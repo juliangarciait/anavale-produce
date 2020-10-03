@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_sale_report_avg_tree" model="ir.ui.view">
+        <field name="name">sale.report.avg.tree</field>
+        <field name="model">sale.report.avg</field>
+        <field name="arch" type="xml">
+            <tree string="Sale Report Avg">
+                <field name="create_date" invisible="1"/>
+                <field name="product_id"/>
+                <field name="lot_id" />
+                <field name="total_amount" />
+                <field name="qty_invoiced" />
+                <field name="avg_price"/>
+                <field name="cogs"/>
+                <field name="cogs_qty"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+
+
+
+    <!--
+    <record id="action_production_lot_form" model="ir.actions.act_window">
+        <field name="name">Lots/Serial Numbers</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">stock.production.lot</field>
+        <field name="view_ids"
+                   eval="[(5, 0, 0),
+                          (0, 0, {'view_mode': 'tree', 'view_id': ref('view_production_lot_tree')})]"/>
+
+        <field name="context">{'search_default_group_by_product': 1, 'display_complete': True, 'default_company_id': allowed_company_ids[0]}</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Add a lot/serial number
+          </p><p>
+            This is the list of all the production lots you recorded. When
+            you select a lot, you can get the traceability of the products contained in lot.
+          </p>
+        </field>
+    </record> -->
+
+
+
+    <!-- Action -->
+
+    <!--
+    <record id="action_appraisal_view_report_graph" model="ir.actions.act_window.view">
+        <field name="sequence" eval="5"/>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="helpdesk_sla_report_analysis_view_graph"/>
+        <field name="act_window_id" ref="helpdesk_sla_report_analysis_action"/>
+    </record> -->
+
+    <record id="action_view_sale_report_avg" model="ir.actions.act_window">
+            <field name="name">sale.report.avg.tree</field>
+            <field name="res_model">sale.report.avg</field>
+            <field name="view_mode">tree,form</field>
+    </record>
+
+
+
+    <menuitem action="sale_report_avg_wz_act_window"
+              id="menu_action_sale_report_avg"
+              name="Sale AVG"
+              sequence="20"
+              parent="sale.menu_sale_report"/>
+
+
+</odoo>
