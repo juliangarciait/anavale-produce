@@ -36,14 +36,23 @@ class QuantLotRepackWizard(models.TransientModel):
     @api.onchange('lot_id')
     def _onchange_lot_id(self):
         if self.lot_id and not self.lot_id.child_lot_ids:
-            self.initial_qty = self.lot_id.product_qty
-            self.final_qty = self.lot_id.product_qty
-            split = ['1', '2']
-            val = [(0, 0, {'lot_ref': self.lot_id.name + '#' + number, 'qty': 0.0})
-                   for number in split]
-            self.write(
-                {'lines_ids': val})
+            self.scrap_qty = 0.0
+            self.lines_ids = False
+            if self.lot_id.parent_lod_id:
+                ref = self.lot_id.parent_lod_id
+                self.lot_id = ref
+                self._onchange_lot_id()
+            else:
+                self.initial_qty = self.lot_id.product_qty
+                self.final_qty = self.lot_id.product_qty
+                split = ['1', '2']
+                val = [(0, 0, {'lot_ref': self.lot_id.name + '#' + number, 'qty': 0.0})
+                       for number in split]
+                self.write(
+                    {'lines_ids': val})
         elif self.lot_id and self.lot_id.child_lot_ids:
+            self.scrap_qty = 0.0
+            self.lines_ids = False
             # First Create Lines
             val = [(0, 0, {'lot_ref': lot.name, 'qty': lot.product_qty})
                    for lot in self.lot_id.child_lot_ids]
@@ -54,6 +63,7 @@ class QuantLotRepackWizard(models.TransientModel):
         else:
             self.initial_qty = 0.0
             self.final_qty = 0.0
+            self.scrap_qty = 0.0
             self.lines_ids = False
 
     @api.onchange('lines_ids', 'scrap_qty')
@@ -130,7 +140,18 @@ class QuantLotRepackWizard(models.TransientModel):
                 'location_id': self.location_id.id,
                 'product_qty': self.get_lot_child_quantity(lot_id.name)
             }))
-
+        # Check Main Lot is in SI
+        if self.final_qty > 0:
+            ids = [line.prod_lot_id.id for line in si.line_ids]
+            if self.lot_id.id not in ids:
+                #Add main Lot qty
+                list_line_ids.append((0, 0, {
+                    'company_id': self.location_id.company_id.id,
+                    'prod_lot_id': self.lot_id.id,
+                    'product_id': self.product_id.id,
+                    'location_id': self.location_id.id,
+                    'product_qty': self.final_qty
+                }))
         si.line_ids = list_line_ids
         si.sudo().action_validate()
 
