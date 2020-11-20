@@ -25,6 +25,7 @@
             'wizard/partner_sequence_change_view.xml',
             'wizard/quant_lot_repack_view.xml',
             'wizard/sale_report_avg_wz_view.xml',
+            'wizard/quant_product_repack_view.xml',
             'data/report_paperformat.xml',
             'report/sale_report.xml',
             'report/sale_report_templates.xml',

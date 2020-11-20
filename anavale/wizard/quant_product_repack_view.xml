@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="quant_product_repack_wizard_form_view" model="ir.ui.view">
+            <field name="name">quant.product.repack.wizard.form</field>
+            <field name="model">quant.product.repack.wizard</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group col="2" colspan="2">
+                        <field name="product_id"/>
+                    </group>
+                    <group col="4" colspan="4">
+                        <field name="location_id"
+                               domain="[('usage','in',['internal', 'transit'])]"
+                               widget="selection"/>
+                        <field name="initial_qty"
+                               readonly="1" force_save="1"/>
+                        <field name="lot_id"/>
+                        <field name="main_qty" readonly="1" force_save="1"/>
+                    </group>
+                    <group col="2" colspan="2">
+                        <field name="product_dest_id"/>
+                    </group>
+                    <group col="4" colspan="4">
+                        <field name="lot_dest_calculated" readonly="1" force_save="1"/>
+                        <field name="final_qty" force_save="1"/>
+                    </group>
+                    <group>
+                        <field name="scrap_qty"/>
+                    </group>
+                    <group>
+                        <field name="lot_dest_id" invisible="1"/>
+                    </group>
+                    <footer>
+                        <button string="Process Repack" name="process_repack" type="object" class="oe_highlight"/>
+                        <button string="Cancel" class="btn btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+        <!-- wizard action on res.partner -->
+        <act_window id="quant_product_repack_wizard_action"
+            name="Assistance Product Repack"
+            res_model="quant.product.repack.wizard"
+            view_mode="form" target="new"/>
+
+
+        <menuitem name="Assistance Product Repack"
+            id="quant_product_repack_wizard_menuitem"
+            parent="stock.menu_stock_warehouse_mgmt"
+            sequence="45"
+            action="quant_product_repack_wizard_action"/>
+
+    </data>
+</odoo>
