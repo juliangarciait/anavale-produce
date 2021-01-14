@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+         <record id="sale_report_avg_wz_form_view" model="ir.ui.view">
+            <field name="name">sale.report.avg.wizard.form</field>
+            <field name="model">sale.report.avg.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Properties Sale Report">
+                    <group col="4" string="General Information">
+                        <field name="from_date" />
+                        <field name="to_date" />
+                    </group>
+                    <footer>
+                        <button name="action_open_window" string="Generate Report" type="object" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <act_window name="Sale Report AVG"
+            res_model="sale.report.avg.wizard"
+            view_mode="form"
+            target="new"
+            id="sale_report_avg_wz_act_window"/>
+
+</odoo>

@@ -10,3 +10,9 @@ class LotData(models.Model):
 
     child_lot_ids = fields.One2many('stock.production.lot', 'parent_lod_id',
                                     string="Child Lots")
+
+    type_lot = fields.Selection(
+        string='Type',
+        selection=[('product_repack', 'Product Repack'),
+                   ('lot_repack', 'Lot Repack'), ],
+    )
