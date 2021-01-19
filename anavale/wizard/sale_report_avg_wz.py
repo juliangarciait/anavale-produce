@@ -4,11 +4,20 @@
 import time
 
 from odoo import api, fields, models, _
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class SaleReportAvg(models.TransientModel):
     _name = 'sale.report.avg.wizard'
     _description = 'Sale Reporte AVG Wz'
+
+    report_type = fields.Selection(
+        string='Report type',
+        selection=[('product', 'By Product'),
+                   ('lot', 'By Lot'), ],
+        default='product')
 
     from_date = fields.Date('From', default=time.strftime('%Y-01-01'))
     to_date = fields.Date('To', default=time.strftime('%Y-12-31'))
@@ -21,9 +30,16 @@ class SaleReportAvg(models.TransientModel):
             proxy = self.env['ir.model.data']
             return proxy.get_object_reference(module, xml_id)
 
-        model, tree_view_id = ref('anavale', 'view_sale_report_avg_tree')
+        if self.report_type == 'product':
+            report_name = 'Sale Report By Product'
+            model_search = 'sale.report.avg'
+            model, tree_view_id = ref('anavale', 'view_sale_report_avg_tree')
+        else:
+            report_name = 'Sale Report By Lot'
+            model_search = 'sale.report.by.lot'
+            model, tree_view_id = ref('anavale', 'view_sale_report_by_lot_tree')
 
-        #context.update(invoice_state=self.invoice_state)
+        # context.update(invoice_state=self.invoice_state)
 
         if self.from_date:
             context.update(date_from=self.from_date)
@@ -31,16 +47,16 @@ class SaleReportAvg(models.TransientModel):
         if self.to_date:
             context.update(date_to=self.to_date)
 
-        self.env['sale.report.avg'].with_context(context).init()
+        self.env[model_search].with_context(context).init()
 
         views = [
             (tree_view_id, 'tree')
         ]
         return {
-            'name': _('Sale Report AVG'),
+            'name': report_name,
             'context': context,
             "view_mode": 'tree,form',
-            'res_model': 'sale.report.avg',
+            'res_model': model_search,
             'type': 'ir.actions.act_window',
             'views': views,
             'view_id': False

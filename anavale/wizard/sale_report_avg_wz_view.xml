@@ -6,6 +6,7 @@
             <field name="arch" type="xml">
                 <form string="Properties Sale Report">
                     <group col="4" string="General Information">
+                        <field name="report_type" widget="radio" colspan="4"/>
                         <field name="from_date" />
                         <field name="to_date" />
                     </group>
@@ -17,7 +18,7 @@
             </field>
         </record>
 
-        <act_window name="Sale Report AVG"
+        <act_window name="Sales Reports Avg"
             res_model="sale.report.avg.wizard"
             view_mode="form"
             target="new"

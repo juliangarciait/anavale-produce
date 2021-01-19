@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_sale_report_by_lot_tree" model="ir.ui.view">
+        <field name="name">sale.report.by.lot.tree</field>
+        <field name="model">sale.report.by.lot</field>
+        <field name="arch" type="xml">
+            <tree string="Sale Report Avg">
+                <field name="create_date" invisible="1"/>
+                <field name="description"/>
+                <field name="product_id" invisible="1"/>
+                <field name="lot_id" invisible="1"/>
+                <field name="qty_invoiced" />
+                <field name="total_amount" />
+                <field name="avg_price"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+
+
+
+
+    <record id="action_sale_report_by_lot" model="ir.actions.act_window">
+            <field name="name">sale.report.by.lot.tree</field>
+            <field name="res_model">sale.report.by.lot</field>
+            <field name="view_mode">tree,form</field>
+    </record>
+
+
+
+
+</odoo>

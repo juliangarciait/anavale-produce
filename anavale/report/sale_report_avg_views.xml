@@ -63,9 +63,14 @@
 
     <menuitem action="sale_report_avg_wz_act_window"
               id="menu_action_sale_report_avg"
-              name="Sale AVG"
+              name="Sales Reports Avg"
               sequence="20"
               parent="sale.menu_sale_report"/>
+
+    <menuitem id="sale_menu_valuation" name="Inventory Report"
+              sequence="100"
+              parent="sale.menu_sale_report"
+              action="stock.action_view_quants"/>
 
 
 </odoo>

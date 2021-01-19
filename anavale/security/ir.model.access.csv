@@ -5,3 +5,4 @@ access_stock_quality_check_point,stock.quality.check.point.manager,anavale.model
 access_stock_quality_point,stock.quality.point.manager,anavale.model_stock_quality_point,base.group_user,1,1,1,1
 access_stock_quality_template,stock.quality.template.manager,anavale.model_stock_quality_template,base.group_user,1,1,1,1
 access_sale_report_avg,sale.report.avg.manager,anavale.model_sale_report_avg,base.group_user,1,1,1,1
+access_sale_report_by_lot,sale.report.by.lot.manager,anavale.model_sale_report_by_lot,base.group_user,1,1,1,1
