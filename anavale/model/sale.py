@@ -130,6 +130,8 @@ class SaleOrderLine(models.Model):
     lot_id = fields.Many2one('stock.production.lot', 'Lot', copy=False)
     lot_available_sell = fields.Float('Stock', readonly=1)
 
+
+
     def _prepare_procurement_values(self, group_id=False):
         res = super(SaleOrderLine, self)._prepare_procurement_values(group_id=group_id)
         res['lot_id'] = self.lot_id.id
@@ -168,6 +170,12 @@ class SaleOrderLine(models.Model):
             self.product_uom_qty = qty
 
         self.lot_available_sell = quantity
+
+    @api.onchange('lot_id', 'product_id')
+    def _onchange_lot_sel_account(self):
+        if self.lot_id and self.lot_id.analytic_tag_ids:
+            self.analytic_tag_ids = False
+            self.analytic_tag_ids = [(4, tag.id) for tag in self.lot_id.analytic_tag_ids]
      
     def _get_lots(self, lot_id=False, sale_order_line=False):
         """ Compute lot availability including real in-stock,

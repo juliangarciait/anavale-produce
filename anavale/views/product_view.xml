@@ -9,6 +9,7 @@
             <!-- Lot code -->            
             <xpath expr="//field[@name='tracking']" position="after">
 				<field name="lot_code_prefix" attrs="{'invisible': [('tracking', '!=', 'lot')], 'required': [('tracking', '=', 'lot')]}"/>
+                <field name="account_tag_id"/>
 			</xpath>
         </field>
     </record>

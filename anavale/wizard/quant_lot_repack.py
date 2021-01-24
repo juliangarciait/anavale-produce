@@ -119,7 +119,9 @@ class QuantLotRepackWizard(models.TransientModel):
                 self.get_or_creat_lot({'name': item.lot_ref,
                                        'product_id': self.product_id.id,
                                        'company_id': self.location_id.company_id.id,
-                                       'parent_lod_id': self.lot_id.id}))
+                                       'parent_lod_id': self.lot_id.id,
+                                       'analytic_tag_ids': [(4, tag.id) for tag in self.lot_id.analytic_tag_ids],
+                                       }))
         # ReOrganize and Create Move Lines
         lot_process = []
         for line in si.line_ids:

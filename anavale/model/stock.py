@@ -28,7 +28,7 @@ class Picking(models.Model):
         ('assigned', 'Ready (No Delivered)'),
         ('done', 'Done (Delivered)'),
         ('cancel', 'Cancel')], string='State Delivery',
-        compute='_compute_sync_with_state',store=True,
+        compute='_compute_sync_with_state', store=True,
         help='Automatic assignation state from state delivery:\n'
              '\tNote: It can be modified manually')
 
@@ -95,10 +95,13 @@ class Picking(models.Model):
                 if product and product.tracking != 'none':
                     if not line.lot_name and not line.lot_id:
                         lot_name = self.get_next_lot_name(line.product_id, line.picking_id, next_number)
-
+                        # Ensure Tag Tax Lot Ids
+                        tax_tag_lot_ids = self.get_lot_tax_tag(line.product_id, line.picking_id, next_number)
                         lot = self.env['stock.production.lot'].create(
                             {'name': lot_name, 'product_id': line.product_id.id,
-                             'company_id': line.move_id.company_id.id}
+                             'company_id': line.move_id.company_id.id,
+                             'analytic_tag_ids': tax_tag_lot_ids,
+                             }
                         )
                         line.write({'lot_name': lot.name, 'lot_id': lot.id})
         # Check lot Traceability
@@ -417,8 +420,6 @@ class Picking(models.Model):
             else:
                 _logger.info('Custom state was not set')
 
-
-
     @api.onchange('move_line_ids')
     def onchange_move_line_ids(self):
         list_mapped = []
@@ -466,6 +467,27 @@ class Picking(models.Model):
             'location_dest_id': line_by_lot.location_dest_id.id,
             'sale_line_id': sale_order_line.id
         })
+
+    def get_lot_tax_tag(self, product_id, picking_id, next_number):
+        # Tag Lot
+        tag_lot = '%s%s' % (picking_id.partner_id.lot_code_prefix,
+                            next_number)
+        account_tag_lot = self.env['account.analytic.tag'].search([('name', '=', tag_lot)])
+        if not account_tag_lot:
+            account_tag_lot = self.env['account.analytic.tag'].create({'name': tag_lot})
+        # Tag Product
+        tag_product = product_id.product_tmpl_id.lot_code_prefix
+        product_tag_lot = self.env['account.analytic.tag'].search([('name', '=', tag_product)])
+        if not product_tag_lot:
+            product_tag_lot = self.env['account.analytic.tag'].create({'name': tag_product})
+
+        # Tag Supplier
+        tag_supplier = picking_id.partner_id.lot_code_prefix
+        supplier_tag_lot = self.env['account.analytic.tag'].search([('name', '=', tag_supplier)])
+        if not supplier_tag_lot:
+            supplier_tag_lot = self.env['account.analytic.tag'].create({'name': tag_supplier})
+
+        return [(4, account_tag_lot.id), (4, product_tag_lot.id), (4, supplier_tag_lot.id)]
 
     def get_next_lot_name(self, product_id, picking_id, next_number):
         """ Method called by button "Create Lot Numbers", it automatically

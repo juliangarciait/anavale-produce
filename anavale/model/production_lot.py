@@ -4,6 +4,11 @@ from odoo import api, fields, models
 class LotData(models.Model):
     _inherit = 'stock.production.lot'
 
+    analytic_tag_ids = fields.Many2many(
+        'account.analytic.tag', string='Analytic Tags',
+        help="This field contains the information related to the account tags for this lot",
+        domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]")
+
     parent_lod_id = fields.Many2one('stock.production.lot', string='Parent Lot',
                                     help="This field contains the information related to the Parent Lot if"
                                          "it is repack lot")
