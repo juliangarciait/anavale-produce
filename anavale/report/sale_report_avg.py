@@ -9,10 +9,9 @@ class SaleReportAvg(models.Model):
     _name = 'sale.report.avg'
     _description = "Sale Report Avg"
     _auto = False
-    _order = 'create_date DESC'
+    _order = 'id DESC'
 
     product_id = fields.Many2one('product.product', string='Product', readonly=True)
-    create_date = fields.Date("Sale Create Date", readonly=True)
     lot_id = fields.Many2one('stock.production.lot', string='Lot',readonly=True)
     total_amount = fields.Float(string='Total Amount',readonly=True)
     qty_invoiced = fields.Float(string='Qty Invoiced',readonly=True)
@@ -20,6 +19,14 @@ class SaleReportAvg(models.Model):
     cogs = fields.Float(string='Cogs',readonly=True)
     cogs_qty = fields.Float(string='Qty Cogs',readonly=True)
     company_id = fields.Many2one('res.company', string='Company', readonly=True)
+    list_orders = fields.Char(string="Orders")
+
+    def get_so_view(self):
+        self.ensure_one()
+        sale_ids = self.env['sale.order'].search([('name','in', tuple(self.list_orders.split(", ")))])
+        action = self.env.ref('sale.action_orders').read()[0]
+        action['domain'] = [('id', 'in', sale_ids.ids)]
+        return action
 
 
 
@@ -27,7 +34,7 @@ class SaleReportAvg(models.Model):
         tools.drop_view_if_exists(self.env.cr, 'sale_report_avg')
         self.env.cr.execute("""
             CREATE OR REPLACE VIEW sale_report_avg AS (
-                SELECT	row_number() OVER () as id,s.company_id as company_id,l.product_id as product_id, l.create_date,
+                SELECT	row_number() OVER () as id,s.company_id as company_id,l.product_id as product_id,
                         lot.id as lot_id,
                         (ROUND(sum(l.price_total / CASE COALESCE(s.currency_rate, 0) WHEN 0 THEN 1.0 ELSE s.currency_rate END),2))+
                         COALESCE(MAX(grouped_lot_id.price_total_childs),0) as total_amount,
@@ -44,7 +51,9 @@ class SaleReportAvg(models.Model):
                             
                         ROUND(MAX(lot_purchase_cost.price_total),2) as cogs,
                         
-                        ROUND(MAX(lot_purchase_cost.qty_received),2) as cogs_qty
+                        ROUND(MAX(lot_purchase_cost.qty_received),2) as cogs_qty,
+                        
+                        string_agg(s.name, ', ') as list_orders
                         
                         
                     FROM 
@@ -112,8 +121,7 @@ class SaleReportAvg(models.Model):
 						AND l.create_date <= %s
                     --and lot.name = '09UPC20-0051'
                      GROUP BY 
-                        s.company_id,
-                        l.create_date,
+                        s.company_id,                        
                         l.product_id,
                         lot.id,
                         lot_purchase_cost.price_total
