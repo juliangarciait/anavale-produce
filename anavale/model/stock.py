@@ -475,11 +475,15 @@ class Picking(models.Model):
         account_tag_lot = self.env['account.analytic.tag'].search([('name', '=', tag_lot)], limit=1)
         if not account_tag_lot:
             account_tag_lot = self.env['account.analytic.tag'].create({'name': tag_lot})
+
         # Tag Product
-        tag_product = product_id.product_tmpl_id.lot_code_prefix
-        product_tag_lot = self.env['account.analytic.tag'].search([('name', '=', tag_product)], limit=1)
-        if not product_tag_lot:
-            product_tag_lot = self.env['account.analytic.tag'].create({'name': tag_product})
+        if not product_id.product_tmpl_id.account_tag_id:
+            tag_product = product_id.product_tmpl_id.lot_code_prefix
+            product_tag_lot = self.env['account.analytic.tag'].search([('name', '=', tag_product)], limit=1)
+            if not product_tag_lot:
+                product_tag_lot = self.env['account.analytic.tag'].create({'name': tag_product})
+        else:
+            product_tag_lot = product_id.product_tmpl_id.account_tag_id
 
         # Tag Supplier
         tag_supplier = picking_id.partner_id.lot_code_prefix
