@@ -35,7 +35,7 @@ class SaleReportAvg(models.Model):
         tools.drop_view_if_exists(self.env.cr, 'sale_report_by_lot')
         self.env.cr.execute("""
             CREATE OR REPLACE VIEW sale_report_by_lot AS (
-                SELECT	row_number() OVER () as id,s.company_id as company_id,l.product_id as product_id, l.create_date,
+                SELECT	row_number() OVER () as id,s.company_id as company_id,l.product_id as product_id,
                         sum(l.product_uom_qty / u.factor * u2.factor) as qty_sale,
                         lot.id as lot_id,
                         (ROUND(sum(l.price_total / CASE COALESCE(s.currency_rate, 0) WHEN 0 THEN 1.0 ELSE s.currency_rate END),2))+
@@ -92,8 +92,7 @@ class SaleReportAvg(models.Model):
 						AND l.create_date <= %s
                     --and lot.name = '09UPC20-0051'
                      GROUP BY 
-                        s.company_id,
-                        l.create_date,
+                        s.company_id,                        
                         l.product_id,
                         lot.id
                 )
