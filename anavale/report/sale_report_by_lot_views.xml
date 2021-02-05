@@ -32,11 +32,6 @@
                 <field name="total_amount" />
                 <field name="avg_price"/>
                 <field name="company_id" groups="base.group_multi_company"/>
-                <field name="list_orders" invisible="1"/>
-                <button name="get_so_view"
-                            attrs="{'invisible' : [('list_orders', '=', False)]}"
-                            string="Associated Sales" icon="fa-shopping-cart"
-                            type="object"/>
             </tree>
         </field>
     </record>

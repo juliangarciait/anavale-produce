@@ -19,18 +19,10 @@ class SaleReportAvg(models.Model):
     qty_invoiced = fields.Float(string='Qty Invoiced', readonly=True)
     avg_price = fields.Float(string='Avg Price', readonly=True)
     company_id = fields.Many2one('res.company', string='Company', readonly=True)
-    list_orders = fields.Char(string="Orders")
 
     description = fields.Char(
         string='Description',
         compute='_compute_description')
-
-    def get_so_view(self):
-        self.ensure_one()
-        sale_ids = self.env['sale.order'].search([('name','in', tuple(self.list_orders.split(", ")))])
-        action = self.env.ref('sale.action_orders').read()[0]
-        action['domain'] = [('id', 'in', sale_ids.ids)]
-        return action
 
 
     @api.depends('product_id', 'lot_id')
@@ -56,8 +48,7 @@ class SaleReportAvg(models.Model):
                         ROUND((CASE round(sum(l.product_uom_qty / u.factor * u2.factor),2) 
                             WHEN 0.0 THEN 0.0 
                             ELSE (ROUND(sum(l.price_total / CASE COALESCE(s.currency_rate, 0) WHEN 0 THEN 1.0 ELSE s.currency_rate END),2))/
-                            (round(sum(l.product_uom_qty / u.factor * u2.factor),2)) END ),2) as avg_price,
-                            string_agg(s.name, ', ') as list_orders
+                            (round(sum(l.product_uom_qty / u.factor * u2.factor),2)) END ),2) as avg_price
                             
                     FROM 
                     sale_order_line l
