@@ -12,7 +12,7 @@ class SaleReportAvg(models.Model):
     _order = 'id DESC'
 
     product_id = fields.Many2one('product.product', string='Product', readonly=True)
-    #create_date = fields.Date("Sale Create Date", readonly=True)
+    # create_date = fields.Date("Sale Create Date", readonly=True)
     lot_id = fields.Many2one('stock.production.lot', string='Lot', readonly=True)
     qty_sale = fields.Float(string='Qty Sale', readonly=True)
     total_amount = fields.Float(string='Total Amount', readonly=True)
@@ -24,12 +24,32 @@ class SaleReportAvg(models.Model):
         string='Description',
         compute='_compute_description')
 
-
     @api.depends('product_id', 'lot_id')
     def _compute_description(self):
         for rec in self:
             if rec.product_id and rec.lot_id:
                 rec.description = "%s (%s)" % (rec.lot_id.name, rec.product_id.name_get()[0][1])
+
+    def call_view_sale_order(self):
+        """ Method called when click button
+            "View Sale Order" from stock.quant
+            Tree view.
+            Displays Tree view of all sale.order
+            composing self.sale_order_quantity """
+        self.ensure_one()
+        domain = [('product_id', '=', self.product_id.id),
+                  ('order_id.state', '=', 'sale'),
+                  ('lot_id', '=', self.lot_id.id)]
+
+        ids = []
+        for sol in self.env['sale.order.line'].search(domain):
+            # Only sale.order.line with pending deliveries
+            if sol._compute_real_qty_to_deliver() > 0:
+                ids.append(sol.order_id.id)
+
+        action = self.env.ref('sale.action_orders').read()[0]
+        action['domain'] = [('id', 'in', ids)]
+        return action
 
     def init(self):
         tools.drop_view_if_exists(self.env.cr, 'sale_report_by_lot')
