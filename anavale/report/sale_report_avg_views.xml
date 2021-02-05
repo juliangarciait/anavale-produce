@@ -7,7 +7,7 @@
         <field name="model">sale.report.avg</field>
         <field name="priority" eval="10"/>
         <field name="arch" type="xml">
-            <search string="Stock Moves">
+            <search string="Sale Report Avg">
                 <field name="product_id"/>
                 <field name="lot_id"  filter_domain="[('lot_id.name','ilike',self)]"/>
                 <field name="total_amount" />

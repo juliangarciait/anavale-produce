@@ -1,6 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Filters -->
+    <record id="view_sale_report_by_lot_search" model="ir.ui.view">
+        <field name="name">sale.report.by.lot.search</field>
+        <field name="model">sale.report.by.lot</field>
+        <field name="priority" eval="10"/>
+        <field name="arch" type="xml">
+            <search string="Sale Report Lot">
+                <field name="description"/>
+                <field name="product_id"/>
+                <field name="lot_id"  filter_domain="[('lot_id.name','ilike',self)]"/>
+                <field name="total_amount" />
+                <field name="qty_sale"/>
+                <field name="qty_invoiced" />
+                <field name="avg_price"/>
+            </search>
+        </field>
+    </record>
+
+
     <record id="view_sale_report_by_lot_tree" model="ir.ui.view">
         <field name="name">sale.report.by.lot.tree</field>
         <field name="model">sale.report.by.lot</field>
