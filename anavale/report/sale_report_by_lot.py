@@ -44,8 +44,7 @@ class SaleReportAvg(models.Model):
         ids = []
         for sol in self.env['sale.order.line'].search(domain):
             # Only sale.order.line with pending deliveries
-            if sol._compute_real_qty_to_deliver() > 0:
-                ids.append(sol.order_id.id)
+            ids.append(sol.order_id.id)
 
         action = self.env.ref('sale.action_orders').read()[0]
         action['domain'] = [('id', 'in', ids)]
