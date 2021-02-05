@@ -9,12 +9,12 @@
         <field name="arch" type="xml">
             <search string="Stock Moves">
                 <field name="product_id"/>
-                <field name="lot_id" />
+                <field name="lot_id"  filter_domain="[('lot_id.name','ilike',self)]"/>
                 <field name="total_amount" />
                 <field name="qty_sale"/>
                 <field name="qty_invoiced" />
                 <field name="avg_price"/>
-                <field name="cogs"/>               
+                <field name="cogs"/>
             </search>
         </field>
     </record>

@@ -14,6 +14,7 @@ class SaleReportAvg(models.Model):
     product_id = fields.Many2one('product.product', string='Product', readonly=True)
     create_date = fields.Date("Sale Create Date", readonly=True)
     lot_id = fields.Many2one('stock.production.lot', string='Lot', readonly=True)
+    qty_sale = fields.Float(string='Qty Sale', readonly=True)
     total_amount = fields.Float(string='Total Amount', readonly=True)
     qty_invoiced = fields.Float(string='Qty Invoiced', readonly=True)
     avg_price = fields.Float(string='Avg Price', readonly=True)
@@ -35,6 +36,7 @@ class SaleReportAvg(models.Model):
         self.env.cr.execute("""
             CREATE OR REPLACE VIEW sale_report_by_lot AS (
                 SELECT	row_number() OVER () as id,s.company_id as company_id,l.product_id as product_id, l.create_date,
+                        sum(l.product_uom_qty / u.factor * u2.factor) as qty_sale,
                         lot.id as lot_id,
                         (ROUND(sum(l.price_total / CASE COALESCE(s.currency_rate, 0) WHEN 0 THEN 1.0 ELSE s.currency_rate END),2))+
                         COALESCE(MAX(grouped_lot_id.price_total_childs),0) as total_amount,
