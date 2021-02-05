@@ -45,10 +45,10 @@ class SaleReportAvg(models.Model):
                          (COALESCE(MAX(grouped_lot_id.qty_invoiced_childs),0))) as qty_invoiced,
                         
                         
-                        ROUND((CASE round(sum(l.qty_invoiced / u.factor * u2.factor),2) 
+                        ROUND((CASE round(sum(l.product_uom_qty / u.factor * u2.factor),2) 
                             WHEN 0.0 THEN 0.0 
                             ELSE (ROUND(sum(l.price_total / CASE COALESCE(s.currency_rate, 0) WHEN 0 THEN 1.0 ELSE s.currency_rate END),2))/
-                            (round(sum(l.qty_invoiced / u.factor * u2.factor),2)) END ),2) as avg_price
+                            (round(sum(l.product_uom_qty / u.factor * u2.factor),2)) END ),2) as avg_price
                             
                     FROM 
                     sale_order_line l
