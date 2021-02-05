@@ -106,7 +106,7 @@ class SaleReportAvg(models.Model):
                      WHERE l.product_id IS NOT NULL--
                         AND s.state NOT IN ('cancel','draft')
                         AND lot.name IS NOT NULL 
-                        AND lot.parent_lod_id IS NULL
+                        --AND lot.parent_lod_id IS NULL
                         AND l.create_date >= %s
 						AND l.create_date <= %s
                     --and lot.name = '09UPC20-0051'
