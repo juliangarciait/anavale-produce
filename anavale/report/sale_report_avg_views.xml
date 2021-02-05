@@ -1,6 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Filters -->
+    <record id="view_sale_report_avg_search" model="ir.ui.view">
+        <field name="name">sale.report.avg.search</field>
+        <field name="model">sale.report.avg</field>
+        <field name="priority" eval="10"/>
+        <field name="arch" type="xml">
+            <search string="Stock Moves">
+                <field name="product_id"/>
+                <field name="lot_id" />
+                <field name="total_amount" />
+                <field name="qty_sale"/>
+                <field name="qty_invoiced" />
+                <field name="avg_price"/>
+                <field name="cogs"/>               
+            </search>
+        </field>
+    </record>
+
+
     <record id="view_sale_report_avg_tree" model="ir.ui.view">
         <field name="name">sale.report.avg.tree</field>
         <field name="model">sale.report.avg</field>
@@ -9,10 +28,11 @@
                 <field name="product_id"/>
                 <field name="lot_id" />
                 <field name="total_amount" />
+                <field name="qty_sale"/>
                 <field name="qty_invoiced" />
                 <field name="avg_price"/>
                 <field name="cogs"/>
-                <field name="cogs_qty"/>
+                <field name="cogs_qty" invisible="1"/>
                 <field name="company_id" groups="base.group_multi_company"/>
                 <field name="list_orders" invisible="1"/>
                 <button name="get_so_view"

@@ -14,6 +14,7 @@ class SaleReportAvg(models.Model):
     product_id = fields.Many2one('product.product', string='Product', readonly=True)
     lot_id = fields.Many2one('stock.production.lot', string='Lot',readonly=True)
     total_amount = fields.Float(string='Total Amount',readonly=True)
+    qty_sale = fields.Float(string='Qty Sale',readonly=True)
     qty_invoiced = fields.Float(string='Qty Invoiced',readonly=True)
     avg_price = fields.Float(string='Avg Price',readonly=True)
     cogs = fields.Float(string='Cogs',readonly=True)
@@ -34,7 +35,10 @@ class SaleReportAvg(models.Model):
         tools.drop_view_if_exists(self.env.cr, 'sale_report_avg')
         self.env.cr.execute("""
             CREATE OR REPLACE VIEW sale_report_avg AS (
-                SELECT	row_number() OVER () as id,s.company_id as company_id,l.product_id as product_id,
+                SELECT	row_number() OVER () as id,
+                        s.company_id as company_id,
+                        sum(l.product_uom_qty / u.factor * u2.factor) as qty_sale,
+                        l.product_id as product_id,
                         lot.id as lot_id,
                         (ROUND(sum(l.price_total / CASE COALESCE(s.currency_rate, 0) WHEN 0 THEN 1.0 ELSE s.currency_rate END),2))+
                         COALESCE(MAX(grouped_lot_id.price_total_childs),0) as total_amount,
@@ -46,13 +50,10 @@ class SaleReportAvg(models.Model):
                         ROUND((CASE round(sum(l.qty_invoiced / u.factor * u2.factor),2) 
                             WHEN 0.0 THEN 0.0 
                             ELSE (ROUND(sum(l.price_total / CASE COALESCE(s.currency_rate, 0) WHEN 0 THEN 1.0 ELSE s.currency_rate END),2))/
-                            (round(sum(l.qty_invoiced / u.factor * u2.factor),2)) END ),2) as avg_price,
+                            (round(sum(l.qty_invoiced / u.factor * u2.factor),2)) END ),2) as avg_price,                           
                             
-                            
-                        ROUND(MAX(lot_purchase_cost.price_total),2) as cogs,
-                        
-                        ROUND(MAX(lot_purchase_cost.qty_received),2) as cogs_qty,
-                        
+                        ROUND(MAX(lot_purchase_cost.price_unit),2) * sum(l.product_uom_qty / u.factor * u2.factor) as cogs,
+                        sum(l.product_uom_qty / u.factor * u2.factor) as cogs_qty,                        
                         string_agg(s.name, ', ') as list_orders
                         
                         
@@ -91,9 +92,8 @@ class SaleReportAvg(models.Model):
                             ON lot.id = grouped_lot_id.parent_lod_id
                             
                     LEFT JOIN 
-                    (	SELECT l.product_id,lot.id as lot_id ,
-                            sum(l.price_total / COALESCE(po.currency_rate, 1.0))::decimal(16,2) as price_total,
-                            sum(l.qty_received / line_uom.factor * product_uom.factor) as qty_received
+                    (	SELECT l.product_id, lot.id as lot_id ,
+                            max(l.price_unit / COALESCE(po.currency_rate, 1.0))::decimal(16,2) as price_unit
                         FROM 
                         purchase_order_line l
                                 join purchase_order po on (l.order_id=po.id)
@@ -124,6 +124,6 @@ class SaleReportAvg(models.Model):
                         s.company_id,                        
                         l.product_id,
                         lot.id,
-                        lot_purchase_cost.price_total
+                        lot_purchase_cost.price_unit
                 )
             """,(self.env.context.get('date_from'),self.env.context.get('date_to')))
