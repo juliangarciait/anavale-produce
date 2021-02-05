@@ -20,7 +20,7 @@ class SaleReport(models.Model):
 
     def _query(self, with_clause='', fields={}, groupby='', from_clause=''):
         fields['lot_id'] = ", lot.name as lot_id"
-        fields['avg_price'] = ", (sum(price_subtotal)/sum(product_uom_qty)) as avg_price"
+        fields['avg_price'] = ", (sum(price_subtotal)/ case sum(product_uom_qty) when 0 then 1.0 else sum(product_uom_qty) end) as avg_price"
         groupby += ', lot.name'
         from_clause = ' left join stock_production_lot lot on (l.lot_id=lot.id)'
         return super(SaleReport, self)._query(with_clause, fields, groupby, from_clause)
