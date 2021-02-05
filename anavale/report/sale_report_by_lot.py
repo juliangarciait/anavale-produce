@@ -9,10 +9,10 @@ class SaleReportAvg(models.Model):
     _name = 'sale.report.by.lot'
     _description = "Sale Report By Lot"
     _auto = False
-    _order = 'create_date DESC'
+    _order = 'id DESC'
 
     product_id = fields.Many2one('product.product', string='Product', readonly=True)
-    create_date = fields.Date("Sale Create Date", readonly=True)
+    #create_date = fields.Date("Sale Create Date", readonly=True)
     lot_id = fields.Many2one('stock.production.lot', string='Lot', readonly=True)
     qty_sale = fields.Float(string='Qty Sale', readonly=True)
     total_amount = fields.Float(string='Total Amount', readonly=True)

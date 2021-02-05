@@ -24,7 +24,6 @@
         <field name="model">sale.report.by.lot</field>
         <field name="arch" type="xml">
             <tree string="Sale Report Avg">
-                <field name="create_date" invisible="1"/>
                 <field name="description"/>
                 <field name="product_id" invisible="1"/>
                 <field name="lot_id" invisible="1"/>
