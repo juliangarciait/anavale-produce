@@ -57,8 +57,7 @@ class SaleReportAvg(models.Model):
                 SELECT	row_number() OVER () as id,s.company_id as company_id,l.product_id as product_id,
                         sum(l.product_uom_qty / u.factor * u2.factor) as qty_sale,
                         lot.id as lot_id,
-                        (ROUND(sum(l.price_total / CASE COALESCE(s.currency_rate, 0) WHEN 0 THEN 1.0 ELSE s.currency_rate END),2))+
-                        COALESCE(MAX(grouped_lot_id.price_total_childs),0) as total_amount,
+                        ROUND(sum(l.price_total / CASE COALESCE(s.currency_rate, 0) WHEN 0 THEN 1.0 ELSE s.currency_rate END),2) as total_amount,
                         
                         ((ROUND(sum(l.qty_invoiced / u.factor * u2.factor),2)) +
                          (COALESCE(MAX(grouped_lot_id.qty_invoiced_childs),0))) as qty_invoiced,

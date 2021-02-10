@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="a_view_purchase_form_inherited" model="ir.ui.view">
+            <field name="name">purchase.order.form</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='action_view_invoice']" position="after">
+                    <button name="action_update_valuation"
+                            string="Update Valuation"
+                            type="object"
+                            class="oe_highlight"
+                            context=""
+                            attrs="{'invisible': [('state', 'not in', ('purchase', 'done'))]}"
+                            invisible="1"
+                    />
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

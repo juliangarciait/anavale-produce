@@ -11,7 +11,7 @@
     'sequence': 1,
     "email": 'mayte@eadminpro.com',
     "website":'http://eadminpro.com/',
-    'depends': ['sale_stock', 'percent_field', 'sale', 'stock'],
+    'depends': ['sale_stock', 'percent_field', 'sale', 'stock','purchase'],
     'data': [
             'security/ir.model.access.csv',
             'views/sale_view.xml',
@@ -22,6 +22,7 @@
             'views/res_partner_views.xml',
             'views/sale_portal_sidebar_template.xml',
             'views/lot_view.xml',
+            'views/purchase_view.xml',
             'wizard/partner_sequence_change_view.xml',
             'wizard/quant_lot_repack_view.xml',
             'wizard/sale_report_avg_wz_view.xml',
