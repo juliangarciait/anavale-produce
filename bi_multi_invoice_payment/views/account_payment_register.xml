@@ -1,0 +1,59 @@
+<odoo>
+  <data>
+
+        <record id="view_account_custom_payment_form_multi" model="ir.ui.view">
+            <field name="name">account.custom.payment.form.multi</field>
+            <field name="model">account.custom.payment.register</field>
+            <field name="arch" type="xml">
+                <form string="Register Payment">
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="payment_method_id" widget="radio"/>
+                            <field name="group_payment"/>
+                        </group>
+                        <group>
+                            <field name="journal_id" widget="selection"/>
+                            <field name="is_initial" invisible="1"/>
+                            <field name="payment_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                      <page name="register_lines" string="Invoices">
+                        <field name="register_line_ids" >
+                          <tree editable="bottom" string="Lines">
+                            <field name="move_id" />
+                            <field name="partner_id" invisible="0"/>
+                            <field name="amount_total" readonly="1"/>
+                            <field name="amount_residual" readonly="1"/>
+                            <field name="amount_payment" />
+                          </tree>
+                        </field>
+                                <!-- Totals (only invoices / receipts) -->
+                        <group class="oe_subtotal_footer" >
+                            <field name="total_invoice_amount" class="oe_subtotal_footer_separator"/>
+                        </group>
+
+                      </page>
+                    </notebook>
+                    <footer>
+                        <button string="Create Payment" name="create_payments" type="object" class="oe_highlight"/>
+                        <button string="Cancel" class="btn btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_account_invoice_from_list_custom" model="ir.actions.server">
+            <field name="name">Multi-Invoice Payment</field>
+            <field name="model_id" ref="account.model_account_payment"/>
+            <field name="binding_model_id" ref="account.model_account_move"/>
+            <field name="binding_view_types">list</field>
+            <field name="state">code</field>
+            <field name="code">
+                action = model.action_custom_register_payment()
+            </field>
+        </record>
+
+  </data>
+</odoo>
