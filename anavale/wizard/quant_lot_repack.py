@@ -95,6 +95,20 @@ class QuantLotRepackWizard(models.TransientModel):
                 return lot.qty
         return 0.0
 
+    def _update_scrap_qty(self):
+        StockScrap = self.env['stock.scrap']
+        if self.scrap_qty > 0:
+            # Create Scrap
+            ss = StockScrap.sudo().create({
+                'product_id': self.product_id.id,
+                'scrap_qty': self.scrap_qty,
+                'lot_id': self.lot_id.id,
+                'location_id': self.location_id.id,
+                'product_uom_id': self.product_id.uom_id.id,
+                'origin': 'WZRPACK{}'.format(self.lot_id.id)
+            })
+            ss.sudo().action_validate()
+
     def process_repack(self):
         _logger.info("Repack!!!")
         # _logger.info(self._get_sum_qty_lines())
@@ -104,6 +118,8 @@ class QuantLotRepackWizard(models.TransientModel):
             raise UserError('Quantity in repack lots cannot be 0, Please Fix it !')
 
         self._check_valid_quantity()
+        # Scrap Qty
+        self._update_scrap_qty()
         # Create Inventory Adjust
         vals = {
             'name': 'Repacker_Assistance v %s' % (str(self.id)),
@@ -156,6 +172,7 @@ class QuantLotRepackWizard(models.TransientModel):
                 }))
         si.line_ids = list_line_ids
         si.sudo().action_validate()
+
 
 
 class QuantLotRepackWizard(models.TransientModel):
