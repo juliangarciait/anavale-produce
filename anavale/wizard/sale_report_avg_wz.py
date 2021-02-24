@@ -15,9 +15,8 @@ class SaleReportAvg(models.TransientModel):
 
     report_type = fields.Selection(
         string='Report type',
-        selection=[('product', 'By Product'),
-                   ('lot', 'By Lot'), ],
-        default='product')
+        selection=[('lot', 'By Lot')],
+        default='lot')
 
     from_date = fields.Date('From', default=time.strftime('%Y-01-01'))
     to_date = fields.Date('To', default=time.strftime('%Y-12-31'))

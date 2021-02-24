@@ -28,8 +28,9 @@
                 <field name="product_id" invisible="1"/>
                 <field name="lot_id" invisible="1"/>
                 <field name="qty_sale"/>
-                <field name="qty_invoiced" invisible="1" />
+                <field name="qty_invoiced"/>
                 <field name="total_amount" />
+                <field name="total_amount_invoiced"/>
                 <field name="avg_price"/>
                 <field name="company_id" groups="base.group_multi_company"/>
                 <button name="call_view_sale_order"
