@@ -68,10 +68,10 @@ class SaleReportAvg(models.Model):
                         ROUND(sum(l.untaxed_amount_invoiced / CASE COALESCE(s.currency_rate, 0) WHEN 0 THEN 1.0 ELSE s.currency_rate END),2) as total_amount_invoiced,
                         
                         
-                        ROUND((CASE round(sum(l.product_uom_qty / u.factor * u2.factor),2) 
+                        ROUND((CASE round(sum(l.qty_invoiced / u.factor * u2.factor),2) 
                             WHEN 0.0 THEN 0.0 
-                            ELSE (ROUND(sum(l.price_total / CASE COALESCE(s.currency_rate, 0) WHEN 0 THEN 1.0 ELSE s.currency_rate END),2))/
-                            (round(sum(l.product_uom_qty / u.factor * u2.factor),2)) END ),2) as avg_price
+                            ELSE (ROUND(sum(l.untaxed_amount_invoiced / CASE COALESCE(s.currency_rate, 0) WHEN 0 THEN 1.0 ELSE s.currency_rate END),2))/
+                            (round(sum(l.qty_invoiced / u.factor * u2.factor),2)) END ),2) as avg_price
                             
                     FROM 
                     sale_order_line l
