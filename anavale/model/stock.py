@@ -381,6 +381,7 @@ class Picking(models.Model):
                 line.product_id_change()  # Calling an onchange method to update the
                 line.lot_id = lot_id
                 line._onchange_lot_id()
+                line._onchange_lot_sel_account()
                 line.product_uom_qty = qty
                 line.price_unit = price_unit
                 # if not tax_id:
