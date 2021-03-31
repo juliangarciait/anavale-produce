@@ -152,7 +152,7 @@ class SaleOrderLine(models.Model):
     def _onchange_product_id_set_lot_domain(self):
         lot_ids = []
         if self.order_id.warehouse_id and self.product_id:
-            res = self._get_lots()
+            res = self.sudo()._get_lots()
             lot_ids = res['lot_ids']  
             self.lot_id = False
             
@@ -165,7 +165,7 @@ class SaleOrderLine(models.Model):
     def _onchange_lot_id(self, qty=0.0, sale_order_line=False):
         quantity = 0.0
         if self.lot_id:
-            res = self._get_lots(self.lot_id.id,sale_order_line)
+            res = self.sudo()._get_lots(self.lot_id.id,sale_order_line)
             quantity = res['quantity']
             self.product_uom_qty = qty
 
