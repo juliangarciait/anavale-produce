@@ -16,6 +16,38 @@ class PurchaseOrder(models.Model):
                     'unit_cost': price_unit
                 })
 
+    def payments_reconcile(self, move):
+        pay_term_line_ids = move.line_ids.filtered(
+            lambda line: line.account_id.user_type_id.type in ('receivable', 'payable'))
+        domain = [('account_id', 'in', pay_term_line_ids.mapped('account_id').ids),
+                  '|', ('move_id.state', '=', 'posted'), '&', ('move_id.state', '=', 'draft'),
+                  ('journal_id.post_at', '=', 'bank_rec'),
+                  ('partner_id', '=', move.commercial_partner_id.id),
+                  ('reconciled', '=', False), '|', ('amount_residual', '!=', 0.0),
+                  ('amount_residual_currency', '!=', 0.0)]
+        if move.is_inbound():
+            domain.extend([('credit', '>', 0), ('debit', '=', 0)])
+        else:
+            domain.extend([('credit', '=', 0), ('debit', '>', 0)])
+        lines = self.env['account.move.line'].search(domain)
+        if len(lines) != 0:
+            return lines
+
+    def _update_work_flow_invoice(self, move):
+        if move.state == 'posted':
+            payment_state = move.invoice_payment_state
+            move.button_draft()
+            move.action_post()
+            if payment_state in ('paid', 'in_payment'):
+                # Refund Payment
+                if move.invoice_has_outstanding:
+                    lines = self.payments_reconcile(move)
+                    for line in lines:
+                        lines = self.env['account.move.line'].browse(line.id)
+                        lines += move.line_ids.filtered(
+                            lambda line: line.account_id == lines[0].account_id and not line.reconciled)
+                        lines.reconcile()
+
     def _update_account_move_from_sale(self, move_sale, product_id, price_unit):
         domain = [('lot_id', '=', move_sale.lot_id.id), ('product_id', '=', move_sale.product_id.id)]
         lines = self.env['sale.order.line'].search(domain)
@@ -28,20 +60,7 @@ class PurchaseOrder(models.Model):
             # Update Invoice Lines
             for ivl in line.invoice_lines:
                 if ivl.move_id:
-                    prepare_ids = []  # (1, ID, { values })
-                    for ljournal in ivl.move_id.line_ids.filtered(lambda x: x.account_id.user_type_id.type in 'other'
-                                                                            and x.account_id.user_type_id.internal_group in (
-                                                                                    'expense', 'asset')):
-                        _logger.info("update fe")
-                        _logger.info(ljournal)
-                        if ljournal.product_id == product_id:
-                            if ljournal.credit != 0:
-                                prepare_ids.append((1, ljournal.id, {'credit': price_unit * ljournal.quantity}))
-                            else:
-                                prepare_ids.append((1, ljournal.id, {'debit': price_unit * ljournal.quantity}))
-
-                    if prepare_ids:
-                        ivl.move_id.sudo().line_ids = prepare_ids
+                    self._update_work_flow_invoice(ivl.move_id)
 
     def _update_account_move(self, stock_move, product_id, price_unit):
         for rec in self.env['account.move'].search([('stock_move_id', '=', stock_move.id)]):
