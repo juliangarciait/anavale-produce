@@ -118,5 +118,5 @@ class PurchaseReport(models.Model):
     total_billed = fields.Float('Total Billed', readonly=True, group_operator="sum")
 
     def _query(self, with_clause='', fields={}, groupby='', from_clause=''):
-        fields['total_billed'] = ", sum(l.total_invoiced) as total_billed,"
+        fields['total_billed'] = ", sum(l.total_invoiced) as total_billed"
         return super(PurchaseReport, self)._query(with_clause, fields, groupby, from_clause)
