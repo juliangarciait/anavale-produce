@@ -91,3 +91,22 @@ class PurchaseOrder(models.Model):
                             _logger.info(move_sale)
                             if move_sale.lot_id:
                                 self._update_account_move_from_sale(move_sale, line.product_id, line.price_unit)
+
+
+
+class PurchaseOrder(models.Model):
+    _inherit = 'purchase.order.line'
+
+    total_invoiced = fields.Float(compute='_compute_total_invoiced', string="Billed Total", store=True)
+
+    #@api.depends('invoice_lines.move_id.state', 'invoice_lines.quantity')
+    def _compute_total_invoiced(self):
+        for line in self:
+            total = 0.0
+            for inv_line in line.invoice_lines:
+                if inv_line.move_id.state not in ['cancel']:
+                    if inv_line.move_id.type == 'in_invoice':
+                        total += inv_line.price_total
+                    elif inv_line.move_id.type == 'in_refund':
+                        total -= inv_line.price_total
+            line.total_invoiced = total
