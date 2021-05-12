@@ -116,8 +116,7 @@ class PurchaseOrderLine(models.Model):
 class PurchaseReport(models.Model):
     _inherit = "purchase.report"
 
-    total_invoiced = fields.Float('Total Billed')
+    total_invoiced = fields.Float('Total Billed', readonly=True, )
 
-    def _query(self, with_clause='', fields={}, groupby='', from_clause=''):
-        fields['total_invoiced'] = ", sum(l.total_invoiced) as total_invoiced"
-        return super(PurchaseReport, self)._query(with_clause, fields, groupby, from_clause)
+    def _select(self):
+        return super(PurchaseReport, self)._select() + ", sum(l.total_invoiced) as total_invoiced"
