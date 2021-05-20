@@ -49,8 +49,17 @@ class PurchaseOrder(models.Model):
                             lambda line: line.account_id == lines[0].account_id and not line.reconciled)
                         lines.reconcile()
 
+    @staticmethod
+    def _get_list_lot_ids(lot_id):
+        _logger.info(lot_id)
+        result = [lot_id.id]
+        for child_lot in lot_id.child_lot_ids:
+            result.append(child_lot.id)
+        return result
+
     def _update_account_move_from_sale(self, move_sale, product_id, price_unit):
-        domain = [('lot_id', '=', move_sale.lot_id.id), ('product_id', '=', move_sale.product_id.id)]
+        domain = [('lot_id', 'in', tuple(self._get_list_lot_ids(move_sale.lot_id))),
+                  ('product_id', '=', move_sale.product_id.id)]
         lines = self.env['sale.order.line'].search(domain)
         for line in lines:
             # Update Purchase Move
