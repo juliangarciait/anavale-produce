@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import time
+import time, datetime
 
 from odoo import api, fields, models, _
 import logging
@@ -41,6 +41,8 @@ class SaleReportAvg(models.TransientModel):
         # context.update(invoice_state=self.invoice_state)
 
         if self.from_date:
+            #date_from1 = self.from_date - datetime.timedelta(hours=5)
+            #context.update(date_from=date_from1)
             context.update(date_from=self.from_date)
 
         if self.to_date:

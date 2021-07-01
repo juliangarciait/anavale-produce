@@ -3,7 +3,6 @@
 
 from odoo import api, fields, models, tools
 from odoo.addons.helpdesk.models.helpdesk_ticket import TICKET_PRIORITY
-from datetime import timedelta
 
 
 class SaleReportAvg(models.Model):
@@ -55,8 +54,6 @@ class SaleReportAvg(models.Model):
 
     def init(self):
         tools.drop_view_if_exists(self.env.cr, 'sale_report_by_lot')
-        date_from = self.env.context.get('date_to') - timedelta(hours=5)
-        date_to = self.env.context.get('date_from') + timedelta(hours=19)
         self.env.cr.execute("""
             CREATE OR REPLACE VIEW sale_report_by_lot AS (
                 SELECT	row_number() OVER () as id,s.company_id as company_id,l.product_id as product_id,
@@ -122,4 +119,4 @@ class SaleReportAvg(models.Model):
                         l.product_id,
                         lot.id
                 )
-            """, (date_from, date_to))
+            """, (self.env.context.get('date_from'), self.env.context.get('date_to')))
