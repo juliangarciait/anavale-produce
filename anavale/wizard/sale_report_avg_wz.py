@@ -41,7 +41,7 @@ class SaleReportAvg(models.TransientModel):
         # context.update(invoice_state=self.invoice_state)
 
         if self.from_date:
-            DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+            DATETIME_FORMAT = "%Y-%m-%d"
             date_from1 = datetime.datetime.strptime(str(self.from_date), DATETIME_FORMAT)
             date_from1 = date_from1 - datetime.timedelta(hours=5)
             context.update(date_from=date_from1)
