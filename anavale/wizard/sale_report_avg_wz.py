@@ -46,7 +46,9 @@ class SaleReportAvg(models.TransientModel):
             #context.update(date_from=self.from_date)
 
         if self.to_date:
-            context.update(date_to=self.to_date)
+            date_to1 = self.to_date + datetime.timedelta(hours=19)
+            context.update(date_to=date_to1)
+            #context.update(date_to=self.to_date)
 
         self.env[model_search].with_context(context).init()
 
