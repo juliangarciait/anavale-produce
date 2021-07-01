@@ -111,8 +111,8 @@ class SaleReportAvg(models.Model):
                         AND s.state NOT IN ('cancel','draft')
                         AND lot.name IS NOT NULL 
                         --AND lot.parent_lod_id IS NULL
-                        AND s.create_date >= %s
-						AND s.create_date <= %s
+                        AND s.order_date >= %s
+						AND s.order_date <= %s
                     --and lot.name = '09UPC20-0051'
                      GROUP BY 
                         s.company_id,                        
