@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import time, datetime, date_converter
+import time, datetime
 
 from odoo import api, fields, models, _
 import logging
@@ -41,16 +41,16 @@ class SaleReportAvg(models.TransientModel):
         # context.update(invoice_state=self.invoice_state)
 
         if self.from_date:
-            date_from1 = date_converter.date_to_datetime(self.from_date)
-            date_from1 = date_from1 - datetime.timedelta(hours=5)
-            context.update(date_from=date_from1)
-            #context.update(date_from=self.from_date)
+            #date_from1 = date_converter.date_to_datetime(self.from_date)
+            #date_from1 = date_from1 - datetime.timedelta(hours=5)
+            #context.update(date_from=date_from1)
+            context.update(date_from=self.from_date)
 
         if self.to_date:
-            date_to1 = date_converter.date_to_datetime(self.to_date)
-            date_to1 = date_to1 + datetime.timedelta(hours=19)
-            context.update(date_to=date_to1)
-            #context.update(date_to=self.to_date)
+            #date_to1 = date_converter.date_to_datetime(self.to_date)
+            #date_to1 = date_to1 + datetime.timedelta(hours=19)
+            #context.update(date_to=date_to1)
+            context.update(date_to=self.to_date)
 
         self.env[model_search].with_context(context).init()
 
