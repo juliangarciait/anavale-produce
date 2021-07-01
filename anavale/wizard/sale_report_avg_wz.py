@@ -52,7 +52,7 @@ class SaleReportAvg(models.TransientModel):
             DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
             date_to1 = str(self.to_date) +" 00:00:00"
             date_to1 = datetime.datetime.strptime(date_to1, DATETIME_FORMAT)
-            date_to1 = date_to1 - datetime.timedelta(hours=5)
+            date_to1 = date_to1 + datetime.timedelta(hours=19)
             context.update(date_to=date_to1)
             #context.update(date_to=self.to_date)
 
