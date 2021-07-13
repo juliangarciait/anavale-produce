@@ -92,8 +92,10 @@ class PurchaseOrder(models.Model):
         _logger.info('update valuation')
         for record in self:
             for line in record.order_line:
+
                 if line.product_id and line.price_total:
                     # Update Purchase Move
+                    line._compute_total_invoiced()
                     for move in line.move_ids:
                         self._update_account_move(move, line.product_id, line.price_unit)
                         self._update_stock_valuation_layer(move, line.product_id, line.price_unit)
@@ -114,18 +116,24 @@ class PurchaseOrderLine(models.Model):
         for line in self:
             total = 0.0
             for inv_line in line.invoice_lines:
+                print("linea")
+                print(inv_line.move_id.state)
+                print(inv_line.move_id.type)
+                print(inv_line.price_total)
                 if inv_line.move_id.state not in ['cancel']:
                     if inv_line.move_id.type == 'in_invoice':
                         total += inv_line.price_total
+                        print(total)
                     elif inv_line.move_id.type == 'in_refund':
                         total -= inv_line.price_total
             line.total_invoiced = total
+            print(total)
 
 
 class PurchaseReport(models.Model):
     _inherit = "purchase.report"
 
-    total_invoiced = fields.Float('Total Billed', readonly=True, )
+    total_invoiced = fields.Float('Total Billed', readonly=False, )
 
     def _select(self):
         return super(PurchaseReport, self)._select() + ", sum(l.total_invoiced) as total_invoiced"
