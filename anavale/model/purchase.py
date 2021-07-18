@@ -87,20 +87,31 @@ class PurchaseOrder(models.Model):
             if prepare_ids:
                 rec.sudo().invoice_line_ids = prepare_ids
             rec.action_post()
+    
+    def _update_stock_valuation_by_lot(self, move, product_id, price_unit):
+        for line in move.move_line_ids:
+            lot = line.lot_id
+            if lot:
+                mline_ids = self.env['stock.move.line'].search([('lot_id', '=', lot.id)])
+                for mline in mline_ids:
+                    for aline in mline.move_id.account_move_ids.line_ids:
+                        if aline.credit != 0:
+                            aline.sudo().with_context({'check_move_validity': False}).write({'credit': price_unit * abs(aline.quantity)})
+                        else:
+                            aline.sudo().with_context({'check_move_validity': False}).write({'debit': price_unit * abs(aline.quantity)})
 
     def action_update_valuation(self):
         _logger.info('update valuation')
         for record in self:
             for line in record.order_line:
-
                 if line.product_id and line.price_total:
                     # Update Purchase Move
                     line._compute_total_invoiced()
                     for move in line.move_ids:
                         self._update_account_move(move, line.product_id, line.price_unit)
+                        self._update_stock_valuation_by_lot(move, line.product_id, line.price_unit)
                         self._update_stock_valuation_layer(move, line.product_id, line.price_unit)
                         for move_sale in move.move_line_nosuggest_ids:
-                            _logger.info(move_sale)
                             if move_sale.lot_id:
                                 self._update_account_move_from_sale(move_sale, line.product_id, line.price_unit)
 
@@ -111,23 +122,17 @@ class PurchaseOrderLine(models.Model):
 
     total_invoiced = fields.Float(compute='_compute_total_invoiced', string="Billed Total", store=True)
 
-    #@api.depends('invoice_lines.move_id.state', 'invoice_lines.quantity')
+    @api.depends('invoice_lines')
     def _compute_total_invoiced(self):
         for line in self:
             total = 0.0
             for inv_line in line.invoice_lines:
-                print("linea")
-                print(inv_line.move_id.state)
-                print(inv_line.move_id.type)
-                print(inv_line.price_total)
                 if inv_line.move_id.state not in ['cancel']:
                     if inv_line.move_id.type == 'in_invoice':
                         total += inv_line.price_total
-                        print(total)
                     elif inv_line.move_id.type == 'in_refund':
                         total -= inv_line.price_total
             line.total_invoiced = total
-            print(total)
 
 
 class PurchaseReport(models.Model):
