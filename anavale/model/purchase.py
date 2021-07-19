@@ -92,13 +92,19 @@ class PurchaseOrder(models.Model):
         for line in move.move_line_ids:
             lot = line.lot_id
             if lot:
-                mline_ids = self.env['stock.move.line'].search([('lot_id', '=', lot.id)])
+                lot_ids = [lot.id] + self.env['stock.production.lot'].search([('parent_lod_id', '=', lot.id)]).ids
+                
+                mline_ids = self.env['stock.move.line'].search([('lot_id', 'in', lot_ids)])
+                _logger.info("/"*500)
+                
                 for mline in mline_ids:
-                    for aline in mline.move_id.account_move_ids.line_ids:
-                        if aline.credit != 0:
-                            aline.sudo().with_context({'check_move_validity': False}).write({'credit': price_unit * abs(aline.quantity)})
-                        else:
-                            aline.sudo().with_context({'check_move_validity': False}).write({'debit': price_unit * abs(aline.quantity)})
+                    _logger.info(mline.move_id.account_move_ids.line_ids.read())
+                    if len(mline.move_id.account_move_ids.line_ids.filtered('reconciled')) == 0:
+                        for aline in mline.move_id.account_move_ids.line_ids:
+                            if aline.credit != 0:
+                                aline.sudo().with_context({'check_move_validity': False}).write({'credit': price_unit * abs(aline.quantity)})
+                            else:
+                                aline.sudo().with_context({'check_move_validity': False}).write({'debit': price_unit * abs(aline.quantity)})
 
     def action_update_valuation(self):
         _logger.info('update valuation')
