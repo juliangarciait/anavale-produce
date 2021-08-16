@@ -123,13 +123,13 @@ class PurchaseOrder(models.Model):
         res = super(PurchaseOrder, self).write(vals)
         if 'order_line' in vals:
             order_lines = vals.get('order_line')
-            if order_lines:
-                contador = 0
-                for line in order_lines[0]:
-                    contador +=1
-                    print(contador)
-                    self.action_update_valuation()
-            
+            for line in order_lines:
+                for record in line:
+                    if type(record).__name__ == 'dict':
+                        if 'price_unit' in record.keys():
+                            self.action_update_valuation()
+                            break
+
         return res
 
 
