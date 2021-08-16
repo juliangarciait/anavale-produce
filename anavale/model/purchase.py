@@ -119,6 +119,18 @@ class PurchaseOrder(models.Model):
                             if move_sale.lot_id:
                                 self._update_account_move_from_sale(move_sale, line.product_id, line.price_unit)
 
+    def write(self, vals):
+        res = super(PurchaseOrder, self).write(vals)
+        if 'order_line' in vals:
+            order_lines = vals.get('order_line')
+            if order_lines:
+                contador = 0
+                for line in order_lines[0]:
+                    contador +=1
+                    print(contador)
+                    self.action_update_valuation()
+            
+        return res
 
 
 class PurchaseOrderLine(models.Model):
