@@ -18,15 +18,20 @@ class SaleOrder(models.Model):
             moveline_obj = self.env['account.move.line']
             movelines = moveline_obj.search(
                 [('partner_id', '=', partner.id),
+                 ('move_id.state', '=', 'posted'),
                  ('account_id.user_type_id.name', 'in',
                   ['Receivable', 'Payable'])]
             )
             confirm_sale_order = self.search([('partner_id', '=', partner.id),
-                                              ('state', '=', 'sale')])
+                                              ('invoice_status', '=', 'to invoice')])
+            #confirm_sale_order_delivery = self.search([('partner_id', '=', partner.id),
+            #                                  ('custom_state_delivery', '=', 'Waiting')])
             debit, credit = 0.0, 0.0
             amount_total = 0.0
             for status in confirm_sale_order:
                 amount_total += status.amount_total
+            #for status in confirm_sale_order_delivery:
+            #    amount_total += status.amount_total
             for line in movelines:
                 credit += line.credit
                 debit += line.debit

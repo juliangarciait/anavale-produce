@@ -155,7 +155,7 @@ class Inventory_picking(models.Model):
 
                         
                         
-                        in_move._action_done()
+                        in_move._action_done()  #dispara el error
 
                         
 
@@ -325,8 +325,8 @@ class Inventory_picking(models.Model):
                 j.unlink()
 
                 
-            journal_rec = self.env['account.move'].sudo().search([('stock_move_id','=',move.id)],order="id desc", limit=1)
-            journal_rec.button_cancel()
+            #journal_rec = self.env['account.move'].sudo().search([('stock_move_id','=',move.id)],order="id desc", limit=1)
+            #journal_rec.button_cancel()
             #journal_rec.sudo().unlink()
             #move.sudo().unlink()
             
