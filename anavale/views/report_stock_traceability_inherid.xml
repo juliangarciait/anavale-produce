@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <data>
+
+    <template id="report_stock_inventory_inherit" inherit_id="stock.report_stock_inventory">
+
+    <xpath expr="//thead/tr/th[4]" position="after">
+        <th class="o_report_line_header">Partner</th>
+    </xpath>
+
+    </template>
+    </data>
+</odoo>

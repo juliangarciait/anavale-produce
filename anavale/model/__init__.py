@@ -9,3 +9,4 @@ from . import stock_quality_template
 from . import mail_thread
 from . import production_lot
 from . import purchase
+from . import stock_traceability
