@@ -9,7 +9,7 @@ class sale_order(models.Model):
     def action_cancel(self):
         for picking in self.picking_ids:
             if picking.state != 'cancel':
-                picking.cancel_stock_picking()
+                picking.action_cancel()
 
         for invoice in self.invoice_ids :
             if invoice.state != 'cancel':

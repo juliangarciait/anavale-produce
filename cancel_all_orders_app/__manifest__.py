@@ -2,7 +2,7 @@
 {
 	'name': 'All in One Cancel Sale, Purchase, Picking and Invoice',
 	"author": "Edge Technologies",
-	'version': '13.0.1.0',
+	'version': '13.0.1.2',
 	'live_test_url': "https://youtu.be/4iFz6b3_iio",
 	"images":['static/description/main_screenshot.png'],
 	'summary': "App Cancel All in one cancel orders cancel purchase cancel picking cancel landed cost cancel sale cancel inventory adjustment cancel all order cancel delivery order cancel invoice delete invoice cancel stock transfer cancel stock picking cancel stock move ",
@@ -47,7 +47,9 @@ Ractify stock picking Ractify delivery order Ractify incoming shipment Ractify i
 	""",
 	"license" : "OPL-1",
 	'depends': ['base','sale_management','purchase','account','stock','stock_picking_cancel_app'],
-	'data': [ ],
+	'data': [
+        'views/purchase_order_inherit.xml',
+    ],
 	'installable': True,
 	'auto_install': False,
 	'price': 13,
