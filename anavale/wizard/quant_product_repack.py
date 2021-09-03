@@ -149,10 +149,14 @@ class QuantProductRepackWizard(models.TransientModel):
         si = self.env['stock.inventory'].sudo().create(val)
         si.sudo().action_start()
         # Create Lots
+        if self.lot_dest_id:
+            self.lot_dest_id.write({'analytic_tag_ids': self.lot_id.analytic_tag_ids})
         lot_ids = [self.lot_id, self.lot_dest_id or self.get_or_creat_lot({'name': self.lot_dest_calculated,
                                                                            'product_id': self.product_dest_id.id,
                                                                            'company_id': self.location_id.company_id.id,
-                                                                           'parent_lod_id': self.lot_id.id})]
+                                                                           'parent_lod_id': self.lot_id.id,
+                                                                           'analytic_tag_ids': self.lot_id.analytic_tag_ids,
+                                                                           })]
         list_line_ids = [((0, 0, {
             'company_id': self.location_id.company_id.id,
             'prod_lot_id': lot_ids[0].id,

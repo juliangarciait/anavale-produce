@@ -107,7 +107,9 @@ class QuantLotRepackWizard(models.TransientModel):
                 'product_uom_id': self.product_id.uom_id.id,
                 'origin': 'WZRPACK{}'.format(self.lot_id.id)
             })
+
             ss.sudo().action_validate()
+            
 
     def process_repack(self):
         _logger.info("Repack!!!")

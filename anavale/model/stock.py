@@ -552,6 +552,18 @@ class StockMove(models.Model):
     # line.qty_done = line.product_uom_qty #rec.product_uom_qty
     # return res
 
+    def _generate_valuation_lines_data(self, partner_id, qty, debit_value, credit_value, debit_account_id, credit_account_id, description):
+        result = super(StockMove, self)._generate_valuation_lines_data(partner_id, qty, debit_value, credit_value, debit_account_id, credit_account_id, description)
+        tags_ids = []
+        if self.scrapped or self.inventory_id:
+            for move in self.move_line_ids:
+                if move.lot_id and move.lot_id.analytic_tag_ids:
+                    for tag in move.lot_id.analytic_tag_ids:
+                        tags_ids.append(tag.id)
+            for line in result:
+                result[line].update({'analytic_tag_ids': tags_ids})
+        return result
+
     def _update_reserved_quantity(
             self,
             need,
