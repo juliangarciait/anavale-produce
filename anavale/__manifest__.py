@@ -23,6 +23,7 @@
             'views/sale_portal_sidebar_template.xml',
             'views/lot_view.xml',
             'views/purchase_view.xml',
+            'views/report_stock_traceability_inherid.xml',
             'wizard/partner_sequence_change_view.xml',
             'wizard/quant_lot_repack_view.xml',
             'wizard/sale_report_avg_wz_view.xml',

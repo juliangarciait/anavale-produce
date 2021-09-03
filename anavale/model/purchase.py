@@ -74,19 +74,20 @@ class PurchaseOrder(models.Model):
 
     def _update_account_move(self, stock_move, product_id, price_unit):
         for rec in self.env['account.move'].search([('stock_move_id', '=', stock_move.id)]):
-            _logger.info("Move Update")
-            _logger.info(rec.name)
-            rec.button_draft()
-            prepare_ids = []  # (1, ID, { values })
-            for line_ac in rec.invoice_line_ids:
-                if line_ac.product_id == product_id:
-                    if line_ac.credit != 0:
-                        prepare_ids.append((1, line_ac.id, {'credit': price_unit * abs(line_ac.quantity)}))
-                    else:
-                        prepare_ids.append((1, line_ac.id, {'debit': price_unit * abs(line_ac.quantity)}))
-            if prepare_ids:
-                rec.sudo().invoice_line_ids = prepare_ids
-            rec.action_post()
+            if rec.state == 'posted':
+                _logger.info("Move Update")
+                _logger.info(rec.name)
+                rec.button_draft()
+                prepare_ids = []  # (1, ID, { values })
+                for line_ac in rec.invoice_line_ids:
+                    if line_ac.product_id == product_id:
+                        if line_ac.credit != 0:
+                            prepare_ids.append((1, line_ac.id, {'credit': price_unit * abs(line_ac.quantity)}))
+                        else:
+                            prepare_ids.append((1, line_ac.id, {'debit': price_unit * abs(line_ac.quantity)}))
+                if prepare_ids:
+                    rec.sudo().invoice_line_ids = prepare_ids
+                rec.action_post()
     
     def _update_stock_valuation_by_lot(self, move, product_id, price_unit):
         for line in move.move_line_ids:
@@ -95,14 +96,17 @@ class PurchaseOrder(models.Model):
                 lot_ids = [lot.id] + self.env['stock.production.lot'].search([('parent_lod_id', '=', lot.id)]).ids
                 mline_ids = self.env['stock.move.line'].search([('lot_id', 'in', lot_ids)])                
                 for mline in mline_ids:
-                    mline.move_id.account_move_ids.button_draft()
+                    for accmove in mline.move_id.account_move_ids:
+                        if accmove.state == 'posted':
+                            accmove.button_draft()
                     # if len(mline.move_id.account_move_ids.line_ids.filtered('reconciled')) == 0:
-                    for aline in mline.move_id.account_move_ids.line_ids:
-                        if aline.credit != 0:
-                            aline.sudo().with_context({'check_move_validity': False}).write({'credit': price_unit * abs(aline.quantity)})
-                        else:
-                            aline.sudo().with_context({'check_move_validity': False}).write({'debit': price_unit * abs(aline.quantity)})
-                    mline.move_id.account_move_ids.action_post()
+                            for aline in accmove.line_ids:
+                                if aline.credit != 0:
+                                    aline.sudo().with_context({'check_move_validity': False}).write({'credit': price_unit * abs(aline.quantity)})
+                                else:
+                                    aline.sudo().with_context({'check_move_validity': False}).write({'debit': price_unit * abs(aline.quantity)})
+                            accmove.action_post()
+                    #mline.move_id.account_move_ids.action_post()
 
     def action_update_valuation(self):
         _logger.info('update valuation')
