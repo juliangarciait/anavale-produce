@@ -79,9 +79,9 @@ class StockMove(models.Model):
 				if move.picking_id.picking_type_id.code in ['outgoing','internal']:
 					for move_id in move:
 						for line in move_id.move_line_ids:                                  
-							if move.location_dest_id.usage == 'customer':
-								outgoing_quant = self.env['stock.quant'].sudo().search([('product_id','=',move.product_id.id),('location_id','=',move.location_dest_id.id)])
-								stock_quant = self.env['stock.quant'].sudo().search([('product_id','=',move.product_id.id),('location_id','=',move.location_id.id)])
+							if move.location_dest_id.usage == 'customer1':
+								outgoing_quant = self.env['stock.quant'].sudo().search([('product_id','=',move.product_id.id),('location_id','=',move.location_dest_id.id),('lot_id','=',line.lot_id.id)])
+								stock_quant = self.env['stock.quant'].sudo().search([('product_id','=',move.product_id.id),('location_id','=',move.location_id.id),('lot_id','=',line.lot_id.id)])
 								if outgoing_quant:
 									old_qty = outgoing_quant[0].quantity
 									outgoing_quant[0].quantity = old_qty - move.product_uom_qty
