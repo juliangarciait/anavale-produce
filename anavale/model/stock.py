@@ -260,7 +260,7 @@ class Picking(models.Model):
         move_line_vals_list = []
         for line in self.move_line_ids:
             # Validate qty reserved or done
-            if line.product_uom_qty > 0 or line.qty_done > 0:
+            if line.product_uom_qty > 0: # or line.qty_done > 0:
                 raise UserError('The line with Product [%s] is a line with reserve o qty done, '
                                 'for recreate lines should be empty, please you clean it!.' % line.product_id.name)
             if line.state in ('done', 'cancel'):
