@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="execute_massive_valuation_server_action" model="ir.actions.server">
+            <field name="name">Ejecutar Valuación Masiva</field>
+            <field name="model_id" ref="purchase.model_purchase_order"/>
+            <field name="binding_model_id" ref="purchase.model_purchase_order"/>
+            <field name="state">code</field>
+            <field name="code">
+                if records:
+                    records.action_update_valuation()
+            </field>
+        </record>
+    </data>
+</odoo>

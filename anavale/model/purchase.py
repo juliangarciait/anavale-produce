@@ -123,6 +123,18 @@ class PurchaseOrder(models.Model):
                             if move_sale.lot_id:
                                 self._update_account_move_from_sale(move_sale, line.product_id, line.price_unit)
 
+    def write(self, vals):
+        res = super(PurchaseOrder, self).write(vals)
+        if 'order_line' in vals:
+            order_lines = vals.get('order_line')
+            for line in order_lines:
+                for record in line:
+                    if type(record).__name__ == 'dict':
+                        if 'price_unit' in record.keys():
+                            self.action_update_valuation()
+                            break
+
+        return res
 
 
 class PurchaseOrderLine(models.Model):
