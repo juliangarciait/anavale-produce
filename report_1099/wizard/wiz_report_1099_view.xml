@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+        <!-- Report Download Wizard --> 
+        <record id="report_1099_download_wizard" model="ir.ui.view">
+            <field name="name">report.1099.download.wizard</field>
+            <field name="model">wiz.report.1099.download</field>
+            <field name="arch" type="xml">
+                <form string="Genrated xls Report">
+                    <group>
+                        <field name="report_file_name" invisible="1"/>
+                        <field name="report_file" readonly="1" filename="report_file_name"/>
+                    </group>
+                    <footer>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Wizard formview -->
+        <record id="view_wiz_report_1099_form" model="ir.ui.view">
+            <field name="name">view.wiz.report.1099.form</field>
+            <field name="model">wiz.report.1099</field>
+            <field name="arch" type="xml">
+                <form string="Report 1099">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="start_date" required="1"/>
+                                <field name="end_date" required="1"/>
+                            </group>
+                            <group>
+                                <field name="report_option" widget="radio"/>
+                            </group>
+                        </group>
+                        <footer>
+                            <button name="get_invoices" string="Proceed" type="object" class="btn-primary"/>
+                            <button special="cancel" string="Cancel" class="btn-default"/>
+                        </footer>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Wizard Action -->
+        <record id="wiz_action_report_1099" model="ir.actions.act_window">
+            <field name="name">Report 1099</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">wiz.report.1099</field>
+            <field name="view_id" ref="view_wiz_report_1099_form"/>
+            <field name="target">new</field>
+        </record>
+
+        <!-- Wizard menu for Report -->
+        <menuitem id="menu_report_1099" name="Report 1099"
+                  parent="account.menu_finance_reports"
+                  action="wiz_action_report_1099"
+                  groups="report_1099.group_report_1099"/>
+
+        <record id="view_print_wiz_report_1099_form" model="ir.ui.view">
+            <field name="name">view.print.wiz.report.1099.form</field>
+            <field name="model">wiz.report.1099</field>
+            <field name="arch" type="xml">
+                <form string="Print Report 1099">
+                    <sheet>
+                        <footer>
+                            <button string="Print XLS" context="{'close_report_print_wizard':True}"
+                                    name="print_xls_report"
+                                    type="object" class="btn-primary"/>
+                            <button string="Print PDF" context="{'close_report_print_wizard':True}"
+                                    name="print_pdf_report"
+                                    type="object" class="btn-primary"/>
+                        </footer>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <act_window
+                name="Print Report 1099"
+                res_model="wiz.report.1099"
+                binding_model="report.1099"
+                binding_views="list"
+                view_mode="form"
+                target="new"
+                view_id="view_print_wiz_report_1099_form"
+                id="wiz_print_report_1099_act"
+        />
+</odoo>

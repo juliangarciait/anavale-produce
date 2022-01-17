@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Tree view of Report 1099 Config. -->
+    <record id="view_report_1099_config_partner_tree" model="ir.ui.view">
+            <field name="name">view.report.1099.config.partner.tree</field>
+            <field name="model">report.1099.config.partner</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="partner_id"/>
+                    <field name="legal_name"/>
+                    <field name="ssn_ein"/>
+                    <field name="ssn_number" />
+                    <field name="ein_number"/>
+                    <field name="type_income" />
+                    <field name="type_co"/>
+                </tree>
+            </field>
+        </record>
+
+    <!-- Form view Report 1099 Config. -->
+    <record id="view_report_1099_config_partner_form" model="ir.ui.view">
+        <field name="name">view.report.1099.config.partner.form.1099</field>
+        <field name="model">report.1099.config.partner</field>
+        <field name="arch" type="xml">
+            <form name="report_1099" string="Vendor Config (1099)">
+                <group>
+                    <group>
+                        <field name="partner_id" required="1"/>
+                        <field name="is_1099"/>
+                        <field name="legal_name"/>
+                        <field name="ssn_ein" groups="report_1099.group_report_1099_vendor,report_1099.group_report_1099"/>
+                        <field
+                            name="ssn_number"
+                            placeholder="xxx-xx-xxxx"
+                            attrs="{'invisible': [('ssn_ein', '!=', 'ssn')],
+                                    'required': [('ssn_ein', '=', 'ssn')]}"
+                            groups="report_1099.group_report_1099_vendor,report_1099.group_report_1099"/>
+                        <field name="ein_number" placeholder="xx-xxxxxxx"
+                            attrs="{'invisible': [('ssn_ein', '!=', 'ein')],
+                                    'required': [('ssn_ein', '=', 'ein')]}"
+                            groups="report_1099.group_report_1099_vendor,report_1099.group_report_1099"/>
+                    </group>
+                    <group>
+                        <field name="type_income" />
+                        <field name="type_co"/>
+                    </group>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action of Report 1099 Config. -->
+        <record id="action_report_1099_config_partner" model="ir.actions.act_window">
+            <field name="name">Report 1099</field>
+            <field name="res_model">report.1099.config.partner</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_report_1099_config_partner_tree"/>
+        </record>
+
+    <!--Menu for Report 1099 Partner Config-->
+        <menuitem id="menu_report_1099_config_partner" name="Vendor 1099 Configuration"
+                  parent="account.menu_finance_payables"
+                  action="action_report_1099_config_partner"
+                  groups="report_1099.group_report_1099"/>
+    
+</odoo>

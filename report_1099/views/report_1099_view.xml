@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <!-- <function model="report.1099.config.partner" name="check_and_fill_legal_name" /> --> 
+        <!-- Tree view of Report 1099 -->
+        <record id="view_report_1099_tree" model="ir.ui.view">
+            <field name="name">view.report.1099.tree</field>
+            <field name="model">report.1099</field>
+            <field name="arch" type="xml">
+                <tree editable="top" create="false">
+                    <field name="date" readonly="1"/>
+                    <field name="partner_id" readonly="1"/>
+                    <field name="legal_name" readonly="1"/>
+                    <field name="ssn_ein" invisible="1"/>
+                    <field name="id_number" readonly="1"/>
+                    <field name="bill_reference" readonly="1"/>
+                    <field name="paid_date" readonly="1"/>
+                    <field name="paid_ref" readonly="1" />
+                    <field name="invoice_state" readonly="1"/>
+                    <field name="check_number" readonly="1" />
+                    <field name="type_income" />
+                    <field name="invoice_line_id" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="amount" readonly="1" sum="Total" widget="monetary"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Action of Report 1099 -->
+        <record id="action_report_1099" model="ir.actions.act_window">
+            <field name="name">Report 1099</field>
+            <field name="res_model">report.1099</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_report_1099_tree"/>
+        </record>
+
+</odoo>

@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_report_1099_acc_user,access_report_1099,model_report_1099,report_1099.group_report_1099,1,1,1,1
+access_report_1099_acc_manager,access_report_1099,model_report_1099,report_1099.group_report_1099_vendor,1,1,1,1
+access_report_1099_config_partner_acc_user,access_report_1099_config_partner,model_report_1099_config_partner,report_1099.group_report_1099,1,1,1,1
+access_report_1099_config_partner_acc_manager,access_report_1099_config_partner,model_report_1099_config_partner,report_1099.group_report_1099_vendor,1,1,1,1
+

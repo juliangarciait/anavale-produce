@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="group_report_1099" model="res.groups">
+        <field name="name">Report 1099</field>
+        <field name="comment">User belongs to this group can only use feature of 1099 Report</field>
+    </record>
+    
+    <record id="group_report_1099_vendor" model="res.groups">
+        <field name="name">Vendor Config(1099)</field>
+        <field name="comment">User belongs to this group can only see Report 1099 Vendor Configuration</field>
+        <field name="implied_ids" eval="[(4, ref('report_1099.group_report_1099'))]"/>
+    </record>
+
+</odoo>

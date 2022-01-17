@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_1099_vendor_template">
+        <t t-foreach="docs" t-as="o">
+            <t t-call="web.basic_layout">
+                <div class="page">
+                    <table class="table">
+                        <tbody>
+                            <tr style="height: 55pt;">
+                                <td rowspan="3" colspan="3">
+                                    PAYER'S Address
+                                    <p style="vertical-align: bottom;">
+                                        <address t-field="res_company.partner_id"
+                                                 t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
+                                    </p>
+                                </td>
+                                <td width="250pt;" style="vertical-align: bottom;">Rents
+                                    <p>$
+                                        <span t-esc="docs[o].get('rent')"/>
+                                    </p>
+                                </td>
+                                <td rowspan="2" height="100pt;" width="15pt;">OMB
+                                    <p t-esc="date"/>
+                                </td>
+                                <td rowspan="2">income</td>
+                            </tr>
+                            <tr style="vertical-align: bottom;height: 55pt;">
+                                <td style="vertical-align: bottom;">Royalties
+                                    <p>$
+                                        <span t-esc="docs[o].get('royalty')"/>
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr style="vertical-align: bottom;">
+                                <td style="vertical-align: bottom;height: 38pt;">Other income
+                                    <p>$
+                                        <span t-esc="docs[o].get('other')"/>
+                                    </p>
+                                </td>
+                                <td style="vertical-align: bottom;">Federal
+                                    <p>$
+                                        <span t-esc="docs[o].get('federal_income_tax_withheld')"/>
+                                    </p>
+                                </td>
+                                <td width="35pt;" rowspan="2">COPY</td>
+                            </tr>
+                            <tr style="vertical-align: bottom;height: 82pt;">
+                                <td colspan="2" style="vertical-align: bottom;">PAYER'S TIN
+                                    <t t-set="report_1099_rec" t-value="res_company.partner_id.return_report_1099_report_config()"/>
+                                    <t t-if="report_1099_rec">
+	                                   <t t-if="report_1099_rec.ssn_ein=='ein'">
+	                                       <p t-esc="report_1099_rec.ein_number"/>
+	                                   </t>
+	                                   <t t-if="report_1099_rec.ssn_ein=='ssn'">
+	                                       <p t-esc="report_1099_rec.ssn_number"/>
+	                                   </t>
+                                    </t>
+                                </td>
+                                <td style="vertical-align: bottom;">RECIPIENT'S TIN
+                                    <t t-set="report_1099_p_rec" t-value="o.return_report_1099_report_config()"/>
+                                    <t t-if="report_1099_p_rec and report_1099_p_rec.ssn_ein=='ein'">
+                                        <p t-esc="report_1099_p_rec.ein_number"/>
+                                    </t>
+                                    <t t-if="report_1099_p_rec.ssn_ein=='ssn'">
+                                        <p t-esc="report_1099_p_rec.ssn_number"/>
+                                    </t>
+                                </td>
+                                <td style="vertical-align: bottom;">Fish
+                                    <p>$
+                                        <span t-esc="docs[o].get('fishing_boat_proceeds')"/>
+                                    </p>
+                                </td>
+                                <td style="vertical-align: bottom;">Medi
+                                    <p>$
+                                        <span t-esc="docs[o].get('medical_and_health_care_payments')"/>
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr style="vertical-align: bottom;height:67pt;">
+                                <td colspan="3" style="vertical-align: bottom;">RECIPIENT Name
+                                    <P t-esc="o.name"/>
+                                </td>
+                                <td style="vertical-align: bottom;">No Emp Comp
+                                    <p>$
+                                        <span t-esc="docs[o].get('non_emp_cmpr')"/>
+                                    </p>
+                                </td>
+                                <td style="vertical-align: bottom;">Substitute
+                                    <p>$
+                                        <span t-esc="docs[o].get('sub_stitute_payments_in_lieu_of_dividends_or_interest')"/>
+                                    </p>
+                                </td>
+                                <td rowspan="4">PRIVACY</td>
+                            </tr>
+                            <tr style="vertical-align: bottom;height:67pt;">
+                                <td colspan="3" style="vertical-align: bottom;">Street
+                                    <t t-if="o.street">
+                                        <p t-esc="o.street"/>
+                                        <span t-esc="o.street2"/>
+                                    </t>
+                                </td>
+                                <td style="vertical-align: bottom;">Payer
+                                    <p>$
+                                        <span t-esc="docs[o].get('sale')"/>
+                                    </p>
+                                </td>
+                                <td style="vertical-align: bottom;">crop
+                                    <p>$
+                                        <span t-esc="docs[o].get('crop_insurance_proceeds')"/>
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr style="vertical-align: bottom;height:67pt;">
+                                <td colspan="3" style="vertical-align: bottom;">City
+                                    <p
+                                            t-esc="o.city"/>
+                                    <span t-esc="o.state_id.name"/>
+                                    <span t-esc="o.country_id.name"/>
+                                    <span t-esc="o.zip"/>
+                                </td>
+                                <td style="vertical-align: bottom;">11</td>
+                                <td style="vertical-align: bottom;">12</td>
+                            </tr>
+                            <tr style="vertical-align: bottom;height:67pt;">
+                                <td style="vertical-align: bottom;">ACC NO</td>
+                                <td style="vertical-align: bottom;">FATCHA</td>
+                                <td style="vertical-align: bottom;">2ND TIN</td>
+                                <td style="vertical-align: bottom;">Excess
+                                    <p>$
+                                        <span t-esc="docs[o].get('excess_golden_perachute_payments')"/>
+                                    </p>
+                                </td>
+                                <td style="vertical-align: bottom;">Gross
+                                    <p>$
+                                        <span t-esc="docs[o].get('gross_proceeds_paid_to_an_attomey')"/>
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr style="vertical-align: bottom;height:67pt;">
+                                <td colspan="2" style="vertical-align: bottom;">409A Deferrals
+                                    <p>$
+                                        <span t-esc="docs[o].get('section_409A_deferrals')"/>
+                                    </p>
+                                </td>
+                                <td style="vertical-align: bottom;">409A Income
+                                    <p>$
+                                        <span t-esc="docs[o].get('section_409A_income')"/>
+                                    </p>
+                                </td>
+                                <td style="vertical-align: bottom;">Tax Withheld
+                                    <p>$
+                                        <span t-esc="docs[o].get('state_tax_withheld')"/>
+                                    </p>
+                                </td>
+                                <td style="vertical-align: bottom;">State No
+                                    <p>$
+                                        <span t-esc="docs[o].get('state_payers_state_no')"/>
+                                    </p>
+                                </td>
+                                <td style="vertical-align: bottom;">Income
+                                    <p>$
+                                        <span t-esc="docs[o].get('state_income')"/>
+                                    </p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

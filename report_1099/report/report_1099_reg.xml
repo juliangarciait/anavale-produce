@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <report
+        id="report_1099_vendor"
+        model="report.1099"
+        string="Report 1099"
+        report_type="qweb-pdf"
+        name="report_1099.report_1099_vendor_template"
+        file="report_1099.report_1099_vendor_template"
+        menu="False"
+    />
+</odoo>
+

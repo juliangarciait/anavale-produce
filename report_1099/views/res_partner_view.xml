@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Form view of Partner -->
+    <record id="view_res_partner_inherit_1099" model="ir.ui.view">
+        <field name="name">view.res.partner.form.1099</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <field name="category_id" position="after">
+                <field name="supplier_rank" invisible='True'/>
+            </field>
+            <field name="vat" position="attributes">
+                <attribute name="attrs">
+                    {
+                        'invisible': [('supplier_rank', '=', 0)],
+                        'readonly': [('parent_id','!=',False)]
+                    }
+                </attribute>
+            </field>
+        </field>
+    </record>
+</odoo>
