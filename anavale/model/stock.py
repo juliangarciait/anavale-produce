@@ -317,6 +317,7 @@ class Picking(models.Model):
         # Force Unlink operations ()
         self.move_lines.unlink()
         self.move_line_ids.with_context(is_force=True).unlink()
+        self.write({'state': 'cancel'})
         _logger.info("delete order")
         # Set new orderlines
         order_id_ref.env['stock.picking'].create_sale_order_lines(order_id_ref, list_ids_to_recreate)
