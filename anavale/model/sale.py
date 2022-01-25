@@ -48,7 +48,9 @@ class SaleOrder(models.Model):
                 raise UserError("Can't confirm without lot ")
         if not self.env.context.get('is_force'):
             self.check_still_quantity()
+        date_order_default = self.date_order or fields.Datetime.now()
         res = super(SaleOrder, self).action_confirm()
+        self.write({'date_order': date_order_default})
         return res
 
     def check_still_quantity(self):
