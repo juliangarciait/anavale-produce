@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+		
+		<template id="analytic_group_assets" inherit_id="web.assets_backend">
+			<xpath expr="." position="inside">
+				<script type="text/javascript" src="/pnl_bs_analytic_groups/static/src/js/account_reports.js"/>
+			</xpath>
+		</template>
+		
+		<template id="search_template_analytic_group">
+	        <a t-if="options.get('analytic')" type="button" class="account_analytic_group" t-att-style="'color:green;' if options.get('analytic_group') else 'color:red;'">
+	            <span  class="fa fa-list"/> Analytic Groups
+	        </a>
+		</template>
+
+		<template id="search_template_inherit" inherit_id="account_reports.search_template">
+			<xpath expr="//div[hasclass('o_account_reports_filter_analytic')]" position="after">	
+				<div class="btn-group o_dropdown o_account_reports_group_analytic" t-if="options.get('analytic') != None">
+	            	<t t-call="pnl_bs_analytic_groups.search_template_analytic_group"/>
+	        	</div>
+			</xpath>
+        </template>
+        
+</odoo>
