@@ -9,6 +9,7 @@ odoo.define('pnl_bs_analytic_groups.account_report', function (require) {
 		
 		events : _.extend({},AccountReport.prototype.events,{
 			'click .account_analytic_group' : 'groupby_analytic',
+			'click .account_analytic_tag_group' : 'groupby_analytic_tag',
 		}),
 		
 		render: function() {
@@ -27,6 +28,19 @@ odoo.define('pnl_bs_analytic_groups.account_report', function (require) {
 			else {
 				console.log("ACCOOOCCCCC-------ELSEEEE----------",this)
 				this.report_options.analytic_group = true
+			}
+			this.reload();
+		},
+
+		groupby_analytic_tag : function(event){
+			console.log("HOLI-----------------",this)
+			if(this.report_options.analytic_tag_group) {
+				console.log("HOLI---------IFFFFFFF--------",this)
+				this.report_options.analytic_tag_group = false
+			}
+			else {
+				console.log("HOLI-------ELSEEEE----------",this)
+				this.report_options.analytic_tag_group = true
 			}
 			this.reload();
 		},

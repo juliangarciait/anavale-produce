@@ -11,6 +11,9 @@
 	        <a t-if="options.get('analytic')" type="button" class="account_analytic_group" t-att-style="'color:green;' if options.get('analytic_group') else 'color:red;'">
 	            <span  class="fa fa-list"/> Analytic Groups
 	        </a>
+			<a t-if="options.get('analytic')" type="button" class="account_analytic_tag_group" t-att-style="'color:green;' if options.get('analytic_tag_group') else 'color:red;'">
+	            <span  class="fa fa-list"/> Analytic Tag Groups
+	        </a>
 		</template>
 
 		<template id="search_template_inherit" inherit_id="account_reports.search_template">

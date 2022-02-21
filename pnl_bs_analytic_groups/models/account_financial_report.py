@@ -23,7 +23,8 @@ import ast
 
 from odoo import models, fields, api, _
 
-
+import logging
+_logger = logging.getLogger(__name__)
 
 class ReportAccountFinancialReport(models.Model):
     _inherit = "account.financial.html.report"
@@ -34,6 +35,7 @@ class ReportAccountFinancialReport(models.Model):
         
         if previous_options and previous_options.get('analytic_group'):
             rslt['analytic_group'] = True
+            rslt['analytic_tag_group'] = True
         return rslt
 
 
@@ -51,6 +53,8 @@ class ReportAccountFinancialReport(models.Model):
                 options['groups'] = {}
                 options['groups']['fields'] = ['analytic_account_id']
                 options['groups']['ids'] = self._get_groups([('analytic_account_id','in',options.get('analytic_accounts'))], ['analytic_account_id'])
+        if options and 'analytic_tags' in options and options.get('analytic_tags') and 'analytic_tag_group' in options and options.get('analytic_tag_group'):
+           _logger.info("-"*700)
         return super(ReportAccountFinancialReport, self)._get_lines(options,line_id)
 
 
