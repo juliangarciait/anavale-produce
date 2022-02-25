@@ -20,8 +20,10 @@
 ###############################################################################
 import copy
 import ast
+from itertools import count
 
 from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -35,6 +37,9 @@ class ReportAccountFinancialReport(models.Model):
         
         if previous_options and previous_options.get('analytic_group'):
             rslt['analytic_group'] = True
+            rslt['analytic_tag_group'] = False
+        if previous_options and previous_options.get('analytic_tag_group'):
+            rslt['analytic_group'] = False
             rslt['analytic_tag_group'] = True
         return rslt
 
@@ -53,8 +58,29 @@ class ReportAccountFinancialReport(models.Model):
                 options['groups'] = {}
                 options['groups']['fields'] = ['analytic_account_id']
                 options['groups']['ids'] = self._get_groups([('analytic_account_id','in',options.get('analytic_accounts'))], ['analytic_account_id'])
+
         if options and 'analytic_tags' in options and options.get('analytic_tags') and 'analytic_tag_group' in options and options.get('analytic_tag_group'):
-           _logger.info("-"*700)
+            analytic_tags = options.get('analytic_tags')
+            analytic_tags_str = ""
+            analytic_tags_len = len(analytic_tags)
+            count = 0
+            for analytic_tag in analytic_tags:
+                count +=1
+                if count != analytic_tags_len:
+                    analytic_tags_str += str(analytic_tag)+','
+                else:
+                    analytic_tags_str += str(analytic_tag)
+            self._cr.execute("SELECT account_move_line_id FROM account_analytic_tag_account_move_line_rel WHERE account_analytic_tag_id in ("+analytic_tags_str+")")
+            aml_ids = self._cr.fetchall()
+            groups_ids = []
+            for record in aml_ids:
+                groups_ids.append(record[0])
+            raise ValidationError('{}'.format(groups_ids))
+            if len(groups_ids):
+                _logger.info("%"*700)
+                options['groups'] = {}
+                options['groups']['fields'] = ['id']
+                options['groups']['ids'] = self._get_groups([('id', 'in', groups_ids)], ['id'])
         return super(ReportAccountFinancialReport, self)._get_lines(options,line_id)
 
 
