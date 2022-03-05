@@ -21,3 +21,5 @@ class LotData(models.Model):
         selection=[('product_repack', 'Product Repack'),
                    ('lot_repack', 'Lot Repack'), ],
     )
+
+    box_tag = fields.Char(string='Marca de caja')

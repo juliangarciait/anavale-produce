@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
+from xml.dom import ValidationErr
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tools.float_utils import float_compare
 
 import logging
@@ -13,9 +14,10 @@ class SaleOrder(models.Model):
 
     custom_state_delivery = fields.Char(string='State Delivery',
         compute='_compute_get_delivery_custom_state',
-        help='Automatic assignation state from custom state delivery:\n')
+        help='Automatic assignation state from custom state delivery:\n', store=True)
 
 
+    @api.depends('picking_ids.custom_state_delivery')
     def _compute_get_delivery_custom_state(self):
         for record in self:
             pickings = self.mapped('picking_ids')
