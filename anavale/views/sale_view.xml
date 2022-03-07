@@ -7,89 +7,81 @@
             <field name="payment_term_id" position="after">
                 <field name="custom_state_delivery"></field>
             </field>
-            <xpath expr="//field[@name='order_line']/tree/field[@name='product_id']" position="after">
-                <field name="tracking" invisible="1"/>
-                <field name="lot_id" 
-                    attrs="{'required': [('tracking', '=', 'lot')], 'readonly': ['|', ('parent.custom_state_delivery', '=', 'Ready (No Delivered)'), ('parent.custom_state_delivery', '=', 'Done (Delivered)')]}"
-                    domain="[('product_id','=', product_id)]" 
-                    context="{'default_product_id': product_id}" 
-                    groups="stock.group_production_lot" 
-                    class="oe_inline"/>
-                <field name="lot_available_sell" class="oe_inline" force_save="1"/>
-            </xpath>
-            <xpath expr="//field[@name='order_line']/form/group/group/field[@name='product_id']" position="after">
-                <field name="tracking" invisible="1"/>
-                <field name="lot_id" 
-                    attrs="{'readonly': ['|', ('parent.custom_state_delivery', '=', 'Ready (No Delivered)'), ('parent.custom_state_delivery', '=', 'Done (Delivered)')]}"
-                    domain="[('product_id','=', product_id)]" 
-                    context="{'default_product_id': product_id}" 
-                    groups="stock.group_production_lot" 
-                    class="oe_inline"/>
-                <field name="lot_available_sell" class="oe_inline" force_save="1"/>
-            </xpath>
-            <xpath expr="//form/sheet/group/group[2]/field[@name='payment_term_id']" position="attributes">
+            <!-- <xpath expr="//form/sheet/group/group[2]/field[@name='payment_term_id']" position="attributes">
                 <attribute name="readonly">[('parent.custom_state_delivery', '=', 'Ready (No Delivered)'), ('parent.custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
-            </xpath>
+            </xpath> -->
             <xpath expr="//field[@name='order_line']" position="attributes">
-                <attribute name="readonly">[('parent.custom_state_delivery', '=', 'Ready (No Delivered)'), ('parent.custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
             <xpath expr="//form/sheet/notebook[1]/page[@name='order_lines']/group[@name='note_group']/group/field[@name='note']" position="attributes">
-                <attribute name="readonly">[('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
             <xpath expr="//form/sheet/notebook[1]/page[@name='order_lines']/group[@name='note_group']/group/field[@name='note']" position="attributes">
-                <attribute name="readonly">[('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
             <xpath expr="//form/sheet/notebook[1]/page[@name='other_information']/group/group[@name='sales_person']/field[@name='user_id']" position="attributes">
-                <attribute name="readonly">[('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
             <xpath expr="//form/sheet/notebook[1]/page[@name='other_information']/group/group[@name='sales_person']/field[@name='team_id']" position="attributes">
-                <attribute name="readonly">[('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
             <xpath expr="//form/sheet/notebook[1]/page[@name='other_information']/group/group[@name='sales_person']/field[@name='company_id']" position="attributes">
-                <attribute name="readonly">[('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
             <xpath expr="//form/sheet/notebook[1]/page[@name='other_information']/group/group[@name='sales_person']/field[@name='require_signature']" position="attributes">
-                <attribute name="readonly">[('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
             <xpath expr="//form/sheet/notebook[1]/page[@name='other_information']/group/group[@name='sales_person']/field[@name='require_payment']" position="attributes">
-                <attribute name="readonly">[('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
             <xpath expr="//form/sheet/notebook[1]/page[@name='other_information']/group/group[@name='sales_person']/field[@name='reference']" position="attributes">
-                <attribute name="readonly">[('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
             <xpath expr="//form/sheet/notebook[1]/page[@name='other_information']/group/group[@name='sales_person']/field[@name='client_order_ref']" position="attributes">
-                <attribute name="readonly">[('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
             <xpath expr="//form/sheet/notebook[1]/page[@name='other_information']/group/group[@name='sale_info']/field[@name='fiscal_position_id']" position="attributes">
-                <attribute name="readonly">[('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
             <xpath expr="//form/sheet/notebook[1]/page[@name='other_information']/group/group[@name='sale_info']/field[@name='analytic_account_id']" position="attributes">
-                <attribute name="readonly">[('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
             <xpath expr="//form/sheet/notebook[1]/page[@name='other_information']/group/group[@name='sale_shipping']/div/field[@name='commitment_date']" position="attributes">
-                <attribute name="readonly">[('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
             <xpath expr="//form/sheet/notebook[1]/page[@name='other_information']/group/group[@name='sale_reporting']/group[@name='technical']/field[@name='origin']" position="attributes">
-                <attribute name="readonly">[('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
             <xpath expr="//form/sheet/notebook[1]/page[@name='other_information']/group/group[@name='sale_reporting']/group[@name='utm_link']/field[@name='campaign_id']" position="attributes">
-                <attribute name="readonly">[('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
             <xpath expr="//form/sheet/notebook[1]/page[@name='other_information']/group/group[@name='sale_reporting']/group[@name='utm_link']/field[@name='medium_id']" position="attributes">
-                <attribute name="readonly">[('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
             <xpath expr="//form/sheet/notebook[1]/page[@name='other_information']/group/group[@name='sale_reporting']/group[@name='utm_link']/field[@name='source_id']" position="attributes">
-                <attribute name="readonly">[('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
             <xpath expr="//form/sheet/notebook[1]/page[@name='customer_signature']/group/field[@name='signed_by']" position="attributes">
-                <attribute name="readonly">[('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
             <xpath expr="//form/sheet/notebook[1]/page[@name='customer_signature']/group/field[@name='signed_on']" position="attributes">
-                <attribute name="readonly">[('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
             <xpath expr="//form/sheet/notebook[1]/page[@name='customer_signature']/group/field[@name='signature']" position="attributes">
-                <attribute name="readonly">[('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]</attribute>
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
         </field>
     </record>
+
+    <record id="sale_order_form_quote_sale_management_ro_based_on_status" model="ir.ui.view">
+        <field name="name">sale.order.form.quote.sale.management.ro.based.on.status</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale_management.sale_order_form_quote"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sale_order_option_ids']" position="attributes">
+                <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
+            </xpath>
+        </field>
+    </record>
+
 </odoo>
