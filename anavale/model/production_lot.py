@@ -23,3 +23,9 @@ class LotData(models.Model):
     )
 
     box_tag = fields.Char(string='Marca de caja')
+
+    def name_get(self):
+        res = []
+        for record in self:
+            res.append((record.id,record.name+' - {}'.format(record.box_tag)))
+        return res
