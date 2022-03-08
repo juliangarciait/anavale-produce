@@ -24,6 +24,7 @@
             'views/lot_view.xml',
             'views/purchase_view.xml',
             'views/report_stock_traceability_inherid.xml',
+            'views/stock_production_lot_tag_view.xml',
             'wizard/partner_sequence_change_view.xml',
             'wizard/quant_lot_repack_view.xml',
             'wizard/sale_report_avg_wz_view.xml',

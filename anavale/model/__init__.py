@@ -10,3 +10,5 @@ from . import mail_thread
 from . import production_lot
 from . import purchase
 from . import stock_traceability
+from . import ir_actions_report
+from . import stock_production_lot_tag

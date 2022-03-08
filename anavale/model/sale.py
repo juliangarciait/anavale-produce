@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
+from xml.dom import ValidationErr
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tools.float_utils import float_compare
 
 import logging
@@ -13,11 +14,14 @@ class SaleOrder(models.Model):
 
     custom_state_delivery = fields.Char(string='State Delivery',
         compute='_compute_get_delivery_custom_state',
-        help='Automatic assignation state from custom state delivery:\n')
+        help='Automatic assignation state from custom state delivery:\n',
+        store=True,
+        tracking=True)
 
-
+    @api.depends('picking_ids.custom_state_delivery')
     def _compute_get_delivery_custom_state(self):
         for record in self:
+            previus_status = record.custom_state_delivery
             pickings = self.mapped('picking_ids')
             if len(pickings)>0:
                 sorte_list = pickings.sorted(key=lambda r: r.id)
@@ -26,10 +30,9 @@ class SaleOrder(models.Model):
                         record.custom_state_delivery = dict(
                             picking._fields['custom_state_delivery'].selection).get(
                             picking.custom_state_delivery)
+                        record.message_post(body='· Estado: {} --> {}'.format(previus_status, record.custom_state_delivery))
                         return
             record.custom_state_delivery = 'No status'
-
-
 
     def action_quotation_send(self):
         ''' Opens a wizard to compose an email, with relevant mail template loaded by default '''
