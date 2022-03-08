@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_stock_production_lot_tag" model="ir.actions.act_window">
+        <field name="name">Etiquetas (Lotes)</field>
+        <field name="res_model">stock.production.lot.tag</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+            ¡Crea una nueva etiqueta!
+            </p><p>
+            Una vez tengas etiquetas creadas, podrán ser asignadas a un lote.
+            </p>
+        </field>
+    </record>
+
+    <record id="stock_production_lot_tag_view_tree" model="ir.ui.view">
+        <field name="name">stock.production.lot.tag.view.tree</field>
+        <field name="model">stock.production.lot.tag</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom" create="1" edit="1">
+                <field name="name" />
+            </tree>
+        </field>
+    </record>
+
+    <menuitem id="menu_stock_production_lot_tag"
+        action="action_stock_production_lot_tag"
+        parent="stock.menu_stock_inventory_control"
+        sequence="50"/>
+
+</odoo>

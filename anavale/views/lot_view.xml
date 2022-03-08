@@ -11,7 +11,7 @@
             <field name="ref" position="after">
                 <field name="analytic_tag_ids" widget="many2many_tags" groups="analytic.group_analytic_tags"/>
                 <field name="type_lot" readonly="0"/>
-                <field name="box_tag" />
+                <field name="lot_tag" />
             </field>
             <xpath expr="//page[@name='description']" position="after">
                 <page string="Child Lots" name="child_lots">
