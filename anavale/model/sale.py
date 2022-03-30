@@ -18,6 +18,13 @@ class SaleOrder(models.Model):
         store=True,
         tracking=True)
 
+    def write(self, vals):
+        if self.custom_state_delivery in ['Ready (No Delivered)', 'Done (Delivered)']:
+            if vals['order_line']:
+                if len(self.order_line) < len(vals['order_line']):
+                    raise ValidationError("You can't add more lines in the current state ("+self.custom_state_delivery+")")
+        return super(SaleOrder, self).write(vals)
+
     @api.depends('picking_ids.custom_state_delivery')
     def _compute_get_delivery_custom_state(self):
         for record in self:
@@ -132,8 +139,7 @@ class SaleOrderLine(models.Model):
     tracking = fields.Selection(related='product_id.tracking', readonly=True)
     lot_id = fields.Many2one('stock.production.lot', 'Lot', copy=False)
     lot_available_sell = fields.Float('Stock', readonly=1)
-
-
+    custom_state_delivery = fields.Char(related='order_id.custom_state_delivery')
 
     def _prepare_procurement_values(self, group_id=False):
         res = super(SaleOrderLine, self)._prepare_procurement_values(group_id=group_id)
