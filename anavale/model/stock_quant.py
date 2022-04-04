@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models
 from dateutil.relativedelta import relativedelta
+from odoo.exceptions import ValidationError
 
 class StockQuant(models.Model):
     _inherit = 'stock.quant'
@@ -8,12 +9,12 @@ class StockQuant(models.Model):
     sale_order_quantity = fields.Float(
         'Quantity in Sale Order', compute='_compute_sale_order_qty',
         help='Quantity of products in this quant in Sale Orders but not yet Reserved in a Stock Picking , in the default unit of measure of the product',
-        store=True, readonly=True)
+        readonly=True)
         
     available_quantity = fields.Float(
         'Quantity available for Sell', compute='_compute_sale_order_qty',
         help='Quantity of products in this quant avaiable for Sell including in-transit stock, in the default unit of measure of the product',
-        store=True, readonly=True)
+        readonly=True)
         
     def _compute_sale_order_qty(self):
         for quant in self.sudo():
@@ -21,9 +22,9 @@ class StockQuant(models.Model):
             sql = """
                         SELECT sol.id
                             FROM sale_order_line sol
-                            LEFT JOIN sale_order o
-                                on sol.order_id = o.id
-                            where o.state = 'sale'
+                            LEFT JOIN sale_order so
+                                on sol.order_id = so.id
+                            where so.state = 'sale'
                                 and product_id = %s                                
                     """
             if quant.lot_id:
@@ -32,8 +33,8 @@ class StockQuant(models.Model):
             self._cr.execute(sql, tuple(args))
             ids = [item.get('id') for item in self._cr.dictfetchall()]
             sale_order_quantity = 0
-            for so in self.env['sale.order.line'].browse(ids):
-                sale_order_quantity += so._compute_real_qty_to_deliver() 
+            for sol in self.env['sale.order.line'].browse(ids):
+                sale_order_quantity += sol._compute_real_qty_to_deliver()
                 # sol._compute_qty_delivered()
             # quant.available_quantity = quant.quantity - quant.sale_order_quantity
             #     sale_order_quantity += sol.product_uom_qty - sol.qty_delivered
@@ -69,6 +70,8 @@ class StockQuant(models.Model):
             # Only sale.order.line with pending deliveries
             if sol._compute_real_qty_to_deliver() > 0:
                 ids.append(sol.order_id.id)
+
+        # raise ValidationError('{}'.format(ids))
                 
         return  {
             'type': 'ir.actions.act_window',
