@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_delivery_document_add_lot_inherit_stock" name="report.delivery.document.add.lot.inherit.stock" inherit_id="stock.report_delivery_document">
+        <xpath expr="//t/t/div[hasclass('page')]/table[1]" position="attributes">
+            <attribute name="style">display: none;</attribute>
+        </xpath>
+        <xpath expr="//t/t/div[hasclass('page')]/table[2]" position="attributes">
+            <attribute name="t-if"></attribute>
+        </xpath>
+    </template>
+
+</odoo>
