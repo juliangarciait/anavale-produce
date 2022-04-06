@@ -252,6 +252,7 @@ class SaleOrderLine(models.Model):
         return qty
 
     def create(self, vals):
+        # raise ValidationError('{}'.format(vals))
         so = vals[0]['order_id']
         so = self.env['sale.order'].browse(so)
         if so.state == 'sale':

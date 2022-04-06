@@ -37,6 +37,7 @@
             'report/report_quality.xml',
             'report/sale_report_avg_views.xml',
             'report/sale_report_by_lot_views.xml',
+            'views/account_move_view.xml'
              ],
     'demo': [],
     'test': [],
