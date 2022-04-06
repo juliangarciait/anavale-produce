@@ -14,3 +14,4 @@ from . import ir_actions_report
 from . import stock_production_lot_tag
 from . import account_move_line
 from . import account_move
+from . import stock_production_lot
