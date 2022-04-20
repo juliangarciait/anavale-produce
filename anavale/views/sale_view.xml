@@ -12,7 +12,7 @@
             <xpath expr="//field[@name='order_line']/tree/field[@name='product_id']" position="after">
                 <field name="tracking" invisible="1"/>
                 <field name="lot_id" 
-                    attrs="{'required': [('tracking', '=', 'lot')]}"
+                    attrs="{'required': [('tracking', '=', 'lot')], 'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}"
                     domain="[('product_id','=', product_id)]" 
                     context="{'default_product_id': product_id}" 
                     groups="stock.group_production_lot" 
@@ -21,12 +21,7 @@
             </xpath>
             <xpath expr="//field[@name='order_line']/form/group/group/field[@name='product_id']" position="after">
                 <field name="tracking" invisible="1"/>
-                <field name="lot_id"
-                    attrs="{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}"
-                    domain="[('product_id','=', product_id)]" 
-                    context="{'default_product_id': product_id}" 
-                    groups="stock.group_production_lot" 
-                    class="oe_inline"/>
+                <field name="lot_id" class="oe_inline"/>
                 <field name="lot_available_sell" class="oe_inline" force_save="1"/>
             </xpath>
             <xpath expr="//form/sheet/group/group[2]/field[@name='payment_term_id']" position="attributes">
@@ -46,9 +41,9 @@
             <xpath expr="//form/sheet/notebook[1]/page[@name='order_lines']/field[@name='order_line']/tree/field[@name='product_uom_qty']" position="attributes">
                 <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>
-            <xpath expr="//form/sheet/notebook[1]/page[@name='order_lines']/field[@name='order_line']/tree/field[@name='lot_id']" position="attributes">
+            <!-- <xpath expr="//form/sheet/notebook[1]/page[@name='order_lines']/field[@name='order_line']/tree/field[@name='lot_id']" position="attributes">
                 <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
-            </xpath>
+            </xpath> -->
             <xpath expr="//form/sheet/notebook[1]/page[@name='order_lines']/field[@name='order_line']/tree/field[@name='name']" position="attributes">
                 <attribute name="attrs">{'readonly': ['|', ('custom_state_delivery', '=', 'Ready (No Delivered)'), ('custom_state_delivery', '=', 'Done (Delivered)')]}</attribute>
             </xpath>

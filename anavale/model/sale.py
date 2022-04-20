@@ -137,7 +137,7 @@ class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
     
     tracking = fields.Selection(related='product_id.tracking', readonly=True)
-    lot_id = fields.Many2one('stock.production.lot', 'Lot', copy=False)
+    lot_id = fields.Many2one(comodel_name='stock.production.lot', string='Lot', copy=False)
     lot_available_sell = fields.Float('Stock', readonly=1)
     custom_state_delivery = fields.Char(related='order_id.custom_state_delivery')
 
@@ -252,6 +252,7 @@ class SaleOrderLine(models.Model):
         return qty
 
     def create(self, vals):
+        # raise ValidationError('{}'.format(vals))
         so = vals[0]['order_id']
         so = self.env['sale.order'].browse(so)
         if so.state == 'sale':
