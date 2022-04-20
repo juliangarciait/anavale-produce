@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="add_note_to_stock_vpicktree" model="ir.ui.view">
+        <field name="name">add.note.to.stock.vpicktree</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree/field[@name='state']" position="before">
+                <field name="note" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
