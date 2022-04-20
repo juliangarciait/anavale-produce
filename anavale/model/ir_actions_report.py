@@ -26,3 +26,20 @@ class IrActionsReport(models.Model):
                 for picking in pickings_ids:
                     picking.custom_state_delivery = 'assigned'
             return values
+
+    class DeliverySlipReport(models.AbstractModel):
+        _name = 'report.stock.report_deliveryslip'
+        _description = 'Delivery Slip Report'
+
+        def _get_report_values(self, docids, data=None):
+
+            docs = self.env['stock.picking'].browse(docids)
+
+            values = {
+            'doc_ids': docs.ids,
+            'doc_model': 'stock.picking',
+            'docs': docs,
+            'proforma': True
+            }
+            docs.custom_state_delivery = 'assigned'
+            return values
