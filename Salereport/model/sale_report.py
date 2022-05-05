@@ -10,7 +10,7 @@ class SaleReport(models.Model):
 
     lot_id = fields.Char('Lots', readonly=True)
     avg_price = fields.Float('Average Price', readonly=True, group_operator="avg")
-    invoice_date_due = fields.Date(related='order_id.invoice_ids.invoice_date_due', string="Invoice Due Date", readonly=True, stored=True)
+    invoice_date_due = fields.Date(related='order_id.invoice_ids.invoice_date', string="Invoice Date", readonly=True, stored=True)
     # average = fields.Float('Average Price1', store=True, compute='_compute_avg_price')
 
     # @api.depends('product_uom_qty', 'price_total')
