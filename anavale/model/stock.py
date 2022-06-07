@@ -104,9 +104,10 @@ class Picking(models.Model):
                              }
                         )
                         line.write({'lot_name': lot.name, 'lot_id': lot.id})
+        so_id = self.sale_id
         # Check lot Traceability
         self.action_fix_order_with_move_lines()
-        return super().button_validate()
+        return super(Picking, so_id.picking_ids).button_validate()
 
     def action_fix_order_with_move_lines(self):
         _logger.info("Action")
@@ -276,7 +277,7 @@ class Picking(models.Model):
             vals['qty_done'] = move.product_qty
             move_line_vals_list.append(vals)
         if len(move_line_vals_list) > 0:
-            self.env['stock.move.line'].create(move_line_vals_list)
+            self.env['stock.move.line'].sudo().create(move_line_vals_list)
         return True
 
     def get_default_tax_id(self):
@@ -316,12 +317,14 @@ class Picking(models.Model):
         # Force Unlink operations ()
         self.move_lines.unlink()
         self.move_line_ids.with_context(is_force=True).unlink()
+        self.write({'state': 'cancel'})
         _logger.info("delete order")
         # Set new orderlines
         order_id_ref.env['stock.picking'].create_sale_order_lines(order_id_ref, list_ids_to_recreate)
         order_id_ref.with_context(is_force=True).action_confirm()
-        self.button_load_move_line_ids()
-        self.update_empty_delivery_lines(list_ids_to_recreate)
+        new_picking = order_id_ref.picking_ids
+        new_picking.button_load_move_line_ids()
+        new_picking.update_empty_delivery_lines(list_ids_to_recreate)
 
     def get_custom_product_price(self, sale_id, product_id):
         for line in sale_id.order_line:
@@ -336,7 +339,7 @@ class Picking(models.Model):
 
     def get_list_new_quotation(self):
         list = []
-        for lines in self.move_line_ids:
+        for lines in self.move_line_ids_without_package:
             vals = {
                 'product_id': lines.product_id.id,
                 'name': lines.product_id.name,
