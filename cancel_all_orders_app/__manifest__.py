@@ -48,6 +48,8 @@ Ractify stock picking Ractify delivery order Ractify incoming shipment Ractify i
 	"license" : "OPL-1",
 	'depends': ['base','sale_management','purchase','account','stock','stock_picking_cancel_app'],
 	'data': [
+        'security/groups.xml', 
+        
         'views/purchase_order_inherit.xml',
     ],
 	'installable': True,

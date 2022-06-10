@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <record id="group_cancel_sale_order_basic" model="res.groups">
+        <field name="name">Cancel Sale Order</field>
+    </record>
+
+    <record id="group_cancel_sale_order_advanced" model="res.groups">
+        <field name="name">Force Cancel Sale Order</field>
+    </record>
+</odoo>
