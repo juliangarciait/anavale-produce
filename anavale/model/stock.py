@@ -107,7 +107,7 @@ class Picking(models.Model):
         so_id = self.sale_id
         # Check lot Traceability
         self.action_fix_order_with_move_lines()
-        return super(Picking, so_id.picking_ids).button_validate()
+        return super().button_validate()
 
     def action_fix_order_with_move_lines(self):
         _logger.info("Action")
