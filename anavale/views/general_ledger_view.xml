@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <record id="account_move_line_tree_inherited_general" model="ir.ui.view">
+        <field name="name">account.move.line.tree.inherit.general</field>
+        <field name="model">account.move.line</field>
+        <field name="inherit_id" ref="account.view_move_line_tree_grouped_general"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree/field[@name='full_reconcile_id']" position="before">
+                <field name="analytic_tag_ids" widget="many2many_tags" optional="hidden"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
