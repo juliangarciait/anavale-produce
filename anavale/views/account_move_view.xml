@@ -12,4 +12,16 @@
         </field>
     </record>
 
+
+    <record id="account_move_line_list_view_inherit_tags" model="ir.ui.view">
+        <field name="name">account.move.line.list.view.inherit.tags</field>
+        <field name="model">account.move.line</field>
+        <field name="inherit_id" ref="account.view_move_line_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree/field[@name='analytic_tag_ids']" position="after">
+                <field name="tags_text" string="Analytic Tags (Name)" optional="hidden"/>
+            </xpath>
+        </field>
+    </record>
+
 </odoo>

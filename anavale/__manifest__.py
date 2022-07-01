@@ -40,6 +40,7 @@
             'views/account_move_view.xml',
             'views/stock_picking_view.xml',
             'report/delivery_slip_views.xml',
+            'views/general_ledger_view.xml',
              ],
     'demo': [],
     'test': [],
