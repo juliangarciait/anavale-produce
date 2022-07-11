@@ -14,6 +14,8 @@ class AccountMoveLine(models.Model):
 
     tags_text = fields.Text(string='Analytic Tags', compute='_compute_analytic_tags', store=False)
 
+    analytic_tag_ids = fields.Many2many('account.analytic.tag', compute="_compute_analytic_tags_in_invoice", store=True, copy=True)
+
     @api.onchange('lot_id')
     def onchange_lot_id(self):
         if self.lot_id:
@@ -30,4 +32,24 @@ class AccountMoveLine(models.Model):
             
             record.tags_text = ', '.join(filter(bool, names))
 
+    
+    @api.depends('lot_id')
+    def _compute_analytic_tags_in_invoice(self): 
+        for record in self: 
+            record.analytic_tag_ids = record.lot_id.analytic_tag_ids
 
+
+    def write(self, vals): 
+        res = super(AccountMoveLine, self).write(vals)
+
+        for line in self: 
+            sale = self.env['sale.order.line'].search([('invoice_lines', 'in', [line.id])])
+            if line.purchase_line_id: 
+                line.purchase_line_id.price_unit = line.price_unit
+            elif sale:
+                sale.price_unit = line.price_unit
+            else: 
+                continue
+
+        return res
+        
