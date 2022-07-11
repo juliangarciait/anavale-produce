@@ -104,6 +104,11 @@ class Picking(models.Model):
                              }
                         )
                         line.write({'lot_name': lot.name, 'lot_id': lot.id})
+                
+                if lot and not lot.analytic_tag_ids:
+                    lot.analytic_tag_ids = tax_tag_lot_ids
+                
+                
         # Check lot Traceability
         self.action_fix_order_with_move_lines()
         return super().button_validate()
