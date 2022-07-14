@@ -12,6 +12,9 @@ class AccountMoveLine(models.Model):
 
     lot_id = fields.Many2one('stock.production.lot', string='Lot')
 
+    tags_text = fields.Text(string='Analytic Tags', compute='_compute_analytic_tags', store=False)
+
+
     @api.onchange('lot_id')
     def onchange_lot_id(self):
         if self.lot_id:
