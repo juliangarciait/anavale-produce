@@ -12,10 +12,6 @@ class AccountMoveLine(models.Model):
 
     lot_id = fields.Many2one('stock.production.lot', string='Lot')
 
-    tags_text = fields.Text(string='Analytic Tags', compute='_compute_analytic_tags', store=False)
-
-    analytic_tag_ids = fields.Many2many('account.analytic.tag', compute="_compute_analytic_tags_in_invoice", store=True, copy=True)
-
     @api.onchange('lot_id')
     def onchange_lot_id(self):
         if self.lot_id:
@@ -31,12 +27,6 @@ class AccountMoveLine(models.Model):
                 names.append(tags.name)
             
             record.tags_text = ', '.join(filter(bool, names))
-
-    
-    @api.depends('lot_id')
-    def _compute_analytic_tags_in_invoice(self): 
-        for record in self: 
-            record.analytic_tag_ids = record.lot_id.analytic_tag_ids
 
 
     def write(self, vals): 
