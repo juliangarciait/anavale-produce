@@ -121,6 +121,15 @@
         </field>
     </record>
 
+    <record id="update_amount_invoiced_action_server" model="ir.actions.server">
+        <field name="name">Invoiced Update</field>
+        <field name="model_id" ref="model_sale_order"/>
+        <field name="binding_model_id" ref="model_sale_order"/>
+        <field name="state">code</field>
+        <field name="code">action = model.update_amount_invoiced()</field>
+    </record>
+
+
     <!-- <record id="view_order_form_inherit_sale_stock_route_id_attrs" model="ir.ui.view">
         <field name="name">view.order.form.inherit.sale.stock.route.id.attrs</field>
         <field name="model">sale.order</field>

@@ -142,7 +142,7 @@ class PurchaseOrderLine(models.Model):
 
     total_invoiced = fields.Float(compute='_compute_total_invoiced', string="Billed Total", store=True)
 
-    @api.depends('invoice_lines')
+    @api.depends('invoice_lines.price_unit', 'invoice_lines.quantity')
     def _compute_total_invoiced(self):
         for line in self:
             total = 0.0

@@ -18,6 +18,16 @@ class SaleOrder(models.Model):
         store=True,
         tracking=True)
 
+    def update_amount_invoiced(self): 
+        active_ids = self.env.context.get('active_ids', [])
+        sales = self.search([('id', 'in', active_ids)])
+        for sale in sales: 
+            for line_sale in sale.order_line: 
+                line_sale._get_to_invoice_qty()
+                line_sale._get_invoice_qty()
+                line_sale._compute_untaxed_amount_invoiced()
+                line_sale._compute_untaxed_amount_to_invoice()
+
     def write(self, vals):
         if self.custom_state_delivery in ['Ready (No Delivered)', 'Done (Delivered)']:
             if vals['order_line']:
@@ -132,9 +142,7 @@ class SaleOrder(models.Model):
                         # _("Can not reserve products for lot %s") % line.lot_id.name
                     # )
             # self._check_move_state(line)
-        # return True
-
-        
+        # return True        
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
     
