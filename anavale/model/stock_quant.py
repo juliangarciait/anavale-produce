@@ -55,7 +55,6 @@ class StockQuant(models.Model):
         return res
 
     def call_view_sale_order(self):
-        self.sudo()
         """ Method called when click button
             "View Sale Order" from stock.quant
             Tree view.
