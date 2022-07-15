@@ -55,6 +55,7 @@ class StockQuant(models.Model):
         return res
 
     def call_view_sale_order(self):
+        self.sudo()
         """ Method called when click button
             "View Sale Order" from stock.quant
             Tree view.
@@ -66,7 +67,7 @@ class StockQuant(models.Model):
             ('lot_id', '=', self.lot_id.id)]
             
         ids =[]
-        for sol in self.env['sale.order.line'].sudo().search(domain):
+        for sol in self.env['sale.order.line'].search(domain):
             # Only sale.order.line with pending deliveries
             if sol._compute_real_qty_to_deliver() > 0:
                 ids.append(sol.order_id.id)
