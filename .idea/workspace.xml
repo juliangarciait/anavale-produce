@@ -2,19 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="90411174-03ad-45ed-a567-3176799d5bbb" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/Billing_lot/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Billing_lot/__manifest__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Billing_lot/model/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Billing_lot/model/accounting.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Billing_lot/static/description/icon.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Billing_lot/static/description/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Billing_lot/static/description/mai_sale_order_lot_selection_1.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Billing_lot/static/description/mai_sale_order_lot_selection_2.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Billing_lot/static/description/mai_sale_order_lot_selection_3.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Billing_lot/static/description/mai_sale_order_lot_selection_4.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Billing_lot/static/description/main_screenshot.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Billing_lot/static/description/old.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Billing_lot/views/bill_view.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,12 +26,12 @@
   </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showExcludedFiles" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
     <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="DefaultHtmlFileTemplate" value="XHTML File" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/Billing_lot" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
@@ -88,6 +76,7 @@
       </list>
     </option>
   </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>

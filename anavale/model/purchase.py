@@ -136,6 +136,13 @@ class PurchaseOrder(models.Model):
 
         return res
 
+    def update_total_invoiced(self): 
+        active_ids = self.env.context.get('active_ids', [])
+        purchases = self.search([('id', 'in', active_ids)])
+        for purchase in purchases: 
+            for line_purchase in purchase.order_line: 
+                line_purchase._compute_total_invoiced()
+
 
 class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
