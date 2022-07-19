@@ -11,9 +11,6 @@ _logger = logging.getLogger(__name__)
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-    lot_reference = fields.Text('Lot Reference', compute='_compute_lot_reference')
-
-
     @api.depends('partner_id', 'purchase_id')
     def _compute_lot_reference(self):
         for invoice in self: 
@@ -28,6 +25,8 @@ class AccountMove(models.Model):
                     reference = re.sub(str(move.product_id.product_template_attribute_value_ids[0].product_attribute_value_id.name), '', reference)
 
                     invoice.lot_reference = reference
+
+    lot_reference = fields.Text('Lot Reference', compute='_compute_lot_reference')
                 
 
     @api.onchange('invoice_line_ids')
