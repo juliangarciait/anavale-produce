@@ -24,7 +24,7 @@
         </field>
     </record>
 
-    <!--<record id="account_move_list_inherited_lot_reference" model="ir.ui.view">
+    <record id="account_move_list_inherited_lot_reference" model="ir.ui.view">
         <field name="name">account.move.list.inherited.lot.reference</field>
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_invoice_tree"/>
@@ -33,6 +33,6 @@
                 <field name="lot_reference" string="Lot Reference" optional="show"/>
             </xpath>
         </field>
-    </record>-->
+    </record>
 
 </odoo>
