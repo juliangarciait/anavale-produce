@@ -18,23 +18,24 @@ class AccountMove(models.Model):
             purchase = self.env['purchase.order'].search([('invoice_ids', 'in', [invoice.id])])
             if purchase:    
                 picking = self.env['stock.picking'].search([('purchase_id', '=', purchase.id), ('state', '=', 'done')], order='create_date desc', limit=1)
-                move = self.env['stock.move'].search([('picking_id', '=', picking.id)], limit=1)
+                move = self.env['stock.move.line'].search([('picking_id', '=', picking.id)], limit=1)
                 reference = move.lot_id.name
-                if reference: 
-                    reference = re.sub(str(move.product_id.product_tmpl_id.lot_code_prefix), '', reference)
-                    reference = re.sub(str(move.product_id.product_template_attribute_value_ids[0].product_attribute_value_id.name), '', reference)
+                if reference and picking.date_done: 
+                    reference = reference.split('-')
 
-                    invoice.lot_reference = reference
+                    year = picking.date_done.strftime('%y')
+                    reference[1] = re.sub(str(move.product_id.product_template_attribute_value_ids[0].product_attribute_value_id.name), '', reference[1])
 
-    lot_reference = fields.Text('Lot Reference', compute='_compute_lot_reference')
-                
+                    invoice.lot_reference = "{}{}-{}".format(invoice.partner_id.lot_code_prefix, year, reference[1])
 
-    @api.onchange('invoice_line_ids')
-    def onchange_invoice_line_ids(self):
-        list_mapped = []
-        for line in self.invoice_line_ids:
-            if (line.product_id, line.lot_id) in list_mapped:
-                raise ValidationError('Product {} with Lot {}! Already exist on the Invoice Lines. Please add amount in '
-                                'existing line'.format(
-                    str(line.product_id.name), line.lot_id.name))
-            list_mapped.append((line.product_id, line.lot_id))
+    lot_reference = fields.Text('Lot Reference', compute='_compute_lot_reference')            
+
+    #@api.onchange('invoice_line_ids')
+    #def onchange_invoice_line_ids(self):
+    #    list_mapped = []
+    #    for line in self.invoice_line_ids:
+    #        if (line.product_id, line.lot_id) in list_mapped:
+    #            raise ValidationError('Product {} with Lot {}! Already exist on the Invoice Lines. Please add amount in '
+    #                            'existing line'.format(
+    #                str(line.product_id.name), line.lot_id.name))
+    #        list_mapped.append((line.product_id, line.lot_id))
