@@ -11,24 +11,28 @@ _logger = logging.getLogger(__name__)
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-    @api.depends('partner_id', 'purchase_id')
-    def _compute_lot_reference(self):
-        for invoice in self: 
-            invoice.lot_reference = ''
-            purchase = self.env['purchase.order'].search([('invoice_ids', 'in', [invoice.id])])
-            if purchase:    
-                picking = self.env['stock.picking'].search([('purchase_id', '=', purchase.id), ('state', '=', 'done')], order='create_date desc', limit=1)
-                move = self.env['stock.move.line'].search([('picking_id', '=', picking.id)], limit=1)
-                reference = move.lot_id.name
-                if reference and picking.date_done: 
-                    reference = reference.split('-')
 
-                    year = picking.date_done.strftime('%y')
-                    reference[1] = re.sub(str(move.product_id.product_template_attribute_value_ids[0].product_attribute_value_id.name), '', reference[1])
+    lot_reference = fields.Text('Lot Reference')    
 
-                    invoice.lot_reference = "{}{}-{}".format(invoice.partner_id.lot_code_prefix, year, reference[1])
+    @api.model
+    def create(self, vals_list): 
+        res = super(AccountMove, self).create(vals_list)
 
-    lot_reference = fields.Text('Lot Reference', compute='_compute_lot_reference')            
+        res.lot_reference = ''
+        purchase = self.env['purchase.order'].search([('invoice_ids', 'in', [res.id])])
+        if purchase:    
+            picking = self.env['stock.picking'].search([('purchase_id', '=', purchase.id), ('state', '=', 'done')], order='create_date desc', limit=1)
+            move = self.env['stock.move.line'].search([('picking_id', '=', picking.id)], limit=1)
+            reference = move.lot_id.name
+            if reference and picking.date_done: 
+                reference = reference.split('-')
+
+                year = picking.date_done.strftime('%y')
+                reference[1] = re.sub(str(move.product_id.product_template_attribute_value_ids[0].product_attribute_value_id.name), '', reference[1])
+
+                res.lot_reference = "{}{}-{}".format(res.partner_id.lot_code_prefix, year, reference[1]) 
+
+        return res
 
     #@api.onchange('invoice_line_ids')
     #def onchange_invoice_line_ids(self):
