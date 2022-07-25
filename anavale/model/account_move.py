@@ -28,7 +28,7 @@ class AccountMove(models.Model):
                 reference = reference.split('-')
 
                 year = picking.date_done.strftime('%y')
-                if move.product_id.product_template_attribute_value_ids[0].product_attribute_value_id.name:
+                if move.product_id.product_template_attribute_value_ids:
                     reference[1] = re.sub(str(move.product_id.product_template_attribute_value_ids[0].product_attribute_value_id.name), '', reference[1])
 
                 res.lot_reference = "{}{}-{}".format(res.partner_id.lot_code_prefix, year, reference[1]) 
@@ -47,7 +47,7 @@ class AccountMove(models.Model):
                 reference = reference.split('-')
 
                 year = picking.date_done.strftime('%y')
-                if move.product_id.product_template_attribute_value_ids[0].product_attribute_value_id.name: 
+                if move.product_id.product_template_attribute_value_ids: 
                     reference[1] = re.sub(str(move.product_id.product_template_attribute_value_ids[0].product_attribute_value_id.name), '', reference[1])
 
                 self.lot_reference = "{}{}-{}".format(self.partner_id.lot_code_prefix, year, reference[1]) 
