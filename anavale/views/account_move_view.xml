@@ -7,7 +7,7 @@
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
             <xpath expr="//form/sheet/notebook/page[1]/field[@name='invoice_line_ids']/tree/field[@name='name']" position="after">
-                <field name="lot_id" attrs="{'column_invisible' : [('parent.type', 'in', ('out_invoice', 'out_refund'))]}" domain="[('product_id', '=', product_id)]"/>
+                <field name="lot_id" attrs="{'column_invisible' : [('parent.type', 'in', ('out_invoice', 'out_refund'))]}" optional="hidden"/>
             </xpath>
         </field>
     </record>
