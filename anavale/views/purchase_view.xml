@@ -21,7 +21,6 @@
             </field>
         </record>
 
-
         <record id="purchase_order_form_inherit_view_no_create_nor_edit" model="ir.ui.view">
             <field name="name">purchase.order.form.inherit.view.no.create.nor.edit</field>
             <field name="model">purchase.order</field>
@@ -35,5 +34,14 @@
                 </xpath>
             </field>
         </record>
+
+        <record id="update_total_invoiced_action_server" model="ir.actions.server">
+            <field name="name">Total billed Update</field>
+            <field name="model_id" ref="model_purchase_order"/>
+            <field name="binding_model_id" ref="model_purchase_order"/>
+            <field name="state">code</field>
+            <field name="code">action = model.update_total_invoiced()</field>
+        </record>
+
     </data>
 </odoo>
