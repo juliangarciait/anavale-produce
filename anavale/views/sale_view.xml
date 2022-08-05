@@ -16,7 +16,8 @@
                     domain="[('product_id','=', product_id)]" 
                     context="{'default_product_id': product_id}" 
                     groups="stock.group_production_lot" 
-                    class="oe_inline"/>
+                    class="oe_inline"
+                    options="{'no_create_edit':True, 'no_create': True}"/>
                 <field name="lot_available_sell" class="oe_inline" force_save="1"/>
             </xpath>
             <xpath expr="//field[@name='order_line']/form/group/group/field[@name='product_id']" position="after">
@@ -127,6 +128,21 @@
         <field name="binding_model_id" ref="model_sale_order"/>
         <field name="state">code</field>
         <field name="code">action = model.update_amount_invoiced()</field>
+    </record>
+
+
+    <record id="sale_order_form_inherit_view_no_create_nor_edit" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.view.no.create.nor.edit</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/sheet/group/group/field[@name='partner_id']" position="attributes">
+                <attribute name="options">{'no_create_edit':True, 'no_create': True}</attribute>
+            </xpath>
+            <xpath expr="//form/sheet/notebook/page[@name='order_lines']/field[@name='order_line']/tree/field[@name='product_id']" position="attributes">
+                <attribute name="options">{'no_create_edit':True, 'no_create': True}</attribute>
+            </xpath>
+        </field>
     </record>
 
 
