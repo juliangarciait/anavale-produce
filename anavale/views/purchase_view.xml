@@ -20,5 +20,20 @@
                 </xpath>
             </field>
         </record>
+
+
+        <record id="purchase_order_form_inherit_view_no_create_nor_edit" model="ir.ui.view">
+            <field name="name">purchase.order.form.inherit.view.no.create.nor.edit</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/sheet/group/group/field[@name='partner_id']" position="attributes">
+                    <attribute name="options">{'no_create_edit':True, 'no_create': True}</attribute>
+                </xpath>
+                <xpath expr="//form/sheet/notebook/page[1]/field[@name='order_line']/tree/field[@name='product_id']" position="attributes">
+                    <attribute name="options">{'no_create_edit':True, 'no_create': True}</attribute>
+                </xpath>
+            </field>
+        </record>
     </data>
 </odoo>

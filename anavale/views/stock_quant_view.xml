@@ -38,4 +38,18 @@
         </field>
     </record>
 
+    <record id="view_stock_quant_tree_editable_in_sale_order_user" model="ir.ui.view">
+        <field name="name">stock.quant.view.tree.editable.in.sale.order.user</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='reserved_quantity']" position="after">
+                <field name="sale_order_quantity"/>
+                <button name="call_view_sale_order" attrs="{'invisible': [('sale_order_quantity', '&lt;=', 0)]}"  
+                        string="View Sale Order" type="object" class="oe_highlight"/>   
+                <field name="available_quantity"/>
+            </xpath>
+        </field>
+    </record>
+
 </odoo>
