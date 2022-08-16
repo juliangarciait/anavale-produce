@@ -9,6 +9,7 @@
         <field name="arch" type="xml">
             <field name="property_account_position_id" position="after">
                 <field name="credit_limit" readonly="True" />
+                <field name="credit_available" readonly="True" />
                 <field name="credit_insured" groups="partner_credit_limit.group_credit_partner"/>
                 <field name="credit_manual" groups="partner_credit_limit.group_credit_partner"/>
                 <field name="over_credit" groups="partner_credit_limit.group_credit_partner"/>
