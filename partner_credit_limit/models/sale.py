@@ -86,9 +86,9 @@ class SaleOrder(models.Model):
             if (amount_total - debit) > available_credit_limit:
                 if not partner.over_credit:
                     #msg = 'Your available credit limit' \
-                          ' Amount = %s \nCheck "%s" Accounts or Credit ' \
-                          'Limits.' % (partner.credit_limit,
-                                       self.partner_id.name)
+                         # ' Amount = %s \nCheck "%s" Accounts or Credit ' \
+                          #'Limits.' % (partner.credit_limit,
+                           #            self.partner_id.name)
                     msg = str(self.partner.credit_limit)
                     raise UserError(_('You can not confirm Sale '
                                       'Order. \n' + msg))
