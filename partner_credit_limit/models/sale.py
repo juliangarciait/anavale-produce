@@ -89,7 +89,7 @@ class SaleOrder(models.Model):
                           ' Amount = %s \nCheck "%s" Accounts or Credit ' \
                           'Limits.' % (partner.credit_limit,
                                        self.partner_id.name)
-                    msg = '%s' % (self.partner.credit_limit)
+                    msg = str(self.partner.credit_limit)
                     raise UserError(_('You can not confirm Sale '
                                       'Order. \n' + msg))
                 # partner.write(
