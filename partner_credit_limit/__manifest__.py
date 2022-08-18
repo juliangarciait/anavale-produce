@@ -14,6 +14,7 @@
     ],
     'data': [
         'views/partner_view.xml',
+        'security/groups.xml',
     ],
     'installable': True,
     'auto_install': False,
