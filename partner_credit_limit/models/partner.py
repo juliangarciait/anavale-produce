@@ -18,35 +18,36 @@ class ResPartner(models.Model):
             self.credit_limit = self.credit_manual
 
     def _compute_credit_available(self):
-        self.ensure_one()
-        partner = self
-        user_id = self.env['res.users'].sudo().search([
-            ('partner_id', '=', partner.id)], limit=1)
-        if user_id and not user_id.has_group('base.group_portal') or not \
-                user_id:
-            moveline_obj = self.env['account.move'].sudo()
-            movelines = moveline_obj.search(
-                [('partner_id', '=', partner.id),
-                 ('state', '=', 'posted'),
-                 ('type', '=', 'out_invoice')]
-            )
-            confirm_sale_order = self.env['sale.order'].sudo().search([('partner_id', '=', self.id),
-                                              ('invoice_status', '=', 'to invoice')])
-            confirm_sale_order_delivery = self.env['sale.order'].sudo().search([('partner_id', '=', partner.id),
-                                              ('custom_state_delivery', '=', 'Waiting')])
-            debit, credit = 0.0, 0.0
-            due = 0
-            amount_total = 0.0
-            for status in confirm_sale_order:
-                amount_total += status.amount_total
-            for status in confirm_sale_order_delivery:
-                amount_total += status.amount_total
-            self.credit_limit = self.credit_insured
-            if self.credit_manual > self.credit_insured:
-                self.credit_limit = self.credit_manual
-            for line in movelines:
-                due += line.amount_residual_signed
-            self.credit_available = self.credit_limit - due - amount_total
+        #self.ensure_one()
+        for rec in self:
+            partner = rec
+            user_id = rec.env['res.users'].sudo().search([
+                ('partner_id', '=', partner.id)], limit=1)
+            if user_id and not user_id.has_group('base.group_portal') or not \
+                    user_id:
+                moveline_obj = rec.env['account.move'].sudo()
+                movelines = moveline_obj.search(
+                    [('partner_id', '=', partner.id),
+                     ('state', '=', 'posted'),
+                     ('type', '=', 'out_invoice')]
+                )
+                confirm_sale_order = rec.env['sale.order'].sudo().search([('partner_id', '=', rec.id),
+                                                  ('invoice_status', '=', 'to invoice')])
+                confirm_sale_order_delivery = rec.env['sale.order'].sudo().search([('partner_id', '=', partner.id),
+                                                  ('custom_state_delivery', '=', 'Waiting')])
+                debit, credit = 0.0, 0.0
+                due = 0
+                amount_total = 0.0
+                for status in confirm_sale_order:
+                    amount_total += status.amount_total
+                for status in confirm_sale_order_delivery:
+                    amount_total += status.amount_total
+                rec.credit_limit = rec.credit_insured
+                if rec.credit_manual > rec.credit_insured:
+                    rec.credit_limit = rec.credit_manual
+                for line in movelines:
+                    due += line.amount_residual_signed
+                rec.credit_available = rec.credit_limit - due - amount_total
 
 
 
