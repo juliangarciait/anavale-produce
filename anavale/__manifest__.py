@@ -29,6 +29,7 @@
             'wizard/quant_lot_repack_view.xml',
             'wizard/sale_report_avg_wz_view.xml',
             'wizard/quant_product_repack_view.xml',
+            'wizard/aged_receivable_views.xml',
             #'wizard/account_report.xml',
             'data/report_paperformat.xml',
             'data/purchase_order_action_server.xml',
