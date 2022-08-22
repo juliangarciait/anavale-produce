@@ -13,9 +13,19 @@ class ResPartner(models.Model):
 
     @api.onchange('credit_insured', 'credit_manual')
     def onchange_credito(self):
-        self.credit_limit = self.credit_insured
-        if self.credit_manual > self.credit_insured:
-            self.credit_limit = self.credit_manual
+        for rec in self:
+            credit_insured_ant = rec._origin.credit_insured
+            credit_manual_ant = rec._origin.credit_manual
+            msg = ""
+            if credit_insured_ant != rec.credit_insured:
+                msg = "· Credito Asegurado cambio de {} a {}\n".format(credit_insured_ant, rec.credit_insured)
+            if credit_manual_ant != rec.credit_manual:
+                msg += "· Credito Manual cambio de {} a {}\n".format(credit_manual_ant, rec.credit_manual)
+            rec._origin.message_post(body=msg)
+            rec.credit_limit = rec.credit_insured + rec.credit_manual
+            # rec.credit_limit = rec.credit_insured
+            # if rec.credit_manual > rec.credit_insured:
+            #     rec.credit_limit = rec.credit_manual
 
     def _compute_credit_available(self):
         #self.ensure_one()
@@ -42,9 +52,10 @@ class ResPartner(models.Model):
                     amount_total += status.amount_total
                 for status in confirm_sale_order_delivery:
                     amount_total += status.amount_total
-                rec.credit_limit = rec.credit_insured
-                if rec.credit_manual > rec.credit_insured:
-                    rec.credit_limit = rec.credit_manual
+                # rec.credit_limit = rec.credit_insured
+                rec.credit_limit = rec.credit_insured + rec.credit_manual
+                # if rec.credit_manual > rec.credit_insured:
+                #     rec.credit_limit = rec.credit_manual
                 for line in movelines:
                     due += line.amount_residual_signed
                 rec.credit_available = rec.credit_limit - due - amount_total
