@@ -8,7 +8,7 @@ from odoo.exceptions import UserError
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
-    def check_limit(self):
+    def check_limit(self, delivery_count_before):
         self.ensure_one()
         partner = self.partner_id
         user_id = self.env['res.users'].sudo().search([
@@ -41,15 +41,16 @@ class SaleOrder(models.Model):
             credit_used = credit - due - amount_total
             credit_available = credit_used + self.amount_total
             if credit_used < 0:
-                if not partner.over_credit:
-                    msg = 'Your available credit' \
-                          ' is  $%s \nCheck "%s" Accounts or Credit ' \
-                          'Limits.' % (credit_available,
-                                       self.partner_id.name)
-                    raise UserError(_('You can not confirm Sale '
-                                      'Order. \n' + msg))
-                else:
-                    partner.over_credit = False
+                if delivery_count_before == 0 :
+                    if not partner.over_credit:
+                        msg = 'Your available credit' \
+                              ' is  $%s \nCheck "%s" Accounts or Credit ' \
+                              'Limits.' % (credit_available,
+                                           self.partner_id.name)
+                        raise UserError(_('You can not confirm Sale '
+                                          'Order. \n' + msg))
+                    else:
+                        partner.over_credit = False
                 # partner.write(
                 #     {'credit_limit': credit - debit + self.amount_total})
             return True
@@ -97,9 +98,10 @@ class SaleOrder(models.Model):
     #         return True
 
     def action_confirm(self):
+        delivery_count_before = self.delivery_count
         res = super(SaleOrder, self).action_confirm()
         for order in self:
-            order.check_limit()
+            order.check_limit(delivery_count_before)
         return res
 
     #@api.constrains('amount_total')
