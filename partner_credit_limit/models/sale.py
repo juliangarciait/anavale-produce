@@ -40,13 +40,17 @@ class SaleOrder(models.Model):
                 due += line.amount_residual_signed
             credit_used = credit - due - amount_total
             credit_available = credit_used + self.amount_total
-            if credit_used < 0:
+            if credit_used < 0 or partner.total_overdue > 0:
                 if delivery_count_before == 0 :
                     if not partner.over_credit:
-                        msg = 'Your available credit' \
-                              ' is  $%s \nCheck "%s" Accounts or Credit ' \
-                              'Limits.' % (credit_available,
-                                           self.partner_id.name)
+                        if partner.total_overdue > 0:
+                            msg = '%s ' \
+                                  ' have $%s in invoice overdue '% (self.partner_id.name, partner.total_overdue)
+                        else:
+                            msg = 'Your available credit' \
+                                  ' is  $%s \nCheck "%s" Accounts or Credit ' \
+                                  'Limits.' % (credit_available,
+                                               self.partner_id.name)
                         raise UserError(_('You can not confirm Sale '
                                           'Order. \n' + msg))
                     else:
