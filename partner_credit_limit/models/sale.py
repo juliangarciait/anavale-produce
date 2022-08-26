@@ -10,7 +10,7 @@ class SaleOrder(models.Model):
 
     def check_limit(self, delivery_count_before):
         self.ensure_one()
-        partner = self.partner_id
+        partner = self.sudo().partner_id
         user_id = self.env['res.users'].sudo().search([
             ('partner_id', '=', partner.id)], limit=1)
         if user_id and not user_id.has_group('base.group_portal') or not \
@@ -40,7 +40,8 @@ class SaleOrder(models.Model):
                 due += line.amount_residual_signed
             credit_used = credit - due - amount_total
             credit_available = credit_used + self.amount_total
-            if credit_used < 0 or partner.total_overdue > 0:
+            partner_overdue = partner.total_overdue
+            if credit_used < 0 or partner_overdue > 0:
                 if delivery_count_before == 0 :
                     if not partner.over_credit:
                         if partner.total_overdue > 0:
