@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <record id="check_in_checkout_form_view" model="ir.ui.view">
+        <field name="name">Check-in / Checkout Form</field>
+        <field name="model">check.in.checkout</field>
+        <field name="type">form</field>
+        <field name="arch" type="xml">
+            <form string="Check in / Checkout">
+                <sheet>
+                    <group>
+                        <h1>Check in</h1>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="date" readonly="1"/>
+                            <field name="pick_up"/>
+                            <field name="drivers_name"/>
+                            <field name="drivers_licence"/>
+                            <field name="drivers_phone"/>
+                        </group>
+                        <group>
+                            <field name="destination"/>
+                            <field name="carrier_name"/>
+                            <field name="trailer_plates"/>
+                            <field name="truck_plates"/>
+                            <field name="check_in_time" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="check_in_checkout_list_view" model="ir.ui.view">
+        <field name="name">Check-in / Checkout</field>
+        <field name="model">check.in.checkout</field>
+        <field name="arch" type="xml">
+            <tree string="Check in / Checkout">
+                <field name="date" optional="show"/>
+                <field name="pick_up" optional="show"/>
+                <field name="drivers_name" optional="show"/>
+                <field name="drivers_licence" optional="hidden"/>
+                <field name="drivers_phone" optional="hidden"/>
+                <field name="destination" optional="show"/>
+                <field name="carrier_name" optional="hidden"/>
+                <field name="trailer_plates" optional="hidden"/>
+                <field name="truck_plates" optional="hidden"/>
+                <field name="check_in_time" optional="hidden"/>
+                <field name="doc_type" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_check_in_checkout" model="ir.actions.act_window">
+        <field name="name">Check in and Checkout</field>
+        <field name="res_model">check.in.checkout</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No check in or checkout registered
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="check_in_checkout_menu" name="Check In and Checkout" action="action_check_in_checkout" parent="stock.menu_stock_warehouse_mgmt" sequence="150"/>
+
+</odoo>

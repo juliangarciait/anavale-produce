@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <record id="menu_check_in_form" model="website.menu">
+        <field name="name">Check-In Form</field>
+        <field name="url">/anavale/checkin</field>
+        <field name="parent_id" ref="website.main_menu"/>
+        <field name="sequence">55</field>
+    </record>
+
+    <template id="check_in_form">
+        <title>Check in Form</title>
+        <t t-call="website.layout">
+            <form action="/anavale/checkin/validation" method="post" class="container">
+                <h1 class="form-group">Enter the necessary data</h1>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="form-group row">
+                            <label for="pick_up" class="col-sm-2 col-form-label">Pick Up: </label>
+                            <input type="text" id="pick_up" name="pick_up" class="form-control col-sm-10" placeholder="Po#" required="1"/>
+                        </div>
+                        <div class="form-group row">
+                            <label for="drivers_name" class="col-sm-2 col-form-label">Driver's name: </label>
+                            <input type="text" id="drivers_name" name="drivers_name" class="form-control col-sm-10" required="1"/>
+                        </div>
+                        <div class="form-group row">
+                            <label for="drivers_licence" class="col-sm-2 col-form-label">Driver's licence: </label>
+                            <input type="text" id="drivers_licence" name="drivers_licence" class="form-control col-sm-10" required="1"/>
+                        </div>
+                        <div class="form-group row">
+                            <label for="drivers_phone" class="col-sm-2 col-form-label">Driver's phone: </label>
+                            <input type="text" id="drivers_phone" name="drivers_phone" class="form-control col-sm-10" required="1"/>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="form-group row">
+                            <label for="destination" class="col-sm-2 col-form-label">Destination: </label>
+                            <input type="text" id="destination" name="destination" class="form-control col-sm-10" required="1"/>
+                        </div>
+                        <div class="form-group row">
+                            <label for="carrier_name" class="col-sm-2 col-form-label">Carrier name: </label>
+                            <input type="text" id="carrier_name" name="carrier_name" class="form-control col-sm-10" required="1"/>
+                        </div>
+                        <div class="form-group row">
+                            <label for="trailer_plates" class="col-sm-2 col-form-label">Trailer Plates: </label>
+                            <input type="text" id="trailer_platers" name="trailer_plates" class="form-control col-sm-10" required="1"/>
+                        </div>
+                        <div class="form-group row">
+                            <label for="truck_plates" class="col-sm-2 col-form-label">Truck Plates: </label>
+                            <input type="text" id="truck_plates" name="truck_plates" class="form-control col-sm-10" required="1"/>
+                        </div>
+                    </div>
+                </div>
+                <input type="submit" value="Confirmar" class="btn btn-primary"/>
+            </form>
+        </t>
+    </template>
+
+    <template id="check_in_failed">
+        <title>Check in Failed</title>
+        <t t-call="website.layout">
+            <div class="container">
+                <h1>Something failed!</h1>
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="alert alert-danger" role="status">
+                            Something failed when creating the check-in. 
+                            Check that you have entered the correct data. 
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="check_in_successful">
+        <title>Check in Successful</title>
+        <t t-call="website.layout">
+            <div class="container">
+                <h1>Check in successfully completed</h1>
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="alert alert-success" role="status">
+                            The check in has been created successfully; therefore, the transfer is ready. 
+                        </div>
+                    </div>
+                </div>
+            </div> 
+        </t>
+    </template>
+
+    <template id="check_in_picking_not_found">
+        <title>Picking not found</title>
+        <t t-call="website.layout">
+            <div class="container">
+                <h1>Transfer not found!</h1>
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="alert alert-danger" role="status">
+                            There are no transfers with that source document.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>
