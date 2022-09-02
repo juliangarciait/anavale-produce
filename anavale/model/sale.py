@@ -64,6 +64,8 @@ class SaleOrder(models.Model):
     def action_confirm(self):
         lines = self.order_line
         for line in lines:
+            if line.analytic_tag_ids != line.lot_id.analytic_tag_ids: 
+                line.analytic_tag_ids = line.lot_id.analytic_tag_ids.ids
             if not line.lot_id:
                 raise UserError("Can't confirm without lot ")
         if not self.env.context.get('is_force'):
