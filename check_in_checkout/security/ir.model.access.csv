@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_check_in_checkout,check.in.checkout,model_check_in_checkout,,1,1,1,1
