@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+		
+		<template id="analytic_tag_group_assets" inherit_id="web.assets_backend">
+			<xpath expr="." position="inside">
+				<script type="text/javascript" src="/pnl_bs_analytic_tag_groups/static/src/js/account_reports.js"/>
+			</xpath>
+		</template>
+		
+		<template id="search_template_analytic_tag_group">
+
+	        <a t-if="options.get('analytic')" type="button" class="account_analytic_tag_group" t-att-style="'color:green;' if options.get('analytic_tag') else 'color:red;'">
+	            <span  class="fa fa-list"/> Analytic Tags
+	        </a>
+		</template>
+
+		<template id="search_template_inherit_tag" inherit_id="account_reports.search_template">
+			<xpath expr="//div[hasclass('o_account_reports_filter_analytic')]" position="after">
+				<div class="btn-group o_dropdown o_account_reports_group_analytic_tag" t-if="options.get('analytic') != None">
+	            	<t t-call="pnl_bs_analytic_tag_groups.search_template_analytic_tag_group"/>
+	        	</div>
+			</xpath>
+        </template>
+        
+</odoo>

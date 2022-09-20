@@ -32,6 +32,12 @@ class Picking(models.Model):
         help='Automatic assignation state from state delivery:\n'
              '\tNote: It can be modified manually')
 
+    @api.model
+    def create(self, vals):
+        pick = super().create(vals)
+        return pick
+
+
     @api.depends('state', 'picking_type_id',
                  'partner_id.sequence_id', 'partner_id.lot_code_prefix', 'location_dest_id')
     def _compute_display_create_lot_name(self):
@@ -104,6 +110,8 @@ class Picking(models.Model):
                              }
                         )
                         line.write({'lot_name': lot.name, 'lot_id': lot.id})
+                        purchase_lot1 = line.move_id.purchase_line_id
+                        purchase_lot1.write({'purchase_lot': lot.id})
                 
                 if lot and not lot.analytic_tag_ids:
                     lot.analytic_tag_ids = tax_tag_lot_ids

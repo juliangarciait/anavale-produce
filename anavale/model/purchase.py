@@ -148,6 +148,7 @@ class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
 
     total_invoiced = fields.Float(compute='_compute_total_invoiced', string="Billed Total", store=True)
+    purchase_lot = fields.Many2one('stock.production.lot', 'Lote')
 
     @api.depends('invoice_lines.price_unit', 'invoice_lines.quantity')
     def _compute_total_invoiced(self):
@@ -166,6 +167,10 @@ class PurchaseReport(models.Model):
     _inherit = "purchase.report"
 
     total_invoiced = fields.Float('Total Billed', readonly=False, )
+    purchase_lot = fields.Many2one('stock.production.lot', 'Lote', readonly=True)
 
     def _select(self):
-        return super(PurchaseReport, self)._select() + ", sum(l.total_invoiced) as total_invoiced"
+        return super(PurchaseReport, self)._select() + ", sum(l.total_invoiced) as total_invoiced, l.purchase_lot as purchase_lot"
+
+    def _group_by(self):
+        return super(PurchaseReport,self)._group_by() + ", l.purchase_lot"
