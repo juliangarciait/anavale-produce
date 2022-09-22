@@ -631,3 +631,5 @@ class StockMoveLine(models.Model):
         """
         if self.picking_id.state not in ('done', 'cancel'):
             self.product_uom_qty = 0
+
+

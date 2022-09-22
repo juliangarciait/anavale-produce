@@ -143,6 +143,17 @@ class PurchaseOrder(models.Model):
             for line_purchase in purchase.order_line: 
                 line_purchase._compute_total_invoiced()
 
+    def update_purchase_lot(self):
+        active_ids = self.env.context.get('active_ids', [])
+        purchases = self.search([('id', 'in', active_ids)])
+        for purchase in purchases:
+            for line in purchase.order_line:
+                purchase_lot1 = line.move_ids.move_line_ids.lot_id
+                line.write({'purchase_lot': purchase_lot1.id})
+
+                #purchase_lot1 = line.move_id.purchase_line_id
+                #purchase_lot1.write({'purchase_lot': lot.id})
+
 
 class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
