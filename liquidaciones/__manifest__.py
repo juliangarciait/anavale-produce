@@ -1,0 +1,26 @@
+# -*- encoding: utf-8 -*-
+{
+    'name': 'Liquidaciones ANAVALE',
+    'version': '1.0',
+    'category': 'Liquidaciones',
+    'description': """
+    Boton en cotizaciones, que muestra liquidaciones 
+""",
+    'author': 'ANAVALE, S. de R.L. de C.V.',
+    'website': '',
+    'depends': ['sale_management'],
+     # always loaded
+    'data': [
+         'views/settlement_views.xml',
+         'views/button_settlements_views.xml',
+         'security/ir.model.access.csv',
+    ],
+    #Se agrega relación de assets
+    #'assets': {
+     #   'web.assets_backend': [
+      #   'static/src/js/kanban_widget.js'
+       # ],
+   # },
+    'installable': True,
+    'auto_install': False,
+}

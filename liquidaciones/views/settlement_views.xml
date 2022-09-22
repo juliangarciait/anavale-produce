@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista de Liquidaciones -->
+    <record id="view_settlements" model="ir.ui.view">
+        <field name="name">Liquidaciones</field>
+        <field name="model">sale.settlements</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_tittle">
+                        <h1>
+                            <span>
+                            LIQUIDACIONES
+                            </span>
+                        </h1>
+                    </div>
+
+                    <field name="liquidaciones_line_ids" mode="tree,kanban" context="{'default_project_id': project_id,  'default_task_id': id,  'default_location_id': location_id}">
+                        <tree editable="bottom" string="Lineas de Liquidaciones"> 
+                            <field name="fecha" />
+                            <field name="producto_id" />
+                            <field name="product_uom" />
+                            <field name="cajas_emb" />
+                            <field name="cajas_rec" />
+                            <field name="precio_unit" />
+                            <field name="importe" />
+                            <field name="flete" />
+                            <field name="precio_compra" />
+                            <field name="total" />
+
+                        </tree>
+                        
+                    </field>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>
