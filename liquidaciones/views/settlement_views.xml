@@ -7,31 +7,51 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
-                    <div class="oe_tittle">
+                    <!-- <div class="oe_tittle">
                         <h1>
                             <span>
                             LIQUIDACIONES
                             </span>
                         </h1>
-                    </div>
+                    </div> -->
 
-                    <field name="liquidaciones_line_ids" mode="tree,kanban" context="{'default_project_id': project_id,  'default_task_id': id,  'default_location_id': location_id}">
-                        <tree editable="bottom" string="Lineas de Liquidaciones"> 
-                            <field name="fecha" />
-                            <field name="producto_id" />
+                    <field name="settlements_line_ids" mode="tree,kanban">
+                        <tree editable="bottom" string="Lineas de Liquidaciones">
+                            <field name="date" />
+                            <field name="product_id" />
                             <field name="product_uom" />
-                            <field name="cajas_emb" />
-                            <field name="cajas_rec" />
-                            <field name="precio_unit" />
-                            <field name="importe" />
-                            <field name="flete" />
-                            <field name="precio_compra" />
+                            <field name="box_emb" />
+                            <field name="box_rec" />
+                            <field name="price_unit" />
+                            <field name="amount" />
+                            <field name="freight" />
+                            <field name="purcharse_prise" />
                             <field name="total" />
 
                         </tree>
-                        
+
                     </field>
 
+                    <div class="oe_right">
+                        <group>
+                            <div class="oe_tittle">
+                                <h2>
+                                    <span>
+                                      Viaje
+                                    </span>
+                                </h2>
+                            </div>
+                        <!-- <field name=""/>
+                        <field name=""/>
+                        <field name=""/>
+                        <field name=""/>
+                        <field name=""/>
+                        <field name=""/>
+                        <field name=""/>
+                        <field name=""/>
+                        <field name=""/> -->
+                        </group>
+                    </div>
                 </sheet>
             </form>
         </field>

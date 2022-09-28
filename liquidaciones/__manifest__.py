@@ -14,6 +14,7 @@
          'views/settlement_views.xml',
          'views/button_settlements_views.xml',
          'security/ir.model.access.csv',
+         'wizard/selection_views.xml'
     ],
     #Se agrega relación de assets
     #'assets': {
