@@ -18,7 +18,7 @@
                     </group>
                     <footer>
                         <!--  name=""  -->
-                        <button string="Confirm" class="oe_highlight" type="object" special="cancel" />
+                        <button string="Confirm" class="oe_highlight" type="object"  name="settlements_report_button_function" />
                         <button string="Cancel" class="btn-secondary" special="cancel" />
                     </footer>
                 </sheet>

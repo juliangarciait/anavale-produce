@@ -10,7 +10,7 @@
                 <button name="settlements_button_function" string="Liquidaciones" type="object" class="btn-primary"></button>
             </xpath> -->
             <div class="oe_button_box" name="button_box">
-                <button name="settlements_button_function" type="object" class="oe_stat_button" icon="fa-bars" position="before">
+                <button name="settlements_wizard_function" type="object" class="oe_stat_button" icon="fa-bars" position="before">
                     <div class="o_field_widget o_stat_info">
                         <span class="o_stat_text">Liquidaciones</span>
                     </div>

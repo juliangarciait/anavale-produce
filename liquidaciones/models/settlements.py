@@ -14,6 +14,41 @@ class SettlementsSaleOrder(models.Model):
 
    # al darle click al boton abre el formulario
 
+    def settlements_wizard_function(self):
+        context = self._context.copy()
+        fecha = self.date_order
+
+        var = []
+        for i in self.order_line:
+            if i.product_id:
+                var.append((0, 0,  {"date": fecha, "product_id": i.product_id.id,
+                           "product_uom": i.product_uom.id, "price_unit": i.price_unit}))
+                           
+        logging.info('t'*500)
+        logging.info(var)
+
+        return {
+            # 'res_model': 'sale.settlements',
+            # #'res_id': self.partner_id.id,
+            # 'type': 'ir.actions.act_window',
+            # 'view_type': 'form',
+            # 'view_mode': 'form',
+            # 'target': 'new',
+            # 'name': 'Liquidaciones',
+            # 'context': {'default_settlements_line_ids': var},
+            # 'view_id': self.env.ref('liquidaciones.view_settlements').id
+
+            'res_model': 'sale.settlements.wizard',
+            # 'res_id': self.partner_id.id,
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'target': 'new',
+            'name': 'Liquidaciones',
+            'context': {'default_settlements_line_ids': var},
+            'view_id': self.env.ref('liquidaciones.selection_settlements_wizard_form').id
+        }
+
     def settlements_button_function(self):
         context = self._context.copy()
         fecha = self.date_order
@@ -23,37 +58,6 @@ class SettlementsSaleOrder(models.Model):
             if i.product_id:
                 var.append((0, 0,  {"date": fecha, "product_id": i.product_id.id,
                            "product_uom": i.product_uom.id, "price_unit": i.price_unit}))
-
-        self._cr.execute("SELECT id FROM stock_picking WHERE origin LIKE '"+self.name+"' AND state LIKE 'done'")
-        data = self._cr.fetchone()
-        
-        self._cr.execute("SELECT lot_id FROM stock_move_line where picking_id="+str(int(data[0])))
-        data2 = self._cr.fetchall()
-
-        values = []
-        for x in data2:
-            self._cr.execute("SELECT id FROM stock_production_lot WHERE id="+str(int(x[0])))
-            values.append(self._cr.fetchall())
-
-        values2 = []
-        for x in values:
-            self._cr.execute("SELECT account_analytic_tag_id FROM account_analytic_tag_stock_production_lot_rel WHERE stock_production_lot_id="+str(int(x[0][0])))
-            values2.append(self._cr.fetchall())
-
-        values3= []
-        for x in values2:
-            self._cr.execute("select id from account_analytic_tag WHERE LENGTH(name)>5")
-            values3.append(self._cr.fetchall())    
-
-        sales = []
-        for x in values3:
-            self._cr.execute("SELECT price_subtotal FROM account_move_line where account_id=38 AND id="+str(int(x[0][0])))
-            sales.append(self._cr.fetchall())           
-
-        
-        logging.info('t'*500)
-        logging.info(sales)
-        logging.info(var)
 
         return {
             # 'res_model': 'sale.settlements',
@@ -90,22 +94,22 @@ class SettlementsSaleOrder(models.Model):
         logging.info(var)
 
         return {
-            # 'res_model': 'sale.settlements',
+             'res_model': 'sale.settlements',
             # #'res_id': self.partner_id.id,
-            # 'type': 'ir.actions.act_window',
+             'type': 'ir.actions.act_window',
             # 'view_type': 'form',
             # 'view_mode': 'form',
-            # 'target': 'new',
-            # 'name': 'Liquidaciones',
-            # 'context': {'default_settlements_line_ids': var},
-            # 'view_id': self.env.ref('liquidaciones.view_settlements').id
+             'target': 'new',
+             'name': 'Liquidaciones',
+             'context': {'default_settlements_line_ids': var},
+             'view_id': self.env.ref('liquidaciones.view_settlements').id
 
-            'res_model': 'sale.settlements.wizard',
+            #'res_model': 'sale.settlements.wizard',
             # 'res_id': self.partner_id.id,
-            'type': 'ir.actions.act_window',
-            'view_type': 'form',
-            'context': {'default_settlements_line_ids': var},
-            'view_id': self.env.ref('liquidaciones.selection_settlements_wizard_form').id
+            #'type': 'ir.actions.act_window',
+            #'view_type': 'form',
+            #'context': {'default_settlements_line_ids': var},
+            #'view_id': self.env.ref('liquidaciones.selection_settlements_wizard_form').id
         }
 
 class SettlementsInherit(models.Model):
