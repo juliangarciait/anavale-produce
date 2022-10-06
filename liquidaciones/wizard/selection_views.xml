@@ -15,6 +15,7 @@
                         <field name="adjustment" />
                         <field name="storage" />
                         <field name="freight_out" />
+                        <field name="freight_in" />
                     </group>
                     <footer>
                         <!--  name=""  -->

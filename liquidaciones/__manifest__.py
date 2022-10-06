@@ -14,7 +14,9 @@
          'views/settlement_views.xml',
          'views/button_settlements_views.xml',
          'security/ir.model.access.csv',
-         'wizard/selection_views.xml'
+         'wizard/selection_views.xml',
+         'reports/settlements_report_templates.xml',
+         'reports/settlements_report_view.xml'
     ],
     #Se agrega relación de assets
     #'assets': {

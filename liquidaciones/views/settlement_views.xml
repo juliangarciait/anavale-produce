@@ -7,14 +7,23 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
-                    <!-- <div class="oe_tittle">
+                    <div class="oe_tittle">
                         <h1>
                             <span>
                             LIQUIDACIONES
                             </span>
                         </h1>
-                    </div> -->
-
+                    </div>
+                    <group>
+                        <div class="address_format">
+                            <label for="note" string="Note:" />
+                             <field name="note" style="width: 5%" />
+                             <label for="journey" string="Journey:" />
+                             <field name="journey" style="width: 5%" />
+                             <label for="company" string="Company:" />
+                             <field name="company" style="width: 15%" />
+                        </div>
+                    </group>
                     <field name="settlements_line_ids" mode="tree,kanban">
                         <tree editable="bottom" string="Lineas de Liquidaciones">
                             <field name="date" />
@@ -24,13 +33,21 @@
                             <field name="box_rec" />
                             <field name="price_unit" />
                             <field name="amount" />
-                            <field name="freight" />
-                            <field name="purcharse_prise" />
+                            <field name="purcharse_price" />
                             <field name="total" />
-
                         </tree>
-
                     </field>
+
+                    <div class="oe_left">
+                        <div class="oe_tittle">
+                            <h4>
+                                <span>
+                                    Freight:
+                                  </span>
+                                <field name="freight" />
+                            </h4>
+                        </div>
+                    </div>
 
                     <div class="oe_right">
                         <group>
@@ -41,17 +58,37 @@
                                     </span>
                                 </h2>
                             </div>
-                        <!-- <field name=""/>
-                        <field name=""/>
-                        <field name=""/>
-                        <field name=""/>
+                            <field name="check_maneuvers" attrs="{'invisible': True}" />
+                            <field name="check_adjustment" attrs="{'invisible': True}" />
+                            <field name="check_storage" attrs="{'invisible': True}" />
+                            <field name="check_freight_out" attrs="{'invisible': True}" />
+                            <field name="check_freight_in" attrs="{'invisible': True}" />
+                            <field name="total" />
+                            <field name="settlement" />
+                            <field name="freight_in" attrs="{'invisible': [('check_freight_in', '=', False)]}" />
+                            <field name="aduana" />
+                            <field name="maneuvers" attrs="{'invisible': [('check_maneuvers', '=', False)]}" />
+                            <field name="adjustment" attrs="{'invisible': [('check_adjustment', '=', False)]}" />
+                            <field name="storage" attrs="{'invisible': [('check_storage', '=', False)]}" />
+                            <field name="freight_out" attrs="{'invisible': [('check_freight_out', '=', False)]}" />
+                            <field name="utility" />
+                            <div name="utility_percentage">
+                                <label for="utility_percentage" />
+                                <field name="utility_percentage" class="oe_inline" />
+                                (%%)
+                            </div>
+                            <!--<field name=""/>
                         <field name=""/>
                         <field name=""/>
                         <field name=""/>
                         <field name=""/>
                         <field name=""/> -->
+                        <footer>
+                            <button string="Print" class="oe_highlight" type="object" name="action_print_report" />
+                        </footer>
                         </group>
                     </div>
+                    
                 </sheet>
             </form>
         </field>

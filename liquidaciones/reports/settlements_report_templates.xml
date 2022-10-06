@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+   <data>
+      <report id="report_settlement_templates"
+       string="Imprimir" 
+       model="sale.settlements" 
+       report_type="qweb-pdf" 
+       name="liquidaciones.report_settlements" 
+       file="liquidaciones.report_settlements" />
+   </data>
+</odoo>

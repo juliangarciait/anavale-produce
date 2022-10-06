@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_settlements">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <div class="page">
+                    <div class="oe_structure" />
+                    <div class="text-center">
+                        <h2>Settlements</h2>
+                    </div>
+                    <table>
+                        <tr>
+                            <td>Date:</td>
+                            <td>Product:</td>
+                            <td>Uom:</td>
+                            <td>Emb:</td>
+                            <td>Rec:</td>
+                            <td>Price unit:</td>
+                            <td>Amount:</td>
+                            <td>Purcharse price:</td>
+                            <td>Total:</td>
+                        </tr>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+    <record id="paperformat_report_settlements" model="report.paperformat">
+        <field name="name">Report Settlements</field>
+        <field name="orientation">Landscape</field>
+ </record>
+</odoo>
