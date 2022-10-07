@@ -17,6 +17,10 @@ class SaleSettlementsWizard(models.TransientModel):
                                    ('close','Closed price')], 
                                    String="Tipo de precio", required=True,
                                    help="Please select a type of price.")
+    price_type_check = fields.Selection([('open','Open price'),
+                                   ('close','Closed price')], 
+                                   String="Tipo de precio", required=True, store=True,
+                                   help="Please select a type of price.", default='close')
     maneuvers=fields.Boolean(default=True, String="Maniobras", 
                                    help="Select if you require maneuvers.")
     adjustment=fields.Boolean(default=True, String="Ajuste", 
@@ -27,6 +31,8 @@ class SaleSettlementsWizard(models.TransientModel):
                                    help="Select if you require freight out.")  
     freight_in=fields.Boolean(default=True, String="Freight in", 
                                    help="Select if you require freight in.")  
+    aduana=fields.Boolean(default=True, String="Aduana", 
+                                   help="Select if you require aduana.")  
 
 
     def settlements_report_button_function(self):
@@ -40,7 +46,8 @@ class SaleSettlementsWizard(models.TransientModel):
             if i.product_id:
                 var.append((0, 0,  {"date": fecha, "product_id": i.product_id.id,
                                     "product_uom": i.product_uom.id, "price_unit": i.price_unit,
-                                    "box_emb":i.product_qty, "box_rec": i.qty_received}))
+                                    "box_emb":i.product_qty, "box_rec": i.qty_received,
+                                    "amount":(i.price_unit*i.qty_received)}))
 
     #select * from purchase_order_stock_picking_rel where purchase_order_id=3790
 
@@ -86,35 +93,71 @@ class SaleSettlementsWizard(models.TransientModel):
 
 
         sales = []
+        freight_in = []
+        freight_out = []
+        maneuvers = []
+        storage = []
+        aduana_usa = []
+        aduana_mex = []
         for x in values4:
             if x:
                 for i in x:
-                    logging.info('j'*500)
-                    logging.info(i)
                     self._cr.execute("SELECT price_subtotal FROM account_move_line where account_id=38 AND id="+str(int(i[0])))
-                    sales.append(self._cr.fetchall())  
+                    sales.append(self._cr.fetchall()) 
+                    self._cr.execute("SELECT price_subtotal FROM account_move_line where account_id=1387 AND id="+str(int(i[0])))
+                    freight_in.append(self._cr.fetchall())  
+                    self._cr.execute("SELECT price_subtotal FROM account_move_line where account_id=1390 AND id="+str(int(i[0])))
+                    maneuvers.append(self._cr.fetchall())  
+                    self._cr.execute("SELECT price_subtotal FROM account_move_line where account_id=1395 AND id="+str(int(i[0])))
+                    storage.append(self._cr.fetchall())   
+                    self._cr.execute("SELECT price_subtotal FROM account_move_line where account_id=1394 AND id="+str(int(i[0])))
+                    freight_out.append(self._cr.fetchall())
+                    self._cr.execute("SELECT price_subtotal FROM account_move_line where account_id=1393 AND id="+str(int(i[0])))
+                    aduana_usa.append(self._cr.fetchall())
+                    self._cr.execute("SELECT price_subtotal FROM account_move_line where account_id=1392 AND id="+str(int(i[0])))
+                    aduana_mex.append(self._cr.fetchall())        
+        
                            
         salesSum = 0
         for x in sales:
             if x:
              salesSum = salesSum + float(x[0][0])
 
-        
+        freight_inSum = 0
+        for x in freight_in:
+            if x:
+             freight_inSum = freight_inSum + float(x[0][0])
 
+        freight_outSum = 0
+        for x in freight_out:
+            if x:
+             freight_outSum = freight_outSum + float(x[0][0])
+
+        maneuversSum = 0
+        for x in maneuvers:
+            if x:
+             maneuversSum = maneuversSum + float(x[0][0])
+
+        storageSum = 0
+        for x in storage:
+            if x:
+             storageSum = storageSum + float(x[0][0])
+
+        aduana_usaSum = 0
+        for x in aduana_usa:
+            if x:
+             aduana_usaSum = aduana_usaSum + float(x[0][0])
+        
+        aduana_mexSum = 0
+        for x in aduana_mex:
+            if x:
+             aduana_mexSum = aduana_mexSum + float(x[0][0])
+
+        
+        aduana_total=aduana_mexSum+aduana_usaSum
         string =str(tagNote[0])
-        logging.info('dfds'*500)
-        logging.info(str(purchase_rec.partner_id.name))
 
         return {
-            # 'res_model': 'sale.settlements',
-            # #'res_id': self.partner_id.id,
-            # 'type': 'ir.actions.act_window',
-            # 'view_type': 'form',
-            # 'view_mode': 'form',
-            # 'target': 'new',
-            # 'name': 'Liquidaciones',
-            # 'context': {'default_settlements_line_ids': var},
-            # 'view_id': self.env.ref('liquidaciones.view_settlements').id
 
             'res_model': 'sale.settlements',
             # 'res_id': self.partner_id.id,
@@ -129,9 +172,16 @@ class SaleSettlementsWizard(models.TransientModel):
                         'default_check_storage': self.storage,
                         'default_check_freight_out': self.freight_out,
                         'default_check_freight_in': self.freight_in,
+                        'default_check_aduana': self.aduana,
                         'default_note': string[0:3],
                         'default_journey': string[-4:],
-                        'default_company': str(purchase_rec.partner_id.name)},
+                        'default_company': str(purchase_rec.partner_id.name),
+                        'default_freight_in': freight_inSum,
+                        'default_freight_out': freight_outSum,
+                        'default_maneuvers': maneuversSum,
+                        'default_storage': storageSum,
+                        'default_aduana': aduana_total,
+                        'default_price_type': self.price_type},
             'view_id': self.env.ref('liquidaciones.view_settlements').id
         }
 

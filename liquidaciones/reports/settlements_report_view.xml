@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <template id="report_settlements">
+    <!-- <template id="report_settlements">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
                 <div class="page">
@@ -25,9 +25,81 @@
                 </div>
             </t>
         </t>
+    </template> -->
+
+    <template id="report_settlements">
+        <t t-foreach="docs" t-as="property">
+            <t t-call="web.html_container">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>
+                            Settlements
+                            <!-- <span t-field="property.name"/> -->
+                        </h2>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th> <strong>Note: </strong><span t-field="property.note"/></th>
+                                    <th> <strong>Journey: </strong><span t-field="property.journey"/></th>
+                                    <th> <strong>Company: </strong><span t-field="property.company"/></th>
+                                </tr>
+                            </thead>
+                        </table>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                            <td>Date:</td>
+                            <td>Product:</td>
+                            <td>Uom:</td>
+                            <td>Emb:</td>
+                            <td>Rec:</td>
+                            <td>Price unit:</td>
+                            <td>Amount:</td>
+                            <td>Purcharse price:</td>
+                            <td>Total:</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="offers" t-value="property.mapped('settlements_line_ids')"/> -->
+                                <tr t-foreach="offers" t-as="offer">
+                                    <td>
+                                        <span t-field="offer.date"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="offer.product_id"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="offer.product_uom"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="offer.box_emb"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="offer.box_rec"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="offer.price_unit"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="offer.amount"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="offer.purcharse_price"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="offer.total"/>
+                                    </td>
+                                </tr> 
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
     </template>
-    <record id="paperformat_report_settlements" model="report.paperformat">
+
+    <!-- <record id="paperformat_report_settlements" model="report.paperformat">
         <field name="name">Report Settlements</field>
         <field name="orientation">Landscape</field>
- </record>
+ </record> -->
 </odoo>

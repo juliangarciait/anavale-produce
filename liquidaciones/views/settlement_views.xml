@@ -21,7 +21,7 @@
                              <label for="journey" string="Journey:" />
                              <field name="journey" style="width: 5%" />
                              <label for="company" string="Company:" />
-                             <field name="company" style="width: 15%" />
+                             <field name="company" style="width: 20%" />
                         </div>
                     </group>
                     <field name="settlements_line_ids" mode="tree,kanban">
@@ -33,8 +33,8 @@
                             <field name="box_rec" />
                             <field name="price_unit" />
                             <field name="amount" />
-                            <field name="purcharse_price" />
-                            <field name="total" />
+                            <field name="purcharse_price" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" />
+                            <field name="total" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" />
                         </tree>
                     </field>
 
@@ -59,14 +59,16 @@
                                 </h2>
                             </div>
                             <field name="check_maneuvers" attrs="{'invisible': True}" />
+                            <field name="price_type" attrs="{'invisible': True}" />
                             <field name="check_adjustment" attrs="{'invisible': True}" />
                             <field name="check_storage" attrs="{'invisible': True}" />
                             <field name="check_freight_out" attrs="{'invisible': True}" />
                             <field name="check_freight_in" attrs="{'invisible': True}" />
+                            <field name="check_aduana" attrs="{'invisible': True}" />
                             <field name="total" />
                             <field name="settlement" />
                             <field name="freight_in" attrs="{'invisible': [('check_freight_in', '=', False)]}" />
-                            <field name="aduana" />
+                            <field name="aduana" attrs="{'invisible': [('check_aduana', '=', False)]}" />
                             <field name="maneuvers" attrs="{'invisible': [('check_maneuvers', '=', False)]}" />
                             <field name="adjustment" attrs="{'invisible': [('check_adjustment', '=', False)]}" />
                             <field name="storage" attrs="{'invisible': [('check_storage', '=', False)]}" />

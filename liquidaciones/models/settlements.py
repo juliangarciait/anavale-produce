@@ -52,64 +52,98 @@ class SettlementsInherit(models.Model):
     @api.onchange('settlements_line_ids', 'settlements_line_ids.total')
     def _get_settlement(self):
         var = []
+        
         for i in self.settlements_line_ids:
-                var.append(i.total)
-        logging.info('s'*500)
-        logging.info(var)
+                if self.price_type=="open":
+                    var.append(i.total)
+                else:
+                    var.append(i.amount)
         salesSum = 0
         for x in var:
-            logging.info(x)
-            if x:
-             salesSum = salesSum + float(x)
+                if x:
+                    salesSum = salesSum + float(x)
         self.settlement = salesSum
         
+    @api.model
+    @api.onchange('settlements_line_ids', 'settlements_line_ids.total')
+    def _get_freight_in(self):
+        if not self.check_freight_in:
+                self.freight_in=0
+
+    @api.model
+    @api.onchange('settlements_line_ids', 'settlements_line_ids.total')
+    def _get_maneuvers(self):
+        if not self.check_maneuvers:
+                self.maneuvers=0
     
+    @api.model
+    @api.onchange('settlements_line_ids', 'settlements_line_ids.total')
+    def _get_adjustment(self):
+        if not self.check_adjustment:
+                self.adjustment=0
+
+    @api.model
+    @api.onchange('settlements_line_ids', 'settlements_line_ids.total')
+    def _get_storage(self):
+        if not self.check_storage:
+                self.storage=0
+
+    @api.model
+    @api.onchange('settlements_line_ids', 'settlements_line_ids.total')
+    def _get_freight_out(self):
+        if not self.check_freight_out:
+                self.freight_out=0
+
+    @api.model
+    @api.onchange('settlements_line_ids', 'settlements_line_ids.total')
+    def _get_aduana(self):
+        if not self.check_aduana:
+                self.aduana=0
+
+
     settlements_sale_order_ids = fields.One2many(
         'purchase.order', 'id', 'Lineas de Trabajo')
     settlements_line_ids = fields.One2many(
         'sale.settlements.lines', 'id', 'Lineas de Trabajo')
 
     total = fields.Float(
-        required=True, tracking=True, string="Sales")
+         tracking=True, string="Sales")
     settlement = fields.Float(
-        required=True, tracking=True, string="Settlements", default=_get_settlement)
+         tracking=True, string="Settlements", default=_get_settlement)
+    commission_percentage = fields.Float(
+         tracking=True, string="Commission Percentage")
     utility = fields.Float(
-        required=True, tracking=True, string="Utility", default=_compute_utility)
+         tracking=True, string="Utility", default=_compute_utility)
     utility_percentage = fields.Float(
-        required=True, tracking=True, string="", default=_compute_utility_percentage)
+         tracking=True, string="", default=_compute_utility_percentage)
     freight_in  = fields.Float(
-        required=True, tracking=True, string="Freight In", default=_compute_utility)
+         tracking=True, string="Freight In", default=_get_freight_in)
     aduana = fields.Float(
-        required=True, tracking=True, string="Aduana", default=_compute_utility)
+         tracking=True, string="Aduana", default=_get_aduana)
     maneuvers = fields.Float(
-        required=True, tracking=True, string="Maneuvers", default=_compute_utility)
+        tracking=True, string="Maneuvers", default=_get_maneuvers)
     adjustment = fields.Float(
-        required=True, tracking=True, string="Adjustment", default=_compute_utility)
+         tracking=True, string="Adjustment", default=_get_adjustment)
     storage = fields.Float(
-        required=True, tracking=True, string="Storage", default=_compute_utility)
+         tracking=True, string="Storage", default=_get_storage)
     freight_out = fields.Float(
-        required=True, tracking=True, string="Freight Out", default=_compute_utility)
+         tracking=True, string="Freight Out", default=_get_freight_out)
+    price_type = fields.Selection([('open','Open price'),
+                                   ('close','Closed price')], 
+                                   String="Tipo de precio", required=True,
+                                   help="Please select a type of price.")
     check_maneuvers=fields.Boolean()
     check_adjustment=fields.Boolean()
     check_storage=fields.Boolean()
     check_freight_out=fields.Boolean()
     check_freight_in=fields.Boolean()
-    note = fields.Char(required=True, tracking=True, string="Note")
-    journey = fields.Char(required=True, tracking=True, string="Journey")
-    company = fields.Char(required=True, tracking=True, string="Company")
-
-    @api.model
-    @api.onchange('total')
-    def _amount_total(self):
-        total=0
-        for sub in self.settlements_line_ids:
-            logging.info(sub)
-            #total=total+sub
-            
-
+    check_aduana=fields.Boolean()
+    note = fields.Char(tracking=True, string="Note")
+    journey = fields.Char( tracking=True, string="Journey")
+    company = fields.Char( tracking=True, string="Company")
 
     # Costo del viaje, este lo escribe el usuario
-    freight = fields.Float(required=True, tracking=True, string="Flete")
+    freight = fields.Float( tracking=True, string="Flete")
 
    
     def action_print_report(self):
@@ -126,32 +160,37 @@ class SettlementsInheritLines(models.Model):
 
     @api.model
     @api.onchange('price_unit', 'box_rec')
-    def _compute_amount(self):
+    def _get_amount(self):
+        logging.info('kio'*500)
         for line in self:
             line.amount = line.price_unit*line.box_rec
 
     @api.model
     @api.onchange('purcharse_price', 'box_rec')
-    def _compute_total(self):
+    def _get_total(self):
+        logging.info('kio'*500)
         for line in self:
             line.total = line.purcharse_price*line.box_rec
 
-    date = fields.Datetime(required=True, tracking=True, string="Fecha")
+
+    date = fields.Datetime(tracking=True, string="Fecha")
     product_id = fields.Many2one(
-        'product.product', required=True, tracking=True, string="Producto")
+        'product.product',  tracking=True, string="Producto")
     product_uom = fields.Many2one(
-        'uom.uom', required=True, tracking=True, string="Medida")
+        'uom.uom',  tracking=True, string="Medida")
     # Este lo escribe el usuario
     box_emb = fields.Integer(
-        required=True, tracking=True, string="Cajas Embalaje")
+        tracking=True, string="Cajas Embalaje")
     # Este lo escribe el usuario
-    box_rec = fields.Integer(required=True, tracking=True, string="Cajas Rec.")
+    box_rec = fields.Integer(tracking=True, string="Cajas Rec.")
     price_unit = fields.Float(
-        required=True, tracking=True, string="Precio Unitario")
-    amount = fields.Float(required=True, tracking=True,
-                          string="Importe", readonly=False,  compute='_compute_amount', default=_compute_amount)
+        tracking=True, string="Precio Unitario")
+    amount = fields.Float(tracking=True,
+                          string="Importe") 
     purcharse_price = fields.Float(
-        required=True, tracking=True, string="Precio Compra")
-    total = fields.Float(required=True,  string="Total", default=_compute_total)
+        tracking=True, string="Precio Compra")
+    total = fields.Float(string="Total", tracking=True)
+
+    
 
     
