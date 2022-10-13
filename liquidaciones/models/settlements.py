@@ -3,6 +3,7 @@
 from email.policy import default
 from tokenize import String
 from odoo import models, fields, api
+from openerp.exceptions import ValidationError
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -40,7 +41,23 @@ class SettlementsInherit(models.Model):
     @api.model
     @api.onchange('total', 'settlement','freight_in','aduana','maneuvers','adjustment','storage','freight_out')
     def _compute_utility(self):
-        self.utility=self.total-(self.settlement+self.freight_in+self.aduana+self.maneuvers+self.adjustment+self.storage+self.freight_out)
+        var = self.settlement+self.freight_in+self.aduana+self.maneuvers+self.adjustment+self.storage+self.freight_out
+        self.utility=self.total - var
+
+
+    @api.model
+    @api.onchange('total', 'settlement','freight_in','aduana','maneuvers','adjustment','storage','freight_out')
+    def _compute_calculated_sales(self):
+        self.calculated_sales=self.total-(self.maneuvers+self.adjustment+self.storage)
+
+    
+
+    @api.model
+    @api.onchange('total', 'utility')
+    def _get_recommended_price(self):
+        #obtener el precio redcomendado, pero no se si va en la tabla de abjo o en la tabla de arriba
+        if self.utility>0 and self.total>0:
+            self.utility_percentage=(self.utility/self.total)*100
 
     @api.model
     @api.onchange('total', 'utility')
@@ -49,56 +66,79 @@ class SettlementsInherit(models.Model):
             self.utility_percentage=(self.utility/self.total)*100
 
     @api.model
-    @api.onchange('settlements_line_ids', 'settlements_line_ids.total')
+    @api.onchange('commission_percentage')
+    def _compute_commission_percentage(self):
+            if self.commission_percentage > 100 or self.commission_percentage < 0:
+             self.commission_percentage=0
+             raise ValidationError(('Enter Value Between 0-100.'))
+             
+
+    @api.model
+    @api.onchange('settlements_line_ids', 'settlements_line_ids.total', 'commission_percentage', 'total', 'settlement','freight_in','aduana','maneuvers','adjustment','storage','freight_out')
     def _get_settlement(self):
         var = []
         
         for i in self.settlements_line_ids:
                 if self.price_type=="open":
-                    var.append(i.total)
+                  self.settlement = self.calculated_sales-(+self.freight_in+self.aduana+self.freight_out+((self.commission_percentage/100)*self.calculated_sales))
                 else:
                     var.append(i.amount)
-        salesSum = 0
-        for x in var:
-                if x:
-                    salesSum = salesSum + float(x)
-        self.settlement = salesSum
+                    salesSum = 0
+                    for x in var:
+                        if x:
+                            salesSum = salesSum + float(x)
+                    self.settlement = salesSum
+        
         
     @api.model
-    @api.onchange('settlements_line_ids', 'settlements_line_ids.total')
+    @api.onchange('settlements_line_ids', 'settlements_line_ids.total', 'check_freight_in')
     def _get_freight_in(self):
         if not self.check_freight_in:
                 self.freight_in=0
+        else:
+                self.freight_in=self.freight_in_unic
 
     @api.model
-    @api.onchange('settlements_line_ids', 'settlements_line_ids.total')
+    @api.onchange('settlements_line_ids', 'settlements_line_ids.total','check_maneuvers')
     def _get_maneuvers(self):
         if not self.check_maneuvers:
                 self.maneuvers=0
+        else:
+             self.maneuvers=self.maneuvers_unic
+
+            
     
     @api.model
-    @api.onchange('settlements_line_ids', 'settlements_line_ids.total')
+    @api.onchange('settlements_line_ids', 'settlements_line_ids.total', 'check_adjustment')
     def _get_adjustment(self):
         if not self.check_adjustment:
                 self.adjustment=0
+        else:
+                self.adjustment=self.adjustment_unic
 
     @api.model
-    @api.onchange('settlements_line_ids', 'settlements_line_ids.total')
+    @api.onchange('settlements_line_ids', 'settlements_line_ids.total', 'check_storage')
     def _get_storage(self):
         if not self.check_storage:
                 self.storage=0
+        else:
+                self.storage=self.storage_unic
 
     @api.model
-    @api.onchange('settlements_line_ids', 'settlements_line_ids.total')
+    @api.onchange('settlements_line_ids', 'settlements_line_ids.total', 'check_freight_out')
     def _get_freight_out(self):
         if not self.check_freight_out:
                 self.freight_out=0
+        else:
+                self.freight_out=self.freight_out_unic
 
     @api.model
-    @api.onchange('settlements_line_ids', 'settlements_line_ids.total')
+    @api.onchange('settlements_line_ids', 'settlements_line_ids.total', 'check_aduana')
     def _get_aduana(self):
         if not self.check_aduana:
                 self.aduana=0
+        else:
+                self.aduana=self.aduana_unic
 
 
     settlements_sale_order_ids = fields.One2many(
@@ -108,26 +148,43 @@ class SettlementsInherit(models.Model):
 
     total = fields.Float(
          tracking=True, string="Sales")
+    calculated_sales = fields.Float(
+         tracking=True, string="Caculated Sales",default=_compute_calculated_sales)
     settlement = fields.Float(
-         tracking=True, string="Settlements", default=_get_settlement)
+         tracking=True, string="Liquidaciones", default=_get_settlement)
     commission_percentage = fields.Float(
          tracking=True, string="Commission Percentage")
+    recommended_price = fields.Float(
+         tracking=True, string="Precio Recomendado", default=_get_recommended_price)
     utility = fields.Float(
-         tracking=True, string="Utility", default=_compute_utility)
+         tracking=True, string="Utility", default=_compute_utility, readonly=True)
     utility_percentage = fields.Float(
-         tracking=True, string="", default=_compute_utility_percentage)
+         tracking=True, string="", default=_compute_utility_percentage, readonly=True)
     freight_in  = fields.Float(
          tracking=True, string="Freight In", default=_get_freight_in)
+    freight_in_unic = fields.Float(
+         tracking=True, string="Freight In")
     aduana = fields.Float(
          tracking=True, string="Aduana", default=_get_aduana)
+    aduana_unic = fields.Float(
+         tracking=True, string="Aduana")
     maneuvers = fields.Float(
         tracking=True, string="Maneuvers", default=_get_maneuvers)
+        #duplico el campo, pues es necesario maniobras su total y que no sea modificado, lo mismo para los otros dos campos duplicados
+    maneuvers_unic = fields.Float(
+        tracking=True, string="Maneuvers", default=_get_maneuvers) 
     adjustment = fields.Float(
          tracking=True, string="Adjustment", default=_get_adjustment)
+    adjustment_unic  = fields.Float(
+         tracking=True, string="Adjustment")
     storage = fields.Float(
          tracking=True, string="Storage", default=_get_storage)
+    storage_unic = fields.Float(
+         tracking=True, string="Storage")
     freight_out = fields.Float(
          tracking=True, string="Freight Out", default=_get_freight_out)
+    freight_out_unic = fields.Float(
+         tracking=True, string="Freight Out")
     price_type = fields.Selection([('open','Open price'),
                                    ('close','Closed price')], 
                                    String="Tipo de precio", required=True,
