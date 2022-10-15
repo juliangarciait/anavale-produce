@@ -39,10 +39,14 @@ class SettlementsInherit(models.Model):
     _name = 'sale.settlements'
 
     @api.model
-    @api.onchange('total', 'settlement','freight_in','aduana','maneuvers','adjustment','storage','freight_out')
+    @api.onchange('total', 'settlement','freight_in','aduana','maneuvers','adjustment','storage','freight_out','commission')
     def _compute_utility(self):
-        var = self.settlement+self.freight_in+self.aduana+self.maneuvers+self.adjustment+self.storage+self.freight_out
-        self.utility=self.total - var
+        if self.price_type=="open":
+            var = self.commission-self.freight_in+self.aduana+self.maneuvers+self.adjustment+self.storage+self.freight_out
+            self.utility=self.total - var
+        else:    
+            var = self.settlement+self.freight_in+self.aduana+self.maneuvers+self.adjustment+self.storage+self.freight_out
+            self.utility=self.total - var
 
 
     @api.model
@@ -80,7 +84,7 @@ class SettlementsInherit(models.Model):
         
         for i in self.settlements_line_ids:
                 if self.price_type=="open":
-                  self.settlement = self.calculated_sales-(+self.freight_in+self.aduana+self.freight_out+((self.commission_percentage/100)*self.calculated_sales))
+                  self.settlement = self.calculated_sales-(self.freight_in+self.aduana+self.freight_out+((self.commission_percentage/100)*self.calculated_sales))
                 else:
                     var.append(i.amount)
                     salesSum = 0
@@ -89,9 +93,17 @@ class SettlementsInherit(models.Model):
                             salesSum = salesSum + float(x)
                     self.settlement = salesSum
         
-        
     @api.model
-    @api.onchange('settlements_line_ids', 'settlements_line_ids.total', 'check_freight_in')
+    @api.onchange('commission_percentage')
+    def _get_commission(self):
+                 if self.commission_percentage >0 and self.commission_percentage<101:
+                  self.commission = (self.commission_percentage/100)*self.calculated_sales
+                 else:
+                    self.commission = 0
+           
+
+    @api.model
+    @api.onchange( 'check_freight_in')
     def _get_freight_in(self):
         if not self.check_freight_in:
                 self.freight_in=0
@@ -99,7 +111,7 @@ class SettlementsInherit(models.Model):
                 self.freight_in=self.freight_in_unic
 
     @api.model
-    @api.onchange('settlements_line_ids', 'settlements_line_ids.total','check_maneuvers')
+    @api.onchange('check_maneuvers')
     def _get_maneuvers(self):
         if not self.check_maneuvers:
                 self.maneuvers=0
@@ -109,7 +121,7 @@ class SettlementsInherit(models.Model):
             
     
     @api.model
-    @api.onchange('settlements_line_ids', 'settlements_line_ids.total', 'check_adjustment')
+    @api.onchange( 'check_adjustment')
     def _get_adjustment(self):
         if not self.check_adjustment:
                 self.adjustment=0
@@ -117,7 +129,7 @@ class SettlementsInherit(models.Model):
                 self.adjustment=self.adjustment_unic
 
     @api.model
-    @api.onchange('settlements_line_ids', 'settlements_line_ids.total', 'check_storage')
+    @api.onchange( 'check_storage')
     def _get_storage(self):
         if not self.check_storage:
                 self.storage=0
@@ -125,7 +137,7 @@ class SettlementsInherit(models.Model):
                 self.storage=self.storage_unic
 
     @api.model
-    @api.onchange('settlements_line_ids', 'settlements_line_ids.total', 'check_freight_out')
+    @api.onchange( 'check_freight_out')
     def _get_freight_out(self):
         if not self.check_freight_out:
                 self.freight_out=0
@@ -133,13 +145,58 @@ class SettlementsInherit(models.Model):
                 self.freight_out=self.freight_out_unic
 
     @api.model
-    @api.onchange('settlements_line_ids', 'settlements_line_ids.total', 'check_aduana')
+    @api.onchange( 'freight_out','freight_in')
+    def _get_freight_total(self):
+                self.freight_total=(self.freight_out+self.freight_in)*-1
+
+    @api.model
+    @api.onchange('aduana')
+    def _get_aduana_total(self):
+                self.aduana_total=(self.aduana)*-1
+
+    @api.model
+    @api.onchange('settlements_line_ids', 'settlements_line_ids.total')
+    def _get_subtotal_total(self):
+                subtotal=0
+                for line in self.settlements_line_ids:
+                    subtotal=subtotal+line.total
+                self.total_subtotal=subtotal
+    @api.model
+    @api.onchange('aduana_total', 'freight_total','total_subtotal')        
+    def _get_total_total(self):
+                self.total_total=self.total_subtotal+self.aduana_total+self.freight_total
+
+    @api.model
+    @api.onchange( 'check_aduana')
     def _get_aduana(self):
         if not self.check_aduana:
                 self.aduana=0
         else:
                 self.aduana=self.aduana_unic
+    
+    #@api.onchange('maneuvers','storage','adjustment')
+    #def _compute_sale_total(self):
+     #   for line in self.settlements_line_ids:
+      #      line.update({'amount':self.global_discount})
 
+    @api.onchange('commission_percentage')
+    def _compute_line_commision(self):
+        for line in self.settlements_line_ids:
+            line.update({'commission': ((line.price_unit*line.box_rec)*(self.commission_percentage/100))})
+            line.update({'total': (line.amount-line.commission)})
+
+
+    @api.onchange('maneuvers','storage','adjustment', 'settlements_line_ids.amount','settlements_line_ids','settlements_line_ids.box_rec')
+    def _compute_line_price_unit(self):
+        sumBox=0
+        for line in self.settlements_line_ids:
+                sumBox=sumBox+ float(line.box_rec)
+        for line in self.settlements_line_ids:
+          if   line.box_rec>0 and sumBox>0:
+            var_price_unit_hidden=line.amount/line.box_rec
+            var_res=(self.maneuvers+self.storage+self.adjustment)/sumBox
+            line.update({'price_unit': (var_price_unit_hidden-var_res)})
+            line.update({'commission': ((line.price_unit*line.box_rec)*(self.commission_percentage/100))})
 
     settlements_sale_order_ids = fields.One2many(
         'purchase.order', 'id', 'Lineas de Trabajo')
@@ -154,6 +211,8 @@ class SettlementsInherit(models.Model):
          tracking=True, string="Liquidaciones", default=_get_settlement)
     commission_percentage = fields.Float(
          tracking=True, string="Commission Percentage")
+    commission = fields.Float(
+         tracking=True, stored=True, string="Commission", default=_get_commission, readonly=True)
     recommended_price = fields.Float(
          tracking=True, string="Precio Recomendado", default=_get_recommended_price)
     utility = fields.Float(
@@ -183,6 +242,14 @@ class SettlementsInherit(models.Model):
          tracking=True, string="Storage")
     freight_out = fields.Float(
          tracking=True, string="Freight Out", default=_get_freight_out)
+    freight_total = fields.Float(
+         tracking=True, string="Freight", default=_get_freight_total)
+    aduana_total = fields.Float(
+         tracking=True, string="Aduana", default=_get_aduana_total)
+    total_total = fields.Float(
+         tracking=True, string="Total", default=_get_total_total)
+    total_subtotal = fields.Float(
+         tracking=True, string="SubTotal", default=_get_subtotal_total)
     freight_out_unic = fields.Float(
          tracking=True, string="Freight Out")
     price_type = fields.Selection([('open','Open price'),
@@ -204,12 +271,12 @@ class SettlementsInherit(models.Model):
 
    
     def action_print_report(self):
-        appoinments = self.env['sale.settlements'].search_read([])
+        #appoinments = self.env['sale.settlements'].search_read([])
         data = {
-            #'form': self.read()[0],
-           # 'appoinments': appoinments
+            'model': 'sale.settlements',
+            'form': self.read()[0]
         }
-        return self.env.ref('liquidaciones.report_settlement_templates').report_action(self, data=data)
+        return self.env.ref('liquidaciones.report_settlement_templates').with_context(landscape=True).report_action(self, data=data)
 
 
 class SettlementsInheritLines(models.Model):
@@ -223,11 +290,23 @@ class SettlementsInheritLines(models.Model):
             line.amount = line.price_unit*line.box_rec
 
     @api.model
-    @api.onchange('purcharse_price', 'box_rec')
+    @api.onchange('amount', 'commission')
     def _get_total(self):
-        logging.info('kio'*500)
         for line in self:
-            line.total = line.purcharse_price*line.box_rec
+            line.total = line.amount-line.commission
+            
+   # @api.model
+   # @api.onchange('amount','box_rec')
+    #def _compute_line_price_unit(self):
+     #   sumBox=0
+      #  self.parent
+       # for line in self.settlements_line_ids:
+         #       sumBox=sumBox+ float(line.box_rec)
+        #for line in self.settlements_line_ids:
+        #    var_price_unit_hidden=line.amount/line.box_rec
+          #  var_res=(self.maneuvers+self.storage+self.adjustment)/sumBox
+           # line.price_unit=var_price_unit_hidden-var_res
+            #line.commission=(line.price_unit*line.box_rec)*(self.commission_percentage/100)
 
 
     date = fields.Datetime(tracking=True, string="Fecha")
@@ -244,10 +323,10 @@ class SettlementsInheritLines(models.Model):
         tracking=True, string="Precio Unitario")
     amount = fields.Float(tracking=True,
                           string="Importe") 
-    purcharse_price = fields.Float(
-        tracking=True, string="Precio Compra")
+    freight = fields.Float(tracking=True,
+                          string="Freight") 
+    aduanas = fields.Float(tracking=True,
+                          string="Aduanas") 
+    commission = fields.Float(
+        tracking=True, string="Comission")
     total = fields.Float(string="Total", tracking=True)
-
-    
-
-    

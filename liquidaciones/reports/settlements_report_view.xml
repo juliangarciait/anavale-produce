@@ -4,25 +4,7 @@
     <!-- <template id="report_settlements">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
-                <div class="page">
-                    <div class="oe_structure" />
-                    <div class="text-center">
-                        <h2>Settlements</h2>
-                    </div>
-                    <table>
-                        <tr>
-                            <td>Date:</td>
-                            <td>Product:</td>
-                            <td>Uom:</td>
-                            <td>Emb:</td>
-                            <td>Rec:</td>
-                            <td>Price unit:</td>
-                            <td>Amount:</td>
-                            <td>Purcharse price:</td>
-                            <td>Total:</td>
-                        </tr>
-                    </table>
-                </div>
+             
             </t>
         </t>
     </template> -->
@@ -45,22 +27,25 @@
                                 </tr>
                             </thead>
                         </table>
+                         
                         <table class="table">
                             <thead>
                                 <tr>
-                            <td>Date:</td>
-                            <td>Product:</td>
-                            <td>Uom:</td>
-                            <td>Emb:</td>
-                            <td>Rec:</td>
-                            <td>Price unit:</td>
-                            <td>Amount:</td>
-                            <td>Purcharse price:</td>
-                            <td>Total:</td>
+                            <th>Date:</th>
+                            <th>Product:</th>
+                            <th>Uom:</th>
+                            <th>Emb:</th>
+                            <th>Rec:</th>
+                            <th>Price unit:</th>
+                            <th>Amount:</th>
+                            <t t-if="property.price_type=='close'">
+                             <th>Commission:</th>
+                             <th>Total:</th>
+                            </t> 
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-set="offers" t-value="property.mapped('settlements_line_ids')"/> -->
+                                <t t-set="offers" t-value="property.mapped('settlements_line_ids')"/>
                                 <tr t-foreach="offers" t-as="offer">
                                     <td>
                                         <span t-field="offer.date"/>
@@ -83,14 +68,69 @@
                                     <td>
                                         <span t-field="offer.amount"/>
                                     </td>
-                                    <td>
-                                        <span t-field="offer.purcharse_price"/>
+                                    <t t-if="property.price_type=='close'">
+                            <td>
+                                        <span t-field="offer.commission"/>
                                     </td>
                                     <td>
                                         <span t-field="offer.total"/>
                                     </td>
+                            </t>     
                                 </tr> 
                             </tbody>
+                        </table>
+                        <br></br>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th> <strong>Sales: </strong></th>
+                                    <td> <span t-field="property.total"/></td>
+                                    <th> <strong>Calculated Sales: </strong></th>
+                                    <td> <span t-field="property.calculated_sales"/></td>
+                                </tr>
+                                <tr>
+                                    <th> <strong>Storage: </strong></th>
+                                    <td> <span t-field="property.storage"/></td>
+                                    <th> <strong>Commission: %</strong></th>
+                                    <td> <span t-field="property.commission_percentage"/></td>
+                                </tr>
+                                <tr>
+                                    <th> <strong>Adjustment: </strong></th>
+                                    <td> <span t-field="property.adjustment"/></td>
+                                    <th> <strong>Commission: </strong></th>
+                                    <td> <span t-field="property.commission"/></td>
+                                </tr>
+                                <tr>
+                                    <th> <strong>Maneuvers: </strong></th>
+                                    <td> <span t-field="property.maneuvers"/></td>
+                                    <th> <strong>Freight Out: </strong></th>
+                                    <td> <span t-field="property.freight_out"/></td>
+                                </tr>
+                                <tr>
+                                    <th></th>
+                                    <td></td>
+                                    <th> <strong>Freight In: </strong></th>
+                                    <td> <span t-field="property.freight_in"/></td>
+                                </tr>
+                                <tr>
+                                    <th></th>
+                                    <td></td>
+                                    <th> <strong>Aduana: </strong></th>
+                                    <td> <span t-field="property.aduana"/></td>
+                                </tr>
+                                <tr>
+                                   <th></th>
+                                   <td></td>
+                                   <th></th>
+                                   <td></td>
+                                </tr>
+                                <tr>
+                                    <th> <strong>Utility: </strong></th>
+                                    <td> <span t-field="property.utility"/></td>
+                                    <th> <strong>Utility: %</strong></th>
+                                    <td> <span t-field="property.utility_percentage"/></td>
+                                </tr>
+                            </thead>
                         </table>
                     </div>
                 </t>

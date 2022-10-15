@@ -57,10 +57,17 @@ class SaleSettlementsWizard(models.TransientModel):
         
         self._cr.execute("SELECT lot_id FROM stock_move_line where picking_id="+str(int(data[0])))
         data2 = self._cr.fetchall()
+        
+        res = []
+        for ele in data2:
+         if ele[0] is not None :
+             res.append(ele)
 
+        logging.info("res"*500)
+        logging.info(res)
 
         values2 = []
-        for x in data2:
+        for x in res:
             self._cr.execute("SELECT account_analytic_tag_id FROM account_analytic_tag_stock_production_lot_rel WHERE stock_production_lot_id="+str(int(x[0])))
             values2.append(self._cr.fetchall())
 
@@ -121,8 +128,8 @@ class SaleSettlementsWizard(models.TransientModel):
                           amountVar.append(self._cr.fetchall()) 
                           self._cr.execute("SELECT product_id FROM account_move_line where account_id=38 AND id="+str(int(i[0]))+" AND product_id="+str(int(j.product_id)))
                           amountVar2.append(self._cr.fetchall())
-                          self._cr.execute("SELECT product_id FROM account_move_line where account_id=38 AND id="+str(int(i[0]))+" AND product_id="+str(int(j.product_id)))
-                          amountVar2.append(self._cr.fetchall())  
+                          #self._cr.execute("SELECT product_id FROM account_move_line where account_id=38 AND id="+str(int(i[0]))+" AND product_id="+str(int(j.product_id)))
+                          #amountVar2.append(self._cr.fetchall())  
 
         subAmount=[]
 
@@ -230,10 +237,12 @@ class SaleSettlementsWizard(models.TransientModel):
                                                                                             #logging.info(subAmount)
                                                                                              var.append((0, 0,  {"date": fecha, "product_id": i.product_id.id,
                                                                                                         "product_uom": i.product_uom.id, "price_unit": i.price_unit,
-                                                                                                        "box_emb":i.product_qty, "box_rec": 0,
+                                                                                                        "box_emb":i.product_qty, "box_rec":  i.qty_received,
                                                                                                         "amount": 0}))   
                                                                                             
                                                                                              idVar.append(i.product_id.id)
+                                                                                             logging.info(var)        
+                                                                                             logging.info(i.qty_received)      
         else:
                 for i in purchase_rec.order_line: #3
                  if i.product_id:
@@ -242,9 +251,10 @@ class SaleSettlementsWizard(models.TransientModel):
                                                                                                 "box_emb":i.product_qty, "box_rec": i.qty_received,
                                                                                                 "amount": float(i.qty_received*i.price_unit)}))
                                                                                     idVar.append(i.product_id.id)
+                                                                                      
 
 
-                                                                                           
+                                                                                   
 
 
         return {

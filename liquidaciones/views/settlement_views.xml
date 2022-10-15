@@ -8,7 +8,7 @@
             <form>
                 <sheet>
                       <!-- tabla de liquidaciones para precio abierto -->
-                    <div attrs="{'invisible': [('price_type','=', 'close')]}">
+                  
                         <div class="oe_tittle">
                             <h1>
                                 <span>
@@ -26,7 +26,7 @@
                                 <field name="company" style="width: 20%" />
                             </div>
                         </group>
-
+  <div attrs="{'invisible': [('price_type','=', 'close')]}">
                         <div class="oe_left">
                             <group>
                                 <div class="oe_tittle">
@@ -47,11 +47,6 @@
                                 <field name="check_freight_in" attrs="{'invisible': True}" />
                                 <field name="check_aduana" attrs="{'invisible': True}" />
                                 <field name="total" />
-                                <label for="commission_percentage" attrs="{'invisible': [('price_type','=', 'close')]}" />
-                                <div class="o_row" attrs="{'invisible': [('price_type','=', 'close')]}">
-                                    <field name="commission_percentage" />
-                                    <span>%%</span>
-                                </div>
                                 <field name="settlement" attrs="{'invisible': [('price_type','=', 'open')]}" />
 
                                 <label for="storage" />
@@ -77,8 +72,17 @@
 
                         <div class="oe_right">
                             <group>
-                                <field name="settlement" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 <field name="calculated_sales" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                <label for="commission_percentage" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                <div class="o_row" attrs="{'invisible': [('price_type','=', 'close')]}">
+                                    <field name="commission_percentage" />
+                                    <span>%%</span>
+                                </div>
+                                <label for="commission" attrs="{'invisible': [('price_type','=', 'close')]}"/>
+                                <div class="o_row" attrs="{'invisible': [('price_type','=', 'close')]}">
+                                    <field name="commission" />
+                                </div>
+
                                 <label for="freight_out" />
                                 <div class="o_row">
                                     <field name="freight_out" attrs="{'readonly':[('check_freight_out','=',False)]}" />
@@ -130,11 +134,25 @@
                             <field name="box_rec" />
                             <field name="price_unit" />
                             <field name="amount" />
-                            <field name="purcharse_price" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" />
+<!--                             <field name="freight" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" />
+                            <field name="aduanas" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" /> -->
+                            <field name="commission" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" />
                             <field name="total" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" />
                         </tree>
                     </field>
                     <!--  /////////////////////////////////////////////////// -->
+                    <div class="oe_right" attrs="{'invisible': [('price_type','=', 'close')]}">
+                            <group>
+                                <field name="freight_total" />
+                                <field name="aduana_total"/>
+                                <field name="total_subtotal" />
+                                <label for="total_total" />
+                                <div class="oe_tittle">
+                                    <field name="total_total"  />
+                                </div>
+                                
+                            </group>
+                        </div>
                     <!-- tabla de liquidaciones para precio cerrado -->
                     <div attrs="{'invisible': [('price_type','!=', 'close')]}">
                         <div class="oe_left">
