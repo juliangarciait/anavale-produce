@@ -49,6 +49,18 @@ class SaleSettlementsWizard(models.TransientModel):
         self._cr.execute("SELECT stock_picking_id FROM purchase_order_stock_picking_rel where purchase_order_id="+str(int(purchase_rec.id)))
         datap = self._cr.fetchall()
 
+        self._cr.execute("select user_id from purchase_order where id="+str(int(purchase_rec.id)))
+        pur = self._cr.fetchone()
+
+        self._cr.execute("select partner_id from  res_users where id="+str(int(pur[0])))
+        user = self._cr.fetchone()
+
+        self._cr.execute("select name from res_partner where id="+str(int(user[0])))
+        part = self._cr.fetchone()
+
+        logging.info('hola'*500)
+        logging.info(part[0])
+
 
         values = []
         for x in datap:
@@ -266,6 +278,8 @@ class SaleSettlementsWizard(models.TransientModel):
             'view_mode': 'form',
             'name': 'Liquidaciones',
             'context': {'default_settlements_line_ids': var,
+                        'default_user_res_partner': part[0],
+                        'default_date': fecha,
                         'default_total': salesSum,
                         'default_check_maneuvers': self.maneuvers,
                         'default_check_adjustment': self.adjustment,

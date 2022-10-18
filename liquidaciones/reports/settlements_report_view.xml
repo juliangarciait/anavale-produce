@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
     <!-- <template id="report_settlements">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
@@ -14,8 +13,14 @@
             <t t-call="web.html_container">
                 <t t-call="web.external_layout">
                     <div class="page">
+                    <br></br>
+      <br></br>
+         <br></br>
+            <br></br>
+            <br></br>
+            <br></br>
                         <h2>
-                            Settlements
+                            Liquidación
                             <!-- <span t-field="property.name"/> -->
                         </h2>
                         <table class="table">
@@ -27,19 +32,35 @@
                                 </tr>
                             </thead>
                         </table>
+                        <table class="table"  style="width: 300px;" align="left">
+                            <thead>
+                                <tr>
+                                    <th> <strong>Fecha: </strong></th>
+                                    <td> <span t-field="property.date"/></td>
+                                     </tr>
+                            </thead>
+                        </table>
                          
+                            <t t-if="property.price_type=='open'">
+                        <table class="table"  style="width: 600px;" align="right">
+                            <thead>
+                                <th> <strong>Freight (-): </strong><span t-field="property.freight_total"/></th>
+                                    <th> <strong>Aduana (-): </strong><span t-field="property.aduana_total"/></th>
+                                    <th> <strong>Total (-): </strong><span t-field="property.res_total"/></th>
+                            </thead>
+                        </table>
+                          </t>
                         <table class="table">
                             <thead>
                                 <tr>
-                            <th>Date:</th>
                             <th>Product:</th>
                             <th>Uom:</th>
                             <th>Emb:</th>
                             <th>Rec:</th>
                             <th>Price unit:</th>
                             <th>Amount:</th>
-                            <t t-if="property.price_type=='close'">
-                             <th>Commission:</th>
+                            <t t-if="property.price_type=='open'">
+                             <th>Commission <span t-field="property.commission_percentage"/>(%):</th>
                              <th>Total:</th>
                             </t> 
                                 </tr>
@@ -47,9 +68,6 @@
                             <tbody>
                                 <t t-set="offers" t-value="property.mapped('settlements_line_ids')"/>
                                 <tr t-foreach="offers" t-as="offer">
-                                    <td>
-                                        <span t-field="offer.date"/>
-                                    </td>
                                     <td>
                                         <span t-field="offer.product_id"/>
                                     </td>
@@ -68,8 +86,8 @@
                                     <td>
                                         <span t-field="offer.amount"/>
                                     </td>
-                                    <t t-if="property.price_type=='close'">
-                            <td>
+                            <t t-if="property.price_type=='open'">
+                                    <td>
                                         <span t-field="offer.commission"/>
                                     </td>
                                     <td>
@@ -77,58 +95,59 @@
                                     </td>
                             </t>     
                                 </tr> 
+                                 <tr>
+                                    <td>   
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                        <span t-field="property.box_emb_total"/>
+                                    </td>
+
+                                    <td>
+                                        <span t-field="property.box_rec_total"/>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                   
+                                     <t t-if="property.price_type=='open'">
+                                      <td>
+                                    <strong><span t-field="property.total_subtotal"/></strong>
+                                    </td>
+
+                                    <td>
+                                      <strong>  <span t-field="property.commission"/></strong>
+                                    </td>
+
+                                    <td>
+                                       <strong> <span t-field="property.total_total"/></strong>
+                                    </td>
+                            </t>     
+                                </tr> 
                             </tbody>
                         </table>
-                        <br></br>
-                        <table class="table">
+                       
+                        <table class="table"  style="width: 600px;">
                             <thead>
-                                <tr>
-                                    <th> <strong>Sales: </strong></th>
-                                    <td> <span t-field="property.total"/></td>
-                                    <th> <strong>Calculated Sales: </strong></th>
-                                    <td> <span t-field="property.calculated_sales"/></td>
+                                <tr  style="border-top-color: white; border-bottom-color: white; padding-right: 0px; margin-right: 0;">
+                                    <th  style="border-top-color: white; border-bottom-color: white; padding-right: 0px; margin-right: 0; width: 200px;"> <strong>Director de Compras:</strong></th>
+                                    <td style="border-top-color: white; border-bottom-color: black;  border-bottom: solid 0.1em; padding-left: 0px; margin-left: 0; width: 400px;"></td>
+                                </tr>
+                                <tr >
+                                    <th  style="border-top-color: white; border-bottom-color: white;"></th>
+                                    <td  style="border-top-color: white; border-bottom-color: white;">   <span>Salvador Godoy</span></td>
                                 </tr>
                                 <tr>
-                                    <th> <strong>Storage: </strong></th>
-                                    <td> <span t-field="property.storage"/></td>
-                                    <th> <strong>Commission: %</strong></th>
-                                    <td> <span t-field="property.commission_percentage"/></td>
+                                   <th style="border-top-color: white; border-bottom-color: white;"> <strong>Comprador: </strong></th>
+                                   <td style="border-top-color: white; border-bottom-color: black;  border-bottom: solid 0.1em;"></td>
                                 </tr>
                                 <tr>
-                                    <th> <strong>Adjustment: </strong></th>
-                                    <td> <span t-field="property.adjustment"/></td>
-                                    <th> <strong>Commission: </strong></th>
-                                    <td> <span t-field="property.commission"/></td>
-                                </tr>
-                                <tr>
-                                    <th> <strong>Maneuvers: </strong></th>
-                                    <td> <span t-field="property.maneuvers"/></td>
-                                    <th> <strong>Freight Out: </strong></th>
-                                    <td> <span t-field="property.freight_out"/></td>
-                                </tr>
-                                <tr>
-                                    <th></th>
-                                    <td></td>
-                                    <th> <strong>Freight In: </strong></th>
-                                    <td> <span t-field="property.freight_in"/></td>
-                                </tr>
-                                <tr>
-                                    <th></th>
-                                    <td></td>
-                                    <th> <strong>Aduana: </strong></th>
-                                    <td> <span t-field="property.aduana"/></td>
-                                </tr>
-                                <tr>
-                                   <th></th>
-                                   <td></td>
-                                   <th></th>
-                                   <td></td>
-                                </tr>
-                                <tr>
-                                    <th> <strong>Utility: </strong></th>
-                                    <td> <span t-field="property.utility"/></td>
-                                    <th> <strong>Utility: %</strong></th>
-                                    <td> <span t-field="property.utility_percentage"/></td>
+                                   <th style="border-top-color: white; border-bottom-color: white;"></th>
+                                   <td style="border-top-color: white; border-bottom-color: white;"><span t-field="property.user_res_partner"/></td>
                                 </tr>
                             </thead>
                         </table>
@@ -137,9 +156,4 @@
             </t>
         </t>
     </template>
-
-    <!-- <record id="paperformat_report_settlements" model="report.paperformat">
-        <field name="name">Report Settlements</field>
-        <field name="orientation">Landscape</field>
- </record> -->
 </odoo>

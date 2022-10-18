@@ -46,6 +46,10 @@
                                 <field name="check_freight_out" attrs="{'invisible': True}" />
                                 <field name="check_freight_in" attrs="{'invisible': True}" />
                                 <field name="check_aduana" attrs="{'invisible': True}" />
+                                <field name="date" attrs="{'invisible': True}" />
+                                <field name="res_total" attrs="{'invisible': True}" />
+                                <field name="box_emb_total" attrs="{'invisible': True}" />
+                                <field name="box_rec_total" attrs="{'invisible': True}" />
                                 <field name="total" />
                                 <field name="settlement" attrs="{'invisible': [('price_type','=', 'open')]}" />
 
@@ -67,6 +71,10 @@
                                     <field name="check_maneuvers" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 </div>
 
+                                <label for="user_res_partner" attrs="{'invisible': True}" />
+                                <div class="o_row" attrs="{'invisible': True}">
+                                    <field name="user_res_partner"/>
+                                </div>
                             </group>
                         </div>
 
@@ -80,7 +88,7 @@
                                 </div>
                                 <label for="commission" attrs="{'invisible': [('price_type','=', 'close')]}"/>
                                 <div class="o_row" attrs="{'invisible': [('price_type','=', 'close')]}">
-                                    <field name="commission" />
+                                    <field name="commission" force_save="1"/>
                                 </div>
 
                                 <label for="freight_out" />
@@ -107,11 +115,11 @@
                                     Utility:
                                   </span>
                                         </strong>
-                                        <field name="utility" />
+                                        <field name="utility" force_save="1"/>
 
                                         <label for="utility_percentage" />
                                         <div class="o_row">
-                                            <field name="utility_percentage" />
+                                            <field name="utility_percentage" force_save="1"/>
                                             <span>%%</span>
                                         </div>
                                     </h4>
@@ -175,11 +183,7 @@
                                 <field name="check_freight_in" attrs="{'invisible': True}" />
                                 <field name="check_aduana" attrs="{'invisible': True}" />
                                 <field name="total" />
-                                <label for="commission_percentage" attrs="{'invisible': [('price_type','=', 'close')]}" />
-                                <div class="o_row" attrs="{'invisible': [('price_type','=', 'close')]}">
-                                    <field name="commission_percentage" />
-                                    <span>%%</span>
-                                </div>
+                    
                                 <field name="settlement" attrs="{'invisible': [('price_type','=', 'open')]}" />
 
                                 <label for="freight_in" />
@@ -233,11 +237,11 @@
                                     Utility:
                                   </span>
                                         </strong>
-                                        <field name="utility" />
+                                        <field name="utility" force_save="1"/>
 
                                         <label for="utility_percentage" />
                                         <div class="o_row">
-                                            <field name="utility_percentage" />
+                                            <field name="utility_percentage" force_save="1"/>
                                             <span>%%</span>
                                         </div>
                                     </h4>

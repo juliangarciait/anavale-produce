@@ -15,6 +15,8 @@ class SettlementsSaleOrder(models.Model):
     # llave foranea a liquidaciones
 
    # al darle click al boton abre el formulario
+    settlement_id = fields.Many2one('sale.settlements')
+
 
     def settlements_wizard_function(self):
 
@@ -42,7 +44,7 @@ class SettlementsInherit(models.Model):
     @api.onchange('total', 'settlement','freight_in','aduana','maneuvers','adjustment','storage','freight_out','commission')
     def _compute_utility(self):
         if self.price_type=="open":
-            var = self.commission-self.freight_in+self.aduana+self.maneuvers+self.adjustment+self.storage+self.freight_out
+            var = self.commission+self.freight_in+self.aduana+self.maneuvers+self.adjustment+self.storage+self.freight_out
             self.utility=self.total - var
         else:    
             var = self.settlement+self.freight_in+self.aduana+self.maneuvers+self.adjustment+self.storage+self.freight_out
@@ -98,8 +100,7 @@ class SettlementsInherit(models.Model):
     def _get_commission(self):
                  if self.commission_percentage >0 and self.commission_percentage<101:
                   self.commission = (self.commission_percentage/100)*self.calculated_sales
-                 else:
-                    self.commission = 0
+                
            
 
     @api.model
@@ -155,6 +156,11 @@ class SettlementsInherit(models.Model):
                 self.aduana_total=(self.aduana)*-1
 
     @api.model
+    @api.onchange('freight_total','aduana_total')
+    def _get_res_total(self):
+     self.res_total=self.aduana_total+self.freight_total
+
+    @api.model
     @api.onchange('settlements_line_ids', 'settlements_line_ids.total')
     def _get_subtotal_total(self):
                 subtotal=0
@@ -189,8 +195,13 @@ class SettlementsInherit(models.Model):
     @api.onchange('maneuvers','storage','adjustment', 'settlements_line_ids.amount','settlements_line_ids','settlements_line_ids.box_rec')
     def _compute_line_price_unit(self):
         sumBox=0
+        sumBox2=0
+        for line in self.settlements_line_ids:
+               sumBox2 =sumBox2+ float(line.box_rec)
         for line in self.settlements_line_ids:
                 sumBox=sumBox+ float(line.box_rec)
+        self.box_emb_total =sumBox
+        self.box_rec_total = sumBox2
         for line in self.settlements_line_ids:
           if   line.box_rec>0 and sumBox>0:
             var_price_unit_hidden=line.amount/line.box_rec
@@ -199,9 +210,9 @@ class SettlementsInherit(models.Model):
             line.update({'commission': ((line.price_unit*line.box_rec)*(self.commission_percentage/100))})
 
     settlements_sale_order_ids = fields.One2many(
-        'purchase.order', 'id', 'Lineas de Trabajo')
+        'purchase.order', 'settlement_id', 'Lineas de Trabajo')
     settlements_line_ids = fields.One2many(
-        'sale.settlements.lines', 'id', 'Lineas de Trabajo')
+        'sale.settlements.lines', 'settlement_id', 'Lineas de Trabajo')
 
     total = fields.Float(
          tracking=True, string="Sales")
@@ -212,15 +223,16 @@ class SettlementsInherit(models.Model):
     commission_percentage = fields.Float(
          tracking=True, string="Commission Percentage")
     commission = fields.Float(
-         tracking=True, stored=True, string="Commission", default=_get_commission, readonly=True)
+         tracking=True, stored=True, string="Commission", readonly=True)
     recommended_price = fields.Float(
          tracking=True, string="Precio Recomendado", default=_get_recommended_price)
     utility = fields.Float(
-         tracking=True, string="Utility", default=_compute_utility, readonly=True)
+         tracking=True, string="Utility", readonly=True)
     utility_percentage = fields.Float(
-         tracking=True, string="", default=_compute_utility_percentage, readonly=True)
+         tracking=True, string="", readonly=True)
     freight_in  = fields.Float(
          tracking=True, string="Freight In", default=_get_freight_in)
+    date = fields.Datetime(tracking=True, string="Fecha", store=True)
     freight_in_unic = fields.Float(
          tracking=True, string="Freight In")
     aduana = fields.Float(
@@ -246,6 +258,8 @@ class SettlementsInherit(models.Model):
          tracking=True, string="Freight", default=_get_freight_total)
     aduana_total = fields.Float(
          tracking=True, string="Aduana", default=_get_aduana_total)
+    res_total = fields.Float(
+         tracking=True, string="Aduana", default=_get_res_total)
     total_total = fields.Float(
          tracking=True, string="Total", default=_get_total_total)
     total_subtotal = fields.Float(
@@ -265,6 +279,10 @@ class SettlementsInherit(models.Model):
     note = fields.Char(tracking=True, string="Note")
     journey = fields.Char( tracking=True, string="Journey")
     company = fields.Char( tracking=True, string="Company")
+    user_res_partner = fields.Char( tracking=True, string="Comprador")
+    box_emb_total = fields.Integer(
+        tracking=True, string="Cajas Embalaje")
+    box_rec_total = fields.Integer(tracking=True, string="Cajas Rec.")
 
     # Costo del viaje, este lo escribe el usuario
     freight = fields.Float( tracking=True, string="Flete")
@@ -273,8 +291,8 @@ class SettlementsInherit(models.Model):
     def action_print_report(self):
         #appoinments = self.env['sale.settlements'].search_read([])
         data = {
-            'model': 'sale.settlements',
-            'form': self.read()[0]
+            #'model': 'sale.settlements',
+            #'form': self.read()[0]
         }
         return self.env.ref('liquidaciones.report_settlement_templates').with_context(landscape=True).report_action(self, data=data)
 
@@ -330,3 +348,4 @@ class SettlementsInheritLines(models.Model):
     commission = fields.Float(
         tracking=True, string="Comission")
     total = fields.Float(string="Total", tracking=True)
+    settlement_id = fields.Many2one('sale.settlements')
