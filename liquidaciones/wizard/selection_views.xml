@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista de Liquidaciones -->
+    <record id="selection_settlements_wizard_form" model="ir.ui.view">
+        <field name="name">Selección Liquidaciones</field>
+        <field name="model">sale.settlements.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="price_type"/>
+                    </group>
+                    <footer>
+                        <button string="Confirm" class="oe_highlight" type="object"  name="settlements_report_button_function" />
+                        <button string="Cancel" class="btn-secondary" special="cancel" />
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

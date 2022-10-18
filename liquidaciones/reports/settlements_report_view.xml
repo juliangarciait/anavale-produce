@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- <template id="report_settlements">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+             
+            </t>
+        </t>
+    </template> -->
+
+    <template id="report_settlements">
+        <t t-foreach="docs" t-as="property">
+            <t t-call="web.html_container">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                    <br></br>
+      <br></br>
+         <br></br>
+            <br></br>
+            <br></br>
+            <br></br>
+                        <h2>
+                            Liquidación
+                            <!-- <span t-field="property.name"/> -->
+                        </h2>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th> <strong>Note: </strong><span t-field="property.note"/></th>
+                                    <th> <strong>Journey: </strong><span t-field="property.journey"/></th>
+                                    <th> <strong>Company: </strong><span t-field="property.company"/></th>
+                                </tr>
+                            </thead>
+                        </table>
+                        <table class="table"  style="width: 300px;" align="left">
+                            <thead>
+                                <tr>
+                                    <th> <strong>Fecha: </strong></th>
+                                    <td> <span t-field="property.date"/></td>
+                                     </tr>
+                            </thead>
+                        </table>
+                         
+                            <t t-if="property.price_type=='open'">
+                        <table class="table"  style="width: 600px;" align="right">
+                            <thead>
+                                <th> <strong>Freight (-): </strong><span t-field="property.freight_total"/></th>
+                                    <th> <strong>Aduana (-): </strong><span t-field="property.aduana_total"/></th>
+                                    <th> <strong>Total (-): </strong><span t-field="property.res_total"/></th>
+                            </thead>
+                        </table>
+                          </t>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                            <th>Product:</th>
+                            <th>Uom:</th>
+                            <th>Emb:</th>
+                            <th>Rec:</th>
+                            <th>Price unit:</th>
+                            <th>Amount:</th>
+                            <t t-if="property.price_type=='open'">
+                             <th>Commission <span t-field="property.commission_percentage"/>(%):</th>
+                             <th>Total:</th>
+                            </t> 
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="offers" t-value="property.mapped('settlements_line_ids')"/>
+                                <tr t-foreach="offers" t-as="offer">
+                                    <td>
+                                        <span t-field="offer.product_id"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="offer.product_uom"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="offer.box_emb"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="offer.box_rec"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="offer.price_unit"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="offer.amount"/>
+                                    </td>
+                            <t t-if="property.price_type=='open'">
+                                    <td>
+                                        <span t-field="offer.commission"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="offer.total"/>
+                                    </td>
+                            </t>     
+                                </tr> 
+                                 <tr>
+                                    <td>   
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                        <span t-field="property.box_emb_total"/>
+                                    </td>
+
+                                    <td>
+                                        <span t-field="property.box_rec_total"/>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                   
+                                     <t t-if="property.price_type=='open'">
+                                      <td>
+                                    <strong><span t-field="property.total_subtotal"/></strong>
+                                    </td>
+
+                                    <td>
+                                      <strong>  <span t-field="property.commission"/></strong>
+                                    </td>
+
+                                    <td>
+                                       <strong> <span t-field="property.total_total"/></strong>
+                                    </td>
+                            </t>     
+                                </tr> 
+                            </tbody>
+                        </table>
+                       
+                        <table class="table"  style="width: 600px;">
+                            <thead>
+                                <tr  style="border-top-color: white; border-bottom-color: white; padding-right: 0px; margin-right: 0;">
+                                    <th  style="border-top-color: white; border-bottom-color: white; padding-right: 0px; margin-right: 0; width: 200px;"> <strong>Director de Compras:</strong></th>
+                                    <td style="border-top-color: white; border-bottom-color: black;  border-bottom: solid 0.1em; padding-left: 0px; margin-left: 0; width: 400px;"></td>
+                                </tr>
+                                <tr >
+                                    <th  style="border-top-color: white; border-bottom-color: white;"></th>
+                                    <td  style="border-top-color: white; border-bottom-color: white;">   <span>Salvador Godoy</span></td>
+                                </tr>
+                                <tr>
+                                   <th style="border-top-color: white; border-bottom-color: white;"> <strong>Comprador: </strong></th>
+                                   <td style="border-top-color: white; border-bottom-color: black;  border-bottom: solid 0.1em;"></td>
+                                </tr>
+                                <tr>
+                                   <th style="border-top-color: white; border-bottom-color: white;"></th>
+                                   <td style="border-top-color: white; border-bottom-color: white;"><span t-field="property.user_res_partner"/></td>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
