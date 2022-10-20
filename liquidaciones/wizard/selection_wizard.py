@@ -113,7 +113,6 @@ class SaleSettlementsWizard(models.TransientModel):
         storage = []
         aduana_usa = []
         aduana_mex = []
-        aduana_mex = []
         adjustment = []
         amountVar=[]
         amountVar2=[]
@@ -130,7 +129,7 @@ class SaleSettlementsWizard(models.TransientModel):
                     storage.append(self._cr.fetchall())   
                     self._cr.execute("SELECT price_subtotal FROM account_move_line where account_id=1394 AND id="+str(int(i[0])))
                     freight_out.append(self._cr.fetchall())
-                    self._cr.execute("SELECT price_subtotal FROM account_move_line where account_id=1393 AND id="+str(int(i[0])))
+                    self._cr.execute("SELECT price_subtotal FROM account_move_line where account_id in (1393,1992) AND id="+str(int(i[0])))
                     aduana_usa.append(self._cr.fetchall())
                     self._cr.execute("SELECT price_subtotal FROM account_move_line where account_id=1378 AND id="+str(int(i[0])))
                     adjustment.append(self._cr.fetchall())  
@@ -229,16 +228,13 @@ class SaleSettlementsWizard(models.TransientModel):
                                                                                 if i.product_id.id  not in idVar:
                                                                                   if any(i.product_id.id in code for code in subAmount):
                                                                                     var_price_unit_hidden=float(x[1])/i.qty_received
-                                                                                    logging.info(var_price_unit_hidden)
                                                                                     var_res=(maneuversSum+storageSum+adjustmentSum)/sumBox
-                                                                                    logging.info(var_res)
                                                                                     var_price_unit_hidden=var_price_unit_hidden-var_res 
-                                                                                    logging.info(var_price_unit_hidden)
-
+                                                                                    logging.info(var_price_unit_hidden*i.qty_received)
                                                                                     var.append((0, 0,  {"date": fecha, "product_id": i.product_id.id,
                                                                                                 "product_uom": i.product_uom.id, "price_unit": var_price_unit_hidden,
                                                                                                 "box_emb":i.product_qty, "box_rec": i.qty_received,
-                                                                                                "amount": float(x[1])}))
+                                                                                                "amount": float(var_price_unit_hidden*i.qty_received)}))
                                                                                     idVar.append(i.product_id.id)
                                                                                                                                                                                     
                                                         else:

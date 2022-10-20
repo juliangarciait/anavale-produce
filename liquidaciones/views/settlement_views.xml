@@ -50,6 +50,7 @@
                                 <field name="res_total" attrs="{'invisible': True}" />
                                 <field name="box_emb_total" attrs="{'invisible': True}" />
                                 <field name="box_rec_total" attrs="{'invisible': True}" />
+                                <field name="total_amount" force_save="1"  attrs="{'invisible': True}"/>
                                 <field name="total" />
                                 <field name="settlement" attrs="{'invisible': [('price_type','=', 'open')]}" />
 
