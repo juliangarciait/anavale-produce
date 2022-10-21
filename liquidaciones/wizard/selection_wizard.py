@@ -229,7 +229,7 @@ class SaleSettlementsWizard(models.TransientModel):
                                                                                   if any(i.product_id.id in code for code in subAmount):
                                                                                     var_price_unit_hidden=float(x[1])/i.qty_received
                                                                                     var_res=(maneuversSum+storageSum+adjustmentSum)/sumBox
-                                                                                    var_price_unit_hidden=var_price_unit_hidden-var_res 
+                                                                                    #var_price_unit_hidden=var_price_unit_hidden-var_res 
                                                                                     logging.info(var_price_unit_hidden*i.qty_received)
                                                                                     var.append((0, 0,  {"date": fecha, "product_id": i.product_id.id,
                                                                                                 "product_uom": i.product_uom.id, "price_unit": var_price_unit_hidden,

@@ -193,29 +193,36 @@ class SettlementsInherit(models.Model):
             line.update({'commission': ((line.price_unit*line.box_rec)*(self.commission_percentage/100))})
             line.update({'total': (line.amount-line.commission)})
 
+    
 
-    @api.onchange('maneuvers','storage','adjustment', 'settlements_line_ids.amount','settlements_line_ids','settlements_line_ids.box_rec')
+    @api.onchange('ajuste_precio')
+    def _compute_line_ajuste_precio(self):
+        for line in self.settlements_line_ids:
+            line.update({'price_unit': ((line.price_unit-self.ajuste_precio))})
+
+
+    @api.onchange('calculated_sales')
     def _compute_line_price_unit(self):
         sumBox=0
         sumBox2=0
-        amount=0
         for line in self.settlements_line_ids:
                sumBox2 =sumBox2+ float(line.box_rec)
         for line in self.settlements_line_ids:
                 sumBox=sumBox+ float(line.box_rec)
+        var_res=(self.maneuvers+self.storage+self.adjustment)/sumBox
+        self.box_emb_total =sumBox
+        self.box_rec_total = sumBox2
+        for line in self.settlements_line_ids:
+                if  line.box_rec>0 and sumBox>0:
+                        var_price_unit_hidden=line.amount/line.box_rec
+                        line.update({'price_unit': (var_price_unit_hidden-var_res)})
+                        line.update({'commission': ((line.price_unit*line.box_rec)*(self.commission_percentage/100))})
+                        line.update({'amount': ((line.price_unit*line.box_rec))})
+        amount=0
         for line in self.settlements_line_ids:
                     amount=amount+line.amount
                 
         self.total_amount=amount
-        self.box_emb_total =sumBox
-        self.box_rec_total = sumBox2
-        for line in self.settlements_line_ids:
-          if   line.box_rec>0 and sumBox>0:
-            var_price_unit_hidden=line.amount/line.box_rec
-            var_res=(self.maneuvers+self.storage+self.adjustment)/sumBox
-            line.update({'price_unit': (var_price_unit_hidden)})
-            logging.info(line.price_unit)
-            line.update({'commission': ((line.price_unit*line.box_rec)*(self.commission_percentage/100))})
 
 
 
@@ -292,6 +299,8 @@ class SettlementsInherit(models.Model):
     check_freight_out=fields.Boolean()
     check_freight_in=fields.Boolean()
     check_aduana=fields.Boolean()
+    ajuste_precio=fields.Float(
+         tracking=True, string="Ajuste de precio")
     note = fields.Char(tracking=True, string="Note")
     journey = fields.Char( tracking=True, string="Journey")
     company = fields.Char( tracking=True, string="Company")
@@ -319,7 +328,6 @@ class SettlementsInheritLines(models.Model):
     @api.model
     @api.onchange('price_unit', 'box_rec')
     def _get_amount(self):
-        logging.info('kio'*500)
         for line in self:
             line.amount = line.price_unit*line.box_rec
 
