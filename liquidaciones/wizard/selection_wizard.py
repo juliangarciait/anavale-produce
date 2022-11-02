@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from dataclasses import Field
-from email.policy import default
 from odoo import fields, models, api
 from odoo.exceptions import UserError
 import logging
