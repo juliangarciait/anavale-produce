@@ -63,11 +63,12 @@ class SaleSettlementsWizard(models.TransientModel):
 
 
         values = []
+        data = []
         for x in datap:
             self._cr.execute("SELECT id FROM stock_picking WHERE id="+str(int(x[0]))+" AND state LIKE 'done'")
             data = self._cr.fetchone()
-        
-        self._cr.execute("SELECT lot_id FROM stock_move_line where picking_id="+str(int(data[0])))
+        if data:
+            self._cr.execute("SELECT lot_id FROM stock_move_line where picking_id="+str(int(data[0])))
         data2 = self._cr.fetchall()
         
         res = []
@@ -98,6 +99,7 @@ class SaleSettlementsWizard(models.TransientModel):
                 res_list.append(values3[i])
 
         values4= []
+        tagNote = False
         for x in res_list:
             for j in x:
                 self._cr.execute("SELECT account_move_line_id FROM account_analytic_tag_account_move_line_rel where account_analytic_tag_id="+str(int(j[0])))
@@ -211,7 +213,7 @@ class SaleSettlementsWizard(models.TransientModel):
         
         aduana_total=aduana_mexSum+aduana_usaSum
 
-        string =str(tagNote[0])
+        string = tagNote and str(tagNote[0]) or ''
         sumBox=0
         for i in purchase_rec.order_line: #3
             if i.product_id:
@@ -271,8 +273,9 @@ class SaleSettlementsWizard(models.TransientModel):
             # 'res_id': self.partner_id.id,
             'type': 'ir.actions.act_window',
             'view_type': 'form',
-            'view_mode': 'form',
+            'view_mode': 'tree,form',
             'name': 'Liquidaciones',
+            'domain': [('order_id', '=', purchase_rec.id)],
             'context': {'default_settlements_line_ids': var,
                         'default_user_res_partner': part[0],
                         'default_date': fecha,
@@ -298,12 +301,10 @@ class SaleSettlementsWizard(models.TransientModel):
                         'default_storage_unic': storageSum,
                         'default_aduana_unic': aduana_total,
                         'default_adjustment_unic': adjustmentSum,
+                        'default_order_id': purchase_rec.id,
                         'default_price_type': self.price_type},
-            'view_id': self.env.ref('liquidaciones.view_settlements').id
+                        
+            'views': [(self.env.ref('liquidaciones.view_settlements_tree').id, 'tree'), (self.env.ref('liquidaciones.view_settlements').id, 'form')],
         }
-
-class SsttlementsStockPicking(models.Model):
-    _inherit = 'stock.picking'
-    
 
     
