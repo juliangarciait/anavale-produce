@@ -50,6 +50,7 @@
                                 <field name="res_total" attrs="{'invisible': True}" />
                                 <field name="box_emb_total" attrs="{'invisible': True}" />
                                 <field name="box_rec_total" attrs="{'invisible': True}" />
+                                <field name="total_amount" force_save="1"  attrs="{'invisible': True}"/>
                                 <field name="total" />
                                 <field name="settlement" attrs="{'invisible': [('price_type','=', 'open')]}" />
 
@@ -72,15 +73,20 @@
                                 </div>
 
                                 <label for="user_res_partner" attrs="{'invisible': True}" />
-                                <div class="o_row" attrs="{'invisible': True}">
-                                    <field name="user_res_partner"/>
+                                <div class="o_row" attrs="{'invisible': True}" style="margin-right:10px;">
+                                    <field name="user_res_partner" style="margin-right:10px;"/>
+                                </div>
+                                
+                                <label for="ajuste_precio" style="margin-top:40px;"/>
+                                <div class="o_row" style="margin-top:40px;">
+                                    <field name="ajuste_precio" />
                                 </div>
                             </group>
                         </div>
 
                         <div class="oe_right">
                             <group>
-                                <field name="calculated_sales" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                <field name="calculated_sales" attrs="{'invisible': [('price_type','=', 'close')]}" readonly="1" />
                                 <label for="commission_percentage" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 <div class="o_row" attrs="{'invisible': [('price_type','=', 'close')]}">
                                     <field name="commission_percentage" />

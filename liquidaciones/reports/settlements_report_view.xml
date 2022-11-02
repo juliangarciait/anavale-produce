@@ -97,17 +97,18 @@
                                 </tr> 
                                  <tr>
                                     <td>   
+                                    <strong>Total: </strong>
                                     </td>
 
                                     <td>
                                     </td>
 
                                     <td>
-                                        <span t-field="property.box_emb_total"/>
+                                      <strong>  <span t-field="property.box_emb_total"/></strong>
                                     </td>
 
                                     <td>
-                                        <span t-field="property.box_rec_total"/>
+                                       <strong> <span t-field="property.box_rec_total"/></strong>
                                     </td>
 
                                     <td>
@@ -116,7 +117,7 @@
                                    
                                      <t t-if="property.price_type=='open'">
                                       <td>
-                                    <strong><span t-field="property.total_subtotal"/></strong>
+                                    <strong><span t-field="property.total_amount"/></strong>
                                     </td>
 
                                     <td>
