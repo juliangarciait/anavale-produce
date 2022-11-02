@@ -312,6 +312,8 @@ class SettlementsInherit(models.Model):
     # Costo del viaje, este lo escribe el usuario
     freight = fields.Float( tracking=True, string="Flete")
 
+    order_id = fields.Many2one("purchase.order")
+
    
     def action_print_report(self):
         #appoinments = self.env['sale.settlements'].search_read([])

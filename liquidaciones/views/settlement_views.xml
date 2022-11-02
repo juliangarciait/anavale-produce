@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_settlements_tree" model="ir.ui.view">
+        <field name="name">Liquidaciones</field>
+        <field name="model">sale.settlements</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="note"/>
+            </tree>
+        </field>
+    </record>
     <!-- Vista de Liquidaciones -->
     <record id="view_settlements" model="ir.ui.view">
         <field name="name">Liquidaciones</field>
