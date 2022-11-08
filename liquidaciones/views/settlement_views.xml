@@ -95,7 +95,7 @@
 
                         <div class="oe_right">
                             <group>
-                                <field name="calculated_sales" attrs="{'invisible': [('price_type','=', 'close')]}" readonly="1" />
+                                <field name="calculated_sales" invisible="1" readonly="1" />
                                 <label for="commission_percentage" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 <div class="o_row" attrs="{'invisible': [('price_type','=', 'close')]}">
                                     <field name="commission_percentage" />
@@ -150,17 +150,16 @@
                     <!-- Tabla de productos -->
                     <field name="settlements_line_ids" mode="tree,kanban">
                         <tree editable="bottom" string="Lineas de Liquidaciones">
-                            <field name="date" />
                             <field name="product_id" />
-                            <field name="product_uom" />
                             <field name="box_emb" />
                             <field name="box_rec" />
+                            <field name="price_unit_origin" string="P.U. original"/>
                             <field name="price_unit" />
                             <field name="amount" />
 <!--                             <field name="freight" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" />
                             <field name="aduanas" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" /> -->
-                            <field name="commission" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" />
-                            <field name="total" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" />
+                            <field name="commission" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="0"/>
+                            <field name="total" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="0"/>
                         </tree>
                     </field>
                     <!--  /////////////////////////////////////////////////// -->

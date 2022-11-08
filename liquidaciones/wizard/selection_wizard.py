@@ -38,256 +38,80 @@ class SaleSettlementsWizard(models.TransientModel):
     def settlements_report_button_function(self):
         purchase_ids = self.env.context.get('active_ids', [])
         purchase_rec = self.env['purchase.order'].browse(purchase_ids)
-
         fecha = purchase_rec.date_order
-
+        picking_ids = purchase_rec.picking_ids.filtered(lambda picking: picking.state == 'done') # Se obtinenen pickings de la orden de compra
+        lot_ids= [sml.lot_id for sml in picking_ids.move_line_ids]
+        analytic_tag_ids = self.env['account.analytic.tag']
+        for lot in lot_ids:
+            analytic_tag_ids += lot.analytic_tag_ids
+        move_line_ids= self.env['account.move.line']
+        tag_name = ''
+        for tag_id in analytic_tag_ids:
+            move_line_ids += self.env['account.move.line'].search([('analytic_tag_ids', 'in', tag_id.ids)])
+            tag_name += tag_id.name + ' - '
         
-                
-
-    #select * from purchase_order_stock_picking_rel where purchase_order_id=3790
-
-        self._cr.execute("SELECT stock_picking_id FROM purchase_order_stock_picking_rel where purchase_order_id="+str(int(purchase_rec.id)))
-        datap = self._cr.fetchall()
-
-        self._cr.execute("select user_id from purchase_order where id="+str(int(purchase_rec.id)))
-        pur = self._cr.fetchone()
-
-        self._cr.execute("select partner_id from  res_users where id="+str(int(pur[0])))
-        user = self._cr.fetchone()
-
-        self._cr.execute("select name from res_partner where id="+str(int(user[0])))
-        part = self._cr.fetchone()
-
-        logging.info('hola'*500)
-        logging.info(part[0])
-
-
-        values = []
-        data = []
-        for x in datap:
-            self._cr.execute("SELECT id FROM stock_picking WHERE id="+str(int(x[0]))+" AND state LIKE 'done'")
-            data = self._cr.fetchone()
-        if data:
-            self._cr.execute("SELECT lot_id FROM stock_move_line where picking_id="+str(int(data[0])))
-        data2 = self._cr.fetchall()
-        
-        res = []
-        for ele in data2:
-         if ele[0] is not None :
-             res.append(ele)
-
-        logging.info("res"*500)
-        logging.info(res)
-
-        values2 = []
-        for x in res:
-            self._cr.execute("SELECT account_analytic_tag_id FROM account_analytic_tag_stock_production_lot_rel WHERE stock_production_lot_id="+str(int(x[0])))
-            values2.append(self._cr.fetchall())
-
-
-        
-        values3= []
-        for x in values2:
-            for j in x:
-             self._cr.execute("select id from account_analytic_tag WHERE LENGTH(name)>5 and id="+str(int(j[0])))
-             values3.append(self._cr.fetchall())    
-        
-        #filtrar tags repetidos  
-        res_list = []
-        for i in range(len(values3)):
-            if values3[i] not in values3[i + 1:]:
-                res_list.append(values3[i])
-
-        values4= []
-        tagNote = False
-        for x in res_list:
-            for j in x:
-                self._cr.execute("SELECT account_move_line_id FROM account_analytic_tag_account_move_line_rel where account_analytic_tag_id="+str(int(j[0])))
-                values4.append(self._cr.fetchall())
-                self._cr.execute("SELECT name FROM account_analytic_tag WHERE id="+str(int(j[0])))
-                tagNote = self._cr.fetchone()
-
-
-        sales = []
-        freight_in = []
-        freight_out = []
-        maneuvers = []
-        storage = []
-        aduana_usa = []
+        po_product_ids = [line.product_id for line in purchase_rec.order_line]
+        sales = move_line_ids.filtered(lambda line: line.account_id.id == 38)
+        freight_in = move_line_ids.filtered(lambda line: line.account_id.id == 1387)
+        freight_out = move_line_ids.filtered(lambda line: line.account_id.id == 1394)
+        maneuvers = move_line_ids.filtered(lambda line: line.account_id.id == 1390)
+        storage = move_line_ids.filtered(lambda line: line.account_id.id == 1395)
+        aduana_usa = move_line_ids.filtered(lambda line: line.account_id.id in ((1393,1992)))
         aduana_mex = []
-        adjustment = []
-        amountVar=[]
-        amountVar2=[]
-        for x in values4:
-            if x:
-                for i in x:
-                    self._cr.execute("SELECT price_subtotal FROM account_move_line where account_id=38 AND id="+str(int(i[0])))
-                    sales.append(self._cr.fetchall()) 
-                    self._cr.execute("SELECT price_subtotal FROM account_move_line where account_id=1387 AND id="+str(int(i[0])))
-                    freight_in.append(self._cr.fetchall())  
-                    self._cr.execute("SELECT price_subtotal FROM account_move_line where account_id=1390 AND id="+str(int(i[0])))
-                    maneuvers.append(self._cr.fetchall())  
-                    self._cr.execute("SELECT price_subtotal FROM account_move_line where account_id=1395 AND id="+str(int(i[0])))
-                    storage.append(self._cr.fetchall())   
-                    self._cr.execute("SELECT price_subtotal FROM account_move_line where account_id=1394 AND id="+str(int(i[0])))
-                    freight_out.append(self._cr.fetchall())
-                    self._cr.execute("SELECT price_subtotal FROM account_move_line where account_id in (1393,1992) AND id="+str(int(i[0])))
-                    aduana_usa.append(self._cr.fetchall())
-                    self._cr.execute("SELECT price_subtotal FROM account_move_line where account_id=1378 AND id="+str(int(i[0])))
-                    adjustment.append(self._cr.fetchall())  
-                    for j in purchase_rec.order_line:          
-                        if j.product_id:
-                          self._cr.execute("SELECT product_id,price_subtotal FROM account_move_line where account_id=38 AND id="+str(int(i[0]))+" AND product_id="+str(int(j.product_id)))
-                          amountVar.append(self._cr.fetchall()) 
-                          self._cr.execute("SELECT product_id FROM account_move_line where account_id=38 AND id="+str(int(i[0]))+" AND product_id="+str(int(j.product_id)))
-                          amountVar2.append(self._cr.fetchall())
-                          #self._cr.execute("SELECT product_id FROM account_move_line where account_id=38 AND id="+str(int(i[0]))+" AND product_id="+str(int(j.product_id)))
-                          #amountVar2.append(self._cr.fetchall())  
-
-        subAmount=[]
-
-        lista_final = [elemento for elemento in amountVar if elemento]
-        lista_casifinal2 = [elemento for elemento in amountVar2 if elemento]
-
-        lista_final2 = []
-        for i in range(len(lista_casifinal2)):
-            if lista_casifinal2[i] not in lista_casifinal2[i + 1:]:
-                lista_final2.append(lista_casifinal2[i])
-
-        
-
-        
-        for x in lista_final2:
-                    salesSum = 0
-                    if x:
-                        for j in lista_final:
-                            if j:
-                                if float(x[0][0]) == float(j[0][0]):
-                                    salesSum = salesSum + float(j[0][1])
-
-                        subAmount.append([x[0][0],salesSum]) 
-
-
-        idVar = []
-        var = []
-        salesSum = 0
-        for x in sales:
-            if x:
-             salesSum = salesSum + float(x[0][0])
-
-        freight_inSum = 0
-        for x in freight_in:
-            if x:
-             freight_inSum = freight_inSum + float(x[0][0])
-
-        freight_outSum = 0
-        for x in freight_out:
-            if x:
-             freight_outSum = freight_outSum + float(x[0][0])
-
-        maneuversSum = 0
-        for x in maneuvers:
-            if x:
-             maneuversSum = maneuversSum + float(x[0][0])
-
-        storageSum = 0
-        for x in storage:
-            if x:
-             storageSum = storageSum + float(x[0][0])
-
-        adjustmentSum = 0
-        for x in adjustment:
-            if x:
-             adjustmentSum = adjustmentSum + float(x[0][0])
-
-        aduana_usaSum = 0
-        for x in aduana_usa:
-            if x:
-             aduana_usaSum = aduana_usaSum + float(x[0][0])
-        
-        aduana_mexSum = 0
-        for x in aduana_mex:
-            if x:
-             aduana_mexSum = aduana_mexSum + float(x[0][0])
-
-        
-        aduana_total=aduana_mexSum+aduana_usaSum
-
-        string = tagNote and str(tagNote[0]) or ''
-        sumBox=0
-        for i in purchase_rec.order_line: #3
-            if i.product_id:
-                sumBox=sumBox+ float(i.qty_received)
-
-        logging.info("price_type"*500)
-        logging.info(self.price_type)
-        logging.info(self.price_type=='open')
-        if str(self.price_type) =='open':
-          for i in purchase_rec.order_line: #3
-            if i.product_id:
-                for x in subAmount: #2
-                                                        if float(x[0]) == float(i.product_id.id):
-                                                                                if i.product_id.id  not in idVar:
-                                                                                  if any(i.product_id.id in code for code in subAmount):
-                                                                                    var_price_unit_hidden=float(x[1])/i.qty_received
-                                                                                    var_res=(maneuversSum+storageSum+adjustmentSum)/sumBox
-                                                                                    #var_price_unit_hidden=var_price_unit_hidden-var_res 
-                                                                                    logging.info(var_price_unit_hidden*i.qty_received)
-                                                                                    var.append((0, 0,  {"date": fecha, "product_id": i.product_id.id,
-                                                                                                "product_uom": i.product_uom.id, "price_unit": var_price_unit_hidden,
-                                                                                                "box_emb":i.product_qty, "box_rec": i.qty_received,
-                                                                                                "amount": float(var_price_unit_hidden*i.qty_received)}))
-                                                                                    idVar.append(i.product_id.id)
-                                                                                                                                                                                    
-                                                        else:
-                                                                            
-                                                                                        if i.product_id.id  not in idVar:
-                                                                                            if not any(i.product_id.id in code for code in subAmount):
-                                                                                           #if i.product_id.id  not in subAmount[0]:
-                                                                                            #logging.info(subAmount)
-                                                                                             var.append((0, 0,  {"date": fecha, "product_id": i.product_id.id,
-                                                                                                        "product_uom": i.product_uom.id, "price_unit": i.price_unit,
-                                                                                                        "box_emb":i.product_qty, "box_rec":  i.qty_received,
-                                                                                                        "amount": 0}))   
-                                                                                            
-                                                                                             idVar.append(i.product_id.id)
-                                                                                             logging.info(var)        
-                                                                                             logging.info(i.qty_received)      
+        adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378)
+        amountVar = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids)
+        subAmount = {}
+        for line in amountVar:
+            salesSum = subAmount.get(line.product_id.id, 0)
+            salesSum += line.price_subtotal
+            subAmount[line.product_id.id] = salesSum
+        _logger.info("_"*700)
+        _logger.info(subAmount)
+        product_line = []
+        new_lines = []
+        freight_inSum = sum([line.price_subtotal for line in freight_in])
+        freight_outSum = sum([line.price_subtotal for line in freight_out])
+        maneuversSum = sum([line.price_subtotal for line in maneuvers])
+        storageSum = sum([line.price_subtotal for line in storage])
+        adjustmentSum = sum([line.price_subtotal for line in adjustment])
+        aduana_usaSum = sum([line.price_subtotal for line in aduana_usa])
+        aduana_mexSum = sum([line.price_subtotal for line in aduana_mex])
+        aduana_total = aduana_mexSum + aduana_usaSum        
+        if str(self.price_type) == 'open':
+            for line in purchase_rec.order_line: #3
+                subtotal = subAmount.get(line.product_id.id, False)
+                var_price_unit_hidden = subtotal/line.qty_received
+                new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
+                            "product_uom": line.product_uom.id, "price_unit": var_price_unit_hidden, "price_unit_origin": var_price_unit_hidden,
+                            "box_emb":line.product_qty, "box_rec": line.qty_received,
+                            "amount": float(var_price_unit_hidden * line.qty_received)}))
+                product_line.append(line.product_id.id)
         else:
-                for i in purchase_rec.order_line: #3
-                 if i.product_id:
-                                                                                    var.append((0, 0,  {"date": fecha, "product_id": i.product_id.id,
-                                                                                                "product_uom": i.product_uom.id, "price_unit":  i.price_unit,
-                                                                                                "box_emb":i.product_qty, "box_rec": i.qty_received,
-                                                                                                "amount": float(i.qty_received*i.price_unit)}))
-                                                                                    idVar.append(i.product_id.id)
-                                                                                      
-
-
-                                                                                   
-
-
+            for line in purchase_rec.order_line: #3
+                new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
+                            "product_uom": line.product_uom.id, "price_unit": line.price_unit, "price_unit_origin": line.price_unit,
+                            "box_emb": line.product_qty, "box_rec": line.qty_received,
+                            "amount": float(line.qty_received * line.price_unit)}))
+                product_line.append(line.product_id.id)
         return {
-
             'res_model': 'sale.settlements',
-            # 'res_id': self.partner_id.id,
             'type': 'ir.actions.act_window',
             'view_type': 'form',
             'view_mode': 'tree,form',
             'name': 'Liquidaciones',
             'domain': [('order_id', '=', purchase_rec.id)],
-            'context': {'default_settlements_line_ids': var,
-                        'default_user_res_partner': part[0],
+            'context': {'default_settlements_line_ids': new_lines,
+                        'default_user_res_partner': purchase_rec.user_id and purchase_rec.user_id.partner_id.name or '',
                         'default_date': fecha,
-                        'default_total': salesSum,
+                        'default_total': sum([sale.price_subtotal for sale in sales]),
                         'default_check_maneuvers': self.maneuvers,
                         'default_check_adjustment': self.adjustment,
                         'default_check_storage': self.storage,
                         'default_check_freight_out': self.freight_out,
                         'default_check_freight_in': self.freight_in,
                         'default_check_aduana': self.aduana,
-                        'default_note': string[0:3],
-                        'default_journey': string[-4:],
+                        'default_note': tag_name[0:3],
+                        'default_journey': tag_name[-4:],
                         'default_company': str(purchase_rec.partner_id.name),
                         'default_freight_in': freight_inSum,
                         'default_freight_out': freight_outSum,
