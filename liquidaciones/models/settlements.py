@@ -195,7 +195,9 @@ class SettlementsInherit(models.Model):
         for line in self.settlements_line_ids:
             amount=amount+line.amount
         self.total_amount=amount
-
+    
+    company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
+    currency_id = fields.Many2one('res.currency', related='company_id.currency_id')
     settlements_sale_order_ids = fields.One2many(
         'purchase.order', 'settlement_id', 'Lineas de Trabajo')
     settlements_line_ids = fields.One2many(
@@ -318,4 +320,7 @@ class SettlementsInheritLines(models.Model):
     commission = fields.Float(
         tracking=True, string="Comission")
     total = fields.Float(string="Total", tracking=True)
+    commission_rel = fields.Float(
+        tracking=True, string="Comission", related="commission")
+    total_rel = fields.Float(string="Total", tracking=True, related="total")
     settlement_id = fields.Many2one('sale.settlements')

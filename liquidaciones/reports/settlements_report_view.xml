@@ -73,17 +73,17 @@
                                         <span t-field="offer.box_rec"/>
                                     </td>
                                     <td>
-                                        <span t-field="offer.price_unit"/>
+                                        <span t-field="offer.price_unit" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                     </td>
                                     <td>
-                                        <span t-field="offer.amount"/>
+                                        <span t-field="offer.amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                     </td>
                             <t t-if="property.price_type=='open'">
                                     <td>
-                                        <span t-field="offer.commission"/>
+                                        <span t-field="offer.commission" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                     </td>
                                     <td>
-                                        <span t-field="offer.total"/>
+                                        <span t-field="offer.total" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                     </td>
                             </t>     
                                 </tr> 
@@ -96,11 +96,11 @@
                                     </td>
 
                                     <td>
-                                      <strong>  <span t-field="property.box_emb_total"/></strong>
+                                      <strong>  <span t-field="property.box_emb_total" widget="monetary" options="{'currency_field': 'currency_id'}"/></strong>
                                     </td>
 
                                     <td>
-                                       <strong> <span t-field="property.box_rec_total"/></strong>
+                                       <strong> <span t-field="property.box_rec_total" widget="monetary" options="{'currency_field': 'currency_id'}"/></strong>
                                     </td>
 
                                     <td>
@@ -109,15 +109,15 @@
                                    
                                      <t t-if="property.price_type=='open'">
                                       <td>
-                                    <strong><span t-field="property.total_amount"/></strong>
+                                    <strong><span t-field="property.total_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/></strong>
                                     </td>
 
                                     <td>
-                                      <strong>  <span t-field="property.commission"/></strong>
+                                      <strong>  <span t-field="property.commission" widget="monetary" options="{'currency_field': 'currency_id'}"/></strong>
                                     </td>
 
                                     <td>
-                                       <strong> <span t-field="property.total_total"/></strong>
+                                       <strong> <span t-field="property.total_total" widget="monetary" options="{'currency_field': 'currency_id'}"/></strong>
                                     </td>
                             </t>     
                                 </tr> 
