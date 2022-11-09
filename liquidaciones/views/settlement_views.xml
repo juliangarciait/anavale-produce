@@ -156,10 +156,10 @@
                             <field name="price_unit_origin" string="P.U. original"/>
                             <field name="price_unit" />
                             <field name="amount" />
-<!--                             <field name="freight" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" />
-                            <field name="aduanas" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" /> -->
-                            <field name="commission" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="0"/>
-                            <field name="total" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="0"/>
+                            <field name="commission" invisible="1"/>
+                            <field name="total" invisible="1"/>
+                            <field name="commission_rel" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"/>
+                            <field name="total_rel" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"/>
                         </tree>
                     </field>
                     <!--  /////////////////////////////////////////////////// -->
