@@ -41,23 +41,23 @@ class SaleSettlementsWizard(models.TransientModel):
         lot_ids= [sml.lot_id for sml in picking_ids.move_line_ids]
         analytic_tag_ids = self.env['account.analytic.tag']
         for lot in lot_ids:
-            analytic_tag_ids += lot.analytic_tag_ids
+            analytic_tag_ids += lot.analytic_tag_ids.filtered(lambda tag: len(tag.name)>5)
         move_line_ids= self.env['account.move.line']
         tag_name = ''
         for tag_id in analytic_tag_ids:
-            move_line_ids += self.env['account.move.line'].search([('analytic_tag_ids', 'in', tag_id.ids)])
+            move_line_ids += self.env['account.move.line'].search([('analytic_tag_ids', 'in', tag_id.ids), ('move_id.state', '=', 'posted')])
             tag_name += tag_id.name + ' - '
-        
         po_product_ids = [line.product_id for line in purchase_rec.order_line]
-        sales = move_line_ids.filtered(lambda line: line.account_id.id == 38)
-        freight_in = move_line_ids.filtered(lambda line: line.account_id.id == 1387)
-        freight_out = move_line_ids.filtered(lambda line: line.account_id.id == 1394)
-        maneuvers = move_line_ids.filtered(lambda line: line.account_id.id == 1390)
-        storage = move_line_ids.filtered(lambda line: line.account_id.id == 1395)
-        aduana_usa = move_line_ids.filtered(lambda line: line.account_id.id in ((1393,1992)))
+        sales = move_line_ids.filtered(lambda line: line.account_id.id == 38 )
+        logging.info(sales)
+        freight_in = move_line_ids.filtered(lambda line: line.account_id.id == 1387 and line.move_id.state == 'posted')
+        freight_out = move_line_ids.filtered(lambda line: line.account_id.id == 1394 and line.move_id.state == 'posted')
+        maneuvers = move_line_ids.filtered(lambda line: line.account_id.id == 1390 and line.move_id.state == 'posted')
+        storage = move_line_ids.filtered(lambda line: line.account_id.id == 1395 and line.move_id.state == 'posted')
+        aduana_usa = move_line_ids.filtered(lambda line: line.account_id.id in ((1393,1992)) and line.move_id.state == 'posted')
         aduana_mex = []
-        adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378)
-        amountVar = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids)
+        adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
+        amountVar = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids and line.move_id.state == 'posted')
         subAmount = {}
         for line in amountVar:
             salesSum = subAmount.get(line.product_id.id, 0)
