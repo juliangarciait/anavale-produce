@@ -45,12 +45,13 @@ class SaleSettlementsWizard(models.TransientModel):
             analytic_tag_ids += lot.analytic_tag_ids.filtered(lambda tag: len(tag.name)>5)
         move_line_ids= self.env['account.move.line']
         tag_name = ''
+        move_line_ids = self.env['account.move.line'].search([('analytic_tag_ids', 'in', analytic_tag_ids.ids), ('move_id.state', '=', 'posted'), ('product_id', 'in', [p.id for p in po_product_ids])])
         for tag_id in analytic_tag_ids:
-            move_line_ids += self.env['account.move.line'].search([('analytic_tag_ids', 'in', tag_id.ids), ('move_id.state', '=', 'posted'), ('product_id', 'in', [p.id for p in po_product_ids])])
             tag_name += tag_id.name + ' - '
 
         sales = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids)
-        logging.info(sales)
+        logging.info("%"*800)
+        logging.info(sales.read())
         freight_in = move_line_ids.filtered(lambda line: line.account_id.id == 1387 and line.move_id.state == 'posted')
         freight_out = move_line_ids.filtered(lambda line: line.account_id.id == 1394 and line.move_id.state == 'posted')
         maneuvers = move_line_ids.filtered(lambda line: line.account_id.id == 1390 and line.move_id.state == 'posted')
