@@ -48,7 +48,7 @@ class SaleSettlementsWizard(models.TransientModel):
             move_line_ids += self.env['account.move.line'].search([('analytic_tag_ids', 'in', tag_id.ids), ('move_id.state', '=', 'posted')])
             tag_name += tag_id.name + ' - '
         po_product_ids = [line.product_id for line in purchase_rec.order_line]
-        sales = move_line_ids.filtered(lambda line: line.account_id.id == 38 )
+        sales = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids)
         logging.info(sales)
         freight_in = move_line_ids.filtered(lambda line: line.account_id.id == 1387 and line.move_id.state == 'posted')
         freight_out = move_line_ids.filtered(lambda line: line.account_id.id == 1394 and line.move_id.state == 'posted')
