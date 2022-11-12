@@ -36,6 +36,7 @@ class SaleSettlementsWizard(models.TransientModel):
     def settlements_report_button_function(self):
         purchase_ids = self.env.context.get('active_ids', [])
         purchase_rec = self.env['purchase.order'].browse(purchase_ids)
+        po_product_ids = [line.product_id for line in purchase_rec.order_line]
         fecha = purchase_rec.date_order
         picking_ids = purchase_rec.picking_ids.filtered(lambda picking: picking.state == 'done') # Se obtinenen pickings de la orden de compra
         lot_ids= [sml.lot_id for sml in picking_ids.move_line_ids]
@@ -45,9 +46,9 @@ class SaleSettlementsWizard(models.TransientModel):
         move_line_ids= self.env['account.move.line']
         tag_name = ''
         for tag_id in analytic_tag_ids:
-            move_line_ids += self.env['account.move.line'].search([('analytic_tag_ids', 'in', tag_id.ids), ('move_id.state', '=', 'posted')])
+            move_line_ids += self.env['account.move.line'].search([('analytic_tag_ids', 'in', tag_id.ids), ('move_id.state', '=', 'posted'), ('product_id', 'in', po_product_ids.ids)])
             tag_name += tag_id.name + ' - '
-        po_product_ids = [line.product_id for line in purchase_rec.order_line]
+
         sales = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids)
         logging.info(sales)
         freight_in = move_line_ids.filtered(lambda line: line.account_id.id == 1387 and line.move_id.state == 'posted')
