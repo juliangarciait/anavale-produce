@@ -28,6 +28,9 @@ class SettlementsSaleOrder(models.Model):
 class SettlementsInherit(models.Model):
     _name = 'sale.settlements'
 
+    def close_settlements(self):
+        self.write({'status': 'close'})
+
     @api.model
     @api.onchange('total', 'settlement','freight_in','aduana','maneuvers','adjustment','storage','freight_out','commission')
     def _compute_utility(self):
@@ -260,6 +263,8 @@ class SettlementsInherit(models.Model):
                                    ('close','Closed price')], 
                                    String="Tipo de precio", required=True,
                                    help="Please select a type of price.")
+    status = fields.Selection([('draft','Borrador'),
+                                   ('close','Cerrado')], required=True, default = 'draft')
     check_maneuvers=fields.Boolean()
     check_adjustment=fields.Boolean()
     check_storage=fields.Boolean()

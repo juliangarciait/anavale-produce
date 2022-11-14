@@ -6,15 +6,32 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="note"/>
+                <field name="status"/>
             </tree>
         </field>
     </record>
+
+    <record id="view_settlements_tree_no_create" model="ir.ui.view">
+        <field name="name">Liquidaciones</field>
+        <field name="model">sale.settlements</field>
+        <field name="arch" type="xml">
+            <tree create="0">
+                <field name="note"/>
+                <field name="status"/>
+            </tree>
+        </field>
+    </record>
+
     <!-- Vista de Liquidaciones -->
     <record id="view_settlements" model="ir.ui.view">
         <field name="name">Liquidaciones</field>
         <field name="model">sale.settlements</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <field name="status" widget="statusbar"/>
+                    <button name="close_settlements" type="object" string="Close" attrs="{'invisible': [('status', '!=', 'draft')]}"/>
+                </header>
                 <sheet>
                       <!-- tabla de liquidaciones para precio abierto -->
                   
@@ -35,7 +52,273 @@
                                 <field name="company" style="width: 20%" />
                             </div>
                         </group>
-  <div attrs="{'invisible': [('price_type','=', 'close')]}">
+                        <div attrs="{'invisible': [('price_type','=', 'close')]}">
+                        <div class="oe_left">
+                            <group>
+                                <div class="oe_tittle">
+                                    <h2>
+                                        <span>
+                                      Viaje
+                                    </span>
+                                    </h2>
+                                </div>
+                                <field name="check_maneuvers" attrs="{'invisible': True}" />
+                                <field name="price_type" attrs="{'invisible': True}" />
+                                <field name="maneuvers_unic" attrs="{'invisible': True}" />
+                                <field name="adjustment_unic" attrs="{'invisible': True}" />
+                                <field name="storage_unic" attrs="{'invisible': True}" />
+                                <field name="check_adjustment" attrs="{'invisible': True}" />
+                                <field name="check_storage" attrs="{'invisible': True}" />
+                                <field name="check_freight_out" attrs="{'invisible': True}" />
+                                <field name="check_freight_in" attrs="{'invisible': True}" />
+                                <field name="check_aduana" attrs="{'invisible': True}" />
+                                <field name="date" attrs="{'invisible': True}" />
+                                <field name="res_total" attrs="{'invisible': True}" />
+                                <field name="box_emb_total" attrs="{'invisible': True}" />
+                                <field name="box_rec_total" attrs="{'invisible': True}" />
+                                <field name="total_amount" force_save="1"  attrs="{'invisible': True}"/>
+                                <field name="total" />
+                                <field name="settlement" attrs="{'invisible': [('price_type','=', 'open')]}" />
+
+                                <label for="storage" />
+                                <div class="o_row">
+                                    <field name="storage" attrs="{'readonly':[('check_storage','=',False)]}" />
+                                    <field name="check_storage" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                </div>
+
+                                <label for="adjustment" />
+                                <div class="o_row">
+                                    <field name="adjustment" attrs="{'readonly':[('check_adjustment','=',False)]}" />
+                                    <field name="check_adjustment" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                </div>
+
+                                <label for="maneuvers" />
+                                <div class="o_row">
+                                    <field name="maneuvers" attrs="{'readonly':[('check_maneuvers','=',False)]}" />
+                                    <field name="check_maneuvers" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                </div>
+
+                                <label for="user_res_partner" attrs="{'invisible': True}" />
+                                <div class="o_row" attrs="{'invisible': True}" style="margin-right:10px;">
+                                    <field name="user_res_partner" style="margin-right:10px;"/>
+                                </div>
+                                
+                                <label for="ajuste_precio" style="margin-top:40px;"/>
+                                <div class="o_row" style="margin-top:40px;">
+                                    <field name="ajuste_precio" />
+                                </div>
+                            </group>
+                        </div>
+
+                        <div class="oe_right">
+                            <group>
+                                <field name="calculated_sales" invisible="1" readonly="1" />
+                                <label for="commission_percentage" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                <div class="o_row" attrs="{'invisible': [('price_type','=', 'close')]}">
+                                    <field name="commission_percentage" />
+                                    <span>%%</span>
+                                </div>
+                                <label for="commission" attrs="{'invisible': [('price_type','=', 'close')]}"/>
+                                <div class="o_row" attrs="{'invisible': [('price_type','=', 'close')]}">
+                                    <field name="commission" force_save="1"/>
+                                </div>
+
+                                <label for="freight_out" />
+                                <div class="o_row">
+                                    <field name="freight_out" attrs="{'readonly':[('check_freight_out','=',False)]}" />
+                                    <field name="check_freight_out" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                </div>
+
+                                <label for="freight_in" />
+                                <div class="o_row">
+                                    <field name="freight_in" attrs="{'readonly':[('check_freight_in','=',False)]}" />
+                                    <field name="check_freight_in" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                </div>
+
+                                <label for="aduana" />
+                                <div class="o_row">
+                                    <field name="aduana" attrs="{'readonly':[('check_aduana','=',False)]}" />
+                                    <field name="check_aduana" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                </div>
+                                <div class="oe_tittle">
+                                    <h4>
+                                        <strong>
+                                            <span>
+                                    Utility:
+                                  </span>
+                                        </strong>
+                                        <field name="utility" force_save="1"/>
+
+                                        <label for="utility_percentage" />
+                                        <div class="o_row">
+                                            <field name="utility_percentage" force_save="1"/>
+                                            <span>%%</span>
+                                        </div>
+                                    </h4>
+
+                                </div>
+                                <footer>
+                                    <button string="Print" class="oe_highlight" type="object" name="action_print_report" />
+                                </footer>
+                            </group>
+                        </div>
+                    </div>
+<!--  /////////////////////////////////////////////////// -->
+                    <!-- Tabla de productos -->
+                    <field name="settlements_line_ids" mode="tree,kanban">
+                        <tree editable="bottom" string="Lineas de Liquidaciones">
+                            <field name="product_id" />
+                            <field name="box_emb" />
+                            <field name="box_rec" />
+                            <field name="price_unit_origin" string="P.U. original"/>
+                            <field name="price_unit" />
+                            <field name="amount" />
+                            <field name="commission" invisible="1"/>
+                            <field name="total" invisible="1"/>
+                            <field name="commission_rel" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"/>
+                            <field name="total_rel" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"/>
+                        </tree>
+                    </field>
+                    <!--  /////////////////////////////////////////////////// -->
+                    <div class="oe_right" attrs="{'invisible': [('price_type','=', 'close')]}">
+                            <group>
+                                <field name="freight_total" />
+                                <field name="aduana_total"/>
+                                <field name="total_subtotal" />
+                                <label for="total_total" />
+                                <div class="oe_tittle">
+                                    <field name="total_total"  />
+                                </div>
+                                
+                            </group>
+                        </div>
+                    <!-- tabla de liquidaciones para precio cerrado -->
+                    <div attrs="{'invisible': [('price_type','!=', 'close')]}">
+                        <div class="oe_left">
+                            <group>
+                                <div class="oe_tittle">
+                                    <h2>
+                                        <span>
+                                      Viaje
+                                    </span>
+                                    </h2>
+                                </div>
+                                <field name="check_maneuvers" attrs="{'invisible': True}" />
+                                <field name="price_type" attrs="{'invisible': True}" />
+                                <field name="maneuvers_unic" attrs="{'invisible': True}" />
+                                <field name="adjustment_unic" attrs="{'invisible': True}" />
+                                <field name="storage_unic" attrs="{'invisible': True}" />
+                                <field name="check_adjustment" attrs="{'invisible': True}" />
+                                <field name="check_storage" attrs="{'invisible': True}" />
+                                <field name="check_freight_out" attrs="{'invisible': True}" />
+                                <field name="check_freight_in" attrs="{'invisible': True}" />
+                                <field name="check_aduana" attrs="{'invisible': True}" />
+                                <field name="total" />
+                    
+                                <field name="settlement" attrs="{'invisible': [('price_type','=', 'open')]}" />
+
+                                <label for="freight_in" />
+                                <div class="o_row">
+                                    <field name="freight_in" attrs="{'readonly':[('check_freight_in','=',False)]}" />
+                                    <field name="check_freight_in" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                </div>
+
+                                <label for="aduana" />
+                                <div class="o_row">
+                                    <field name="aduana" attrs="{'readonly':[('check_aduana','=',False)]}" />
+                                    <field name="check_aduana" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                </div>
+
+                                <label for="maneuvers" />
+                                <div class="o_row">
+                                    <field name="maneuvers" attrs="{'readonly':[('check_maneuvers','=',False)]}" />
+                                    <field name="check_maneuvers" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                </div>
+
+                                <label for="adjustment" />
+                                <div class="o_row">
+                                    <field name="adjustment" attrs="{'readonly':[('check_adjustment','=',False)]}" />
+                                    <field name="check_adjustment" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                </div>
+
+                                <label for="storage" />
+                                <div class="o_row">
+                                    <field name="storage" attrs="{'readonly':[('check_storage','=',False)]}" />
+                                    <field name="check_storage" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                </div>
+
+                                <label for="freight_out" />
+                                <div class="o_row">
+                                    <field name="freight_out" attrs="{'readonly':[('check_freight_out','=',False)]}" />
+                                    <field name="check_freight_out" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                </div>
+
+                            </group>
+                        </div>
+
+                        <div class="oe_right">
+                            <group>
+                                <field name="settlement" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                <field name="calculated_sales" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                <field name="recommended_price" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                <div class="oe_tittle">
+                                    <h4>
+                                        <strong>
+                                            <span>
+                                    Utility:
+                                  </span>
+                                        </strong>
+                                        <field name="utility" force_save="1"/>
+
+                                        <label for="utility_percentage" />
+                                        <div class="o_row">
+                                            <field name="utility_percentage" force_save="1"/>
+                                            <span>%%</span>
+                                        </div>
+                                    </h4>
+
+                                </div>
+                                <footer>
+                                    <button string="Print" class="oe_highlight" type="object" name="action_print_report" />
+                                </footer>
+                            </group>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_settlements_no_create" model="ir.ui.view">
+        <field name="name">Liquidaciones</field>
+        <field name="model">sale.settlements</field>
+        <field name="arch" type="xml">
+            <form create="0">
+                <header>
+                    <field name="status" widget="statusbar"/>
+                    <button name="close_settlements" type="object" string="Close" attrs="{'invisible': [('status', '!=', 'draft')]}"/>
+                </header>
+                <sheet>
+                      <!-- tabla de liquidaciones para precio abierto -->
+                  
+                        <div class="oe_tittle">
+                            <h1>
+                                <span>
+                            LIQUIDACIONES
+                            </span>
+                            </h1>
+                        </div>
+                        <group>
+                            <div class="address_format">
+                                <label for="note" string="Note:" />
+                                <field name="note" style="width: 5%" />
+                                <label for="journey" string="Journey:" />
+                                <field name="journey" style="width: 5%" />
+                                <label for="company" string="Company:" />
+                                <field name="company" style="width: 20%" />
+                            </div>
+                        </group>
+                        <div attrs="{'invisible': [('price_type','=', 'close')]}">
                         <div class="oe_left">
                             <group>
                                 <div class="oe_tittle">
