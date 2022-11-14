@@ -12,6 +12,7 @@ _logger = logging.getLogger(__name__)
 class SettlementsSaleOrder(models.Model):
     _inherit = 'purchase.order'
     settlement_id = fields.Many2one('sale.settlements')
+    settlements_status = fields.Selection([('draft', 'Borrador'), ('close', 'Cerrado')], default = 'draft')
     
     def settlements_wizard_function(self):
         return {
@@ -30,6 +31,7 @@ class SettlementsInherit(models.Model):
 
     def close_settlements(self):
         self.write({'status': 'close'})
+        self.order_id.write({'settlements_status': 'close'})
 
     @api.model
     @api.onchange('total', 'settlement','freight_in','aduana','maneuvers','adjustment','storage','freight_out','commission')

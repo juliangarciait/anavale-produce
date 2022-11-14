@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+
+    <record id="view_purchase_form_inherited_status_set" model="ir.ui.view">
+        <field name="name">purchase.order.form</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='date_order']" position="after">
+                <field name="settlements_status" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
     <record id="view_settlements_tree" model="ir.ui.view">
         <field name="name">Liquidaciones</field>
         <field name="model">sale.settlements</field>
