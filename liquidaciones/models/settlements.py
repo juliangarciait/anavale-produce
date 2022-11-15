@@ -12,6 +12,7 @@ _logger = logging.getLogger(__name__)
 class SettlementsSaleOrder(models.Model):
     _inherit = 'purchase.order'
     settlement_id = fields.Many2one('sale.settlements')
+    settlements_status = fields.Selection([('draft', 'Borrador'), ('close', 'Cerrado')], default = 'draft')
     
     def settlements_wizard_function(self):
         return {
@@ -27,6 +28,10 @@ class SettlementsSaleOrder(models.Model):
  
 class SettlementsInherit(models.Model):
     _name = 'sale.settlements'
+
+    def close_settlements(self):
+        self.write({'status': 'close'})
+        self.order_id.write({'settlements_status': 'close'})
 
     @api.model
     @api.onchange('total', 'settlement','freight_in','aduana','maneuvers','adjustment','storage','freight_out','commission')
@@ -260,6 +265,8 @@ class SettlementsInherit(models.Model):
                                    ('close','Closed price')], 
                                    String="Tipo de precio", required=True,
                                    help="Please select a type of price.")
+    status = fields.Selection([('draft','Borrador'),
+                                   ('close','Cerrado')], required=True, default = 'draft')
     check_maneuvers=fields.Boolean()
     check_adjustment=fields.Boolean()
     check_storage=fields.Boolean()

@@ -50,8 +50,6 @@ class SaleSettlementsWizard(models.TransientModel):
             tag_name += tag_id.name + ' - '
 
         sales = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids)
-        logging.info("%"*800)
-        logging.info(sales.read())
         freight_in = move_line_ids.filtered(lambda line: line.account_id.id == 1387 and line.move_id.state == 'posted')
         freight_out = move_line_ids.filtered(lambda line: line.account_id.id == 1394 and line.move_id.state == 'posted')
         maneuvers = move_line_ids.filtered(lambda line: line.account_id.id == 1390 and line.move_id.state == 'posted')
@@ -65,8 +63,6 @@ class SaleSettlementsWizard(models.TransientModel):
             salesSum = subAmount.get(line.product_id.id, 0)
             salesSum += line.price_subtotal
             subAmount[line.product_id.id] = salesSum
-        _logger.info("_"*700)
-        _logger.info(subAmount)
         product_line = []
         new_lines = []
         freight_inSum = sum([line.price_subtotal for line in freight_in])
@@ -93,6 +89,10 @@ class SaleSettlementsWizard(models.TransientModel):
                             "box_emb": line.product_qty, "box_rec": line.qty_received,
                             "amount": float(line.qty_received * line.price_unit)}))
                 product_line.append(line.product_id.id)
+                
+        closed_price = self.env['sale.settlements'].search([('order_id', 'in', purchase_ids), ('status', '=', 'close')])
+        view_tree = closed_price and 'liquidaciones.view_settlements_tree_no_create' or 'liquidaciones.view_settlements_tree'
+        view_form = closed_price and 'liquidaciones.view_settlements_no_create' or 'liquidaciones.view_settlements'
         return {
             'res_model': 'sale.settlements',
             'type': 'ir.actions.act_window',
@@ -128,7 +128,7 @@ class SaleSettlementsWizard(models.TransientModel):
                         'default_order_id': purchase_rec.id,
                         'default_price_type': self.price_type},
                         
-            'views': [(self.env.ref('liquidaciones.view_settlements_tree').id, 'tree'), (self.env.ref('liquidaciones.view_settlements').id, 'form')],
+            'views': [(self.env.ref(view_tree).id, 'tree'), (self.env.ref(view_form).id, 'form')],
         }
 
-    
+
