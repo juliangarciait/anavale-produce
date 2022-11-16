@@ -32,6 +32,10 @@ class SettlementsInherit(models.Model):
     def close_settlements(self):
         self.write({'status': 'close'})
         self.order_id.write({'settlements_status': 'close'})
+    
+    def draft_settlements(self):
+        self.write({'status': 'draft'})
+        self.order_id.write({'settlements_status': 'draft'})
 
     @api.model
     @api.onchange('total', 'settlement','freight_in','aduana','maneuvers','adjustment','storage','freight_out','commission')

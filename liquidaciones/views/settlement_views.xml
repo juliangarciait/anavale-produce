@@ -42,6 +42,7 @@
             <form>
                 <header>
                     <field name="status" widget="statusbar"/>
+                    <button name="draft_settlements" type="object" string="Set to Draft" attrs="{'invisible': [('status', '!=', 'close')]}"/>
                     <button name="close_settlements" type="object" string="Close" attrs="{'invisible': [('status', '!=', 'draft')]}"/>
                 </header>
                 <sheet>
@@ -308,6 +309,7 @@
             <form create="0">
                 <header>
                     <field name="status" widget="statusbar"/>
+                    <button name="draft_settlements" type="object" string="Set to Draft" attrs="{'invisible': [('status', '!=', 'close')]}"/>
                     <button name="close_settlements" type="object" string="Close" attrs="{'invisible': [('status', '!=', 'draft')]}"/>
                 </header>
                 <sheet>
