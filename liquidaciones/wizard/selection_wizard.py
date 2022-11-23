@@ -47,14 +47,14 @@ class SaleSettlementsWizard(models.TransientModel):
         tag_name = ''
         move_line_ids = self.env['account.move.line'].search([('analytic_tag_ids', 'in', analytic_tag_ids.ids), ('move_id.state', '=', 'posted')])
         for tag_id in analytic_tag_ids:
-            tag_name += tag_id.name + ' - '
-
+            tag_name += tag_id.name + ' '
+        tag_name = tag_name.split("-")
         sales = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids)
         freight_in = move_line_ids.filtered(lambda line: line.account_id.id == 1387 and line.move_id.state == 'posted')
         freight_out = move_line_ids.filtered(lambda line: line.account_id.id == 1394 and line.move_id.state == 'posted')
         maneuvers = move_line_ids.filtered(lambda line: line.account_id.id == 1390 and line.move_id.state == 'posted')
         storage = move_line_ids.filtered(lambda line: line.account_id.id == 1395 and line.move_id.state == 'posted')
-        aduana_usa = move_line_ids.filtered(lambda line: line.account_id.id in ((1393,1992)) and line.move_id.state == 'posted')
+        aduana_usa = move_line_ids.filtered(lambda line: line.account_id.id in [1393,1392] and line.move_id.state == 'posted')
         aduana_mex = []
         adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
         amountVar = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids and line.move_id.state == 'posted')
@@ -110,8 +110,8 @@ class SaleSettlementsWizard(models.TransientModel):
                         'default_check_freight_out': self.freight_out,
                         'default_check_freight_in': self.freight_in,
                         'default_check_aduana': self.aduana,
-                        'default_note': tag_name[0:3],
-                        'default_journey': tag_name[-4:],
+                        'default_note': tag_name[0],
+                        'default_journey': tag_name[1],
                         'default_company': str(purchase_rec.partner_id.name),
                         'default_freight_in': freight_inSum,
                         'default_freight_out': freight_outSum,
