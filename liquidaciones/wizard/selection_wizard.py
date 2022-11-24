@@ -42,7 +42,9 @@ class SaleSettlementsWizard(models.TransientModel):
         lot_ids= [sml.lot_id for sml in picking_ids.move_line_ids]
         analytic_tag_ids = self.env['account.analytic.tag']
         for lot in lot_ids:
-            analytic_tag_ids += lot.analytic_tag_ids.filtered(lambda tag: len(tag.name)>5)
+            tag = lot.analytic_tag_ids.filtered(lambda tag: len(tag.name)>5)
+            if not tag in analytic_tag_ids:
+                analytic_tag_ids += tag
         move_line_ids= self.env['account.move.line']
         tag_name = ''
         move_line_ids = self.env['account.move.line'].search([('analytic_tag_ids', 'in', analytic_tag_ids.ids), ('move_id.state', '=', 'posted')])
