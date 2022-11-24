@@ -76,7 +76,7 @@ class SaleSettlementsWizard(models.TransientModel):
         if str(self.price_type) == 'open':
             for line in purchase_rec.order_line: #3
                 subtotal = subAmount.get(line.product_id.id, False)
-                var_price_unit_hidden = subtotal/line.qty_received
+                var_price_unit_hidden = line.qty_received and subtotal/line.qty_received or 0
                 new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
                             "product_uom": line.product_uom.id, "price_unit": var_price_unit_hidden, "price_unit_origin": var_price_unit_hidden,
                             "box_emb":line.product_qty, "box_rec": line.qty_received,
