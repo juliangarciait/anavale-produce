@@ -178,10 +178,11 @@ class SettlementsInherit(models.Model):
 
     @api.onchange('ajuste_precio')
     def _compute_line_ajuste_precio(self):
-        for line in self.settlements_line_ids:
-            new_price_unit = line.price_unit_origin-self.ajuste_precio
-            line.update({'price_unit': new_price_unit, 'amount': new_price_unit*line.box_rec,
-                'total': (new_price_unit*line.box_rec) - line.commission})
+        if self.price_type == "open":
+            for line in self.settlements_line_ids:
+                new_price_unit = line.price_unit_origin-self.ajuste_precio
+                line.update({'price_unit': new_price_unit, 'amount': new_price_unit*line.box_rec,
+                    'total': (new_price_unit*line.box_rec) - line.commission})
 
 
     @api.onchange('calculated_sales')
@@ -195,11 +196,12 @@ class SettlementsInherit(models.Model):
         var_res=(self.maneuvers+self.storage+self.adjustment)/sumBox
         self.box_emb_total =sumBox
         self.box_rec_total = sumBox2
-        for line in self.settlements_line_ids:
-            if  line.box_rec>0 and sumBox>0:
-                line.update({'price_unit': line.price_unit_origin - var_res})
-                line.update({'commission': (line.price_unit_origin * line.box_rec) * (self.commission_percentage/100)})
-                line.update({'amount': line.price_unit*line.box_rec, 'total': (line.price_unit*line.box_rec) - line.commission})
+        if self.price_type == "open":
+            for line in self.settlements_line_ids:
+                if  line.box_rec>0 and sumBox>0:
+                    line.update({'price_unit': line.price_unit_origin - var_res})
+                    line.update({'commission': (line.price_unit_origin * line.box_rec) * (self.commission_percentage/100)})
+                    line.update({'amount': line.price_unit*line.box_rec, 'total': (line.price_unit*line.box_rec) - line.commission})
         amount=0
         for line in self.settlements_line_ids:
             amount=amount+line.amount
