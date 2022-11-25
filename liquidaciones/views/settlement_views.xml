@@ -42,8 +42,8 @@
             <form>
                 <header>
                     <field name="status" widget="statusbar"/>
-                    <button name="draft_settlements" type="object" string="Set to Draft" attrs="{'invisible': [('status', '!=', 'close')]}"/>
-                    <button name="close_settlements" type="object" string="Close" attrs="{'invisible': [('status', '!=', 'draft')]}"/>
+                    <button name="draft_settlements" type="object" class="oe_highlight" string="Set to Draft" attrs="{'invisible': [('status', '!=', 'close')]}"/>
+                    <button name="close_settlements" type="object" class="oe_highlight" string="Close" attrs="{'invisible': [('status', '!=', 'draft')]}"/>
                 </header>
                 <sheet>
                       <!-- tabla de liquidaciones para precio abierto -->
@@ -155,12 +155,12 @@
                                 </div>
                                 <div class="oe_tittle">
                                     <h4>
-                                        <strong>
+                                        <strong attrs="{'invisible': [('price_type','=', 'open')]}">
                                             <span>
-                                    Utility:
-                                  </span>
+                                                Utility:
+                                            </span>
                                         </strong>
-                                        <field name="utility" force_save="1"/>
+                                        <field name="utility" force_save="1" attrs="{'invisible': [('price_type','=', 'open')]}"/>
 
                                         <label for="utility_percentage" />
                                         <div class="o_row">
@@ -195,9 +195,9 @@
                     <!--  /////////////////////////////////////////////////// -->
                     <div class="oe_right" attrs="{'invisible': [('price_type','=', 'close')]}">
                             <group>
+                                <field name="total_subtotal" />
                                 <field name="freight_total" />
                                 <field name="aduana_total"/>
-                                <field name="total_subtotal" />
                                 <label for="total_total" />
                                 <div class="oe_tittle">
                                     <field name="total_total"  />
@@ -276,13 +276,10 @@
                                 <field name="recommended_price" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 <div class="oe_tittle">
                                     <h4>
-                                        <strong>
-                                            <span>
-                                    Utility:
-                                  </span>
+                                        <strong attrs="{'invisible': [('price_type','=', 'open')]}">
+                                            <span>Utility:</span>
                                         </strong>
-                                        <field name="utility" force_save="1"/>
-
+                                        <field name="utility" force_save="1" attrs="{'invisible': [('price_type','=', 'open')]}"/>
                                         <label for="utility_percentage" />
                                         <div class="o_row">
                                             <field name="utility_percentage" force_save="1"/>
@@ -306,11 +303,11 @@
         <field name="name">Liquidaciones</field>
         <field name="model">sale.settlements</field>
         <field name="arch" type="xml">
-            <form create="0">
+            <form create="0" edit="0">
                 <header>
                     <field name="status" widget="statusbar"/>
-                    <button name="draft_settlements" type="object" string="Set to Draft" attrs="{'invisible': [('status', '!=', 'close')]}"/>
-                    <button name="close_settlements" type="object" string="Close" attrs="{'invisible': [('status', '!=', 'draft')]}"/>
+                    <button name="draft_settlements" type="object" class="oe_highlight" string="Set to Draft" attrs="{'invisible': [('status', '!=', 'close')]}"/>
+                    <button name="close_settlements" type="object" class="oe_highlight" string="Close" attrs="{'invisible': [('status', '!=', 'draft')]}"/>
                 </header>
                 <sheet>
                       <!-- tabla de liquidaciones para precio abierto -->
@@ -422,13 +419,12 @@
                                 </div>
                                 <div class="oe_tittle">
                                     <h4>
-                                        <strong>
+                                        <strong attrs="{'invisible': [('price_type','=', 'open')]}">
                                             <span>
-                                    Utility:
-                                  </span>
+                                                Utility:
+                                            </span>
                                         </strong>
-                                        <field name="utility" force_save="1"/>
-
+                                        <field name="utility" force_save="1" attrs="{'invisible': [('price_type','=', 'open')]}"/>
                                         <label for="utility_percentage" />
                                         <div class="o_row">
                                             <field name="utility_percentage" force_save="1"/>
@@ -462,9 +458,9 @@
                     <!--  /////////////////////////////////////////////////// -->
                     <div class="oe_right" attrs="{'invisible': [('price_type','=', 'close')]}">
                             <group>
+                                <field name="total_subtotal" />
                                 <field name="freight_total" />
                                 <field name="aduana_total"/>
-                                <field name="total_subtotal" />
                                 <label for="total_total" />
                                 <div class="oe_tittle">
                                     <field name="total_total"  />
@@ -543,12 +539,12 @@
                                 <field name="recommended_price" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 <div class="oe_tittle">
                                     <h4>
-                                        <strong>
+                                        <strong attrs="{'invisible': [('price_type','=', 'open')]}">
                                             <span>
-                                    Utility:
-                                  </span>
+                                                Utility:
+                                            </span>
                                         </strong>
-                                        <field name="utility" force_save="1"/>
+                                        <field name="utility" force_save="1" attrs="{'invisible': [('price_type','=', 'open')]}"/>
 
                                         <label for="utility_percentage" />
                                         <div class="o_row">
