@@ -195,7 +195,10 @@
                     <!--  /////////////////////////////////////////////////// -->
                     <div class="oe_right" attrs="{'invisible': [('price_type','=', 'close')]}">
                             <group>
-                                <field name="freight_total" />
+                                <field name="storage_total"/>
+                                <field name="adjustment_total"/>
+                                <field name="maneuvers_total"/>
+                                <field name="freight_total"/>
                                 <field name="aduana_total"/>
                                 <field name="total_subtotal" />
                                 <label for="total_total" />
