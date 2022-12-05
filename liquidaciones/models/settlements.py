@@ -309,7 +309,6 @@ class SettlementsInheritLines(models.Model):
             line.amount = line.price_unit*line.box_rec
             line.total = (line.price_unit*line.box_rec) - line.commission
 
-
     date = fields.Datetime(tracking=True, string="Fecha")
     product_id = fields.Many2one(
         'product.product',  tracking=True, string="Producto")
@@ -320,6 +319,7 @@ class SettlementsInheritLines(models.Model):
         tracking=True, string="Cajas Embalaje")
     # Este lo escribe el usuario
     box_rec = fields.Integer(tracking=True, string="Cajas Rec.")
+    current_stock = fields.Float(tracking=True, string="Stock")
     price_unit = fields.Float(
         tracking=True, string="Precio Unitario")
     price_unit_origin = fields.Float(
