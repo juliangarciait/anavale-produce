@@ -172,7 +172,7 @@ class SettlementsInherit(models.Model):
     @api.onchange('commission_percentage')
     def _compute_line_commision(self):
         for line in self.settlements_line_ids:
-            line.update({'commission': ((line.price_unit_origin*line.box_rec)*(self.commission_percentage/100))})
+            line.update({'commission': ((line.price_unit*line.box_rec)*(self.commission_percentage/100))})
             line.update({'total': (line.amount-line.commission)})
     
 
@@ -265,6 +265,8 @@ class SettlementsInherit(models.Model):
          tracking=True, string="SubTotal", default=_get_subtotal_total)
     freight_out_unic = fields.Float(
          tracking=True, string="Freight Out")
+    extra_cost = fields.Float(
+         tracking=True, string="Extra Cost")
     price_type = fields.Selection([('open','Open price'),
                                    ('close','Closed price')], 
                                    String="Tipo de precio", required=True,

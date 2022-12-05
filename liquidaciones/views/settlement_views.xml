@@ -95,19 +95,19 @@
 
                                 <label for="storage" />
                                 <div class="o_row">
-                                    <field name="storage" attrs="{'readonly':[('check_storage','=',False)]}" />
+                                    <field name="storage"/>
                                     <field name="check_storage" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 </div>
 
                                 <label for="adjustment" />
                                 <div class="o_row">
-                                    <field name="adjustment" attrs="{'readonly':[('check_adjustment','=',False)]}" />
+                                    <field name="adjustment"/>
                                     <field name="check_adjustment" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 </div>
 
                                 <label for="maneuvers" />
                                 <div class="o_row">
-                                    <field name="maneuvers" attrs="{'readonly':[('check_maneuvers','=',False)]}" />
+                                    <field name="maneuvers"/>
                                     <field name="check_maneuvers" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 </div>
 
