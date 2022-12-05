@@ -181,8 +181,8 @@
                     <field name="settlements_line_ids" mode="tree,kanban">
                         <tree editable="bottom" string="Lineas de Liquidaciones">
                             <field name="product_id" />
-                            <field name="current_stock" />
                             <field name="box_rec" />
+                            <field name="current_stock" />
                             <field name="price_unit_origin" string="P.U. original"/>
                             <field name="price_unit" />
                             <field name="amount" />
