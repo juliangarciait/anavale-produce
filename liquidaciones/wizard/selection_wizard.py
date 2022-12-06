@@ -39,7 +39,9 @@ class SaleSettlementsWizard(models.TransientModel):
         po_product_ids = [line.product_id for line in purchase_rec.order_line]
         fecha = purchase_rec.date_order
         picking_ids = purchase_rec.picking_ids.filtered(lambda picking: picking.state == 'done') # Se obtinenen pickings de la orden de compra
-        lot_ids= [sml.lot_id for sml in picking_ids.move_line_ids]
+        lot_ids = self.env["stock.production.lot"]
+        for sml in picking_ids.move_line_ids:
+            lot_ids += sml.lot_id
         analytic_tag_ids = self.env['account.analytic.tag']
         for lot in lot_ids:
             tag = lot.analytic_tag_ids.filtered(lambda tag: len(tag.name)>5)
@@ -74,15 +76,22 @@ class SaleSettlementsWizard(models.TransientModel):
         adjustmentSum = sum([line.price_subtotal for line in adjustment])
         aduana_usaSum = sum([line.price_subtotal for line in aduana_usa])
         aduana_mexSum = sum([line.price_subtotal for line in aduana_mex])
-        aduana_total = aduana_mexSum + aduana_usaSum        
+        aduana_total = aduana_mexSum + aduana_usaSum       
+        quant_obj = self.env["stock.quant"] 
+        location_id = self.env["stock.location"].search([('usage', '=', 'internal')])
         if str(self.price_type) == 'open':
             for line in purchase_rec.order_line: #3
+                stock = 0
+                _logger.info(lot_ids.read())
+                quants = quant_obj.search([('product_id', '=', line.product_id.id), ('lot_id', 'in', lot_ids.ids), ('location_id', 'in', location_id.ids)])
+                stock = sum([q.quantity for q in quants])
                 subtotal = subAmount.get(line.product_id.id, False)
                 var_price_unit_hidden = line.qty_received and subtotal/line.qty_received or 0
                 new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
                             "product_uom": line.product_uom.id, "price_unit": var_price_unit_hidden, "price_unit_origin": var_price_unit_hidden,
                             "box_emb":line.product_qty, "box_rec": line.qty_received,
-                            "amount": float(var_price_unit_hidden * line.qty_received)}))
+                            "amount": float(var_price_unit_hidden * line.qty_received),
+                            "current_stock": stock}))
                 product_line.append(line.product_id.id)
         else:
             for line in purchase_rec.order_line: #3
@@ -128,7 +137,9 @@ class SaleSettlementsWizard(models.TransientModel):
                         'default_aduana_unic': aduana_total,
                         'default_adjustment_unic': adjustmentSum,
                         'default_order_id': purchase_rec.id,
-                        'default_price_type': self.price_type},
+                        'default_price_type': self.price_type,
+                        'lot_ids': lot_ids},
+                        
                         
             'views': [(self.env.ref(view_tree).id, 'tree'), (self.env.ref(view_form).id, 'form')],
         }

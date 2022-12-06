@@ -38,19 +38,19 @@ class SettlementsInherit(models.Model):
         self.order_id.write({'settlements_status': 'draft'})
 
     @api.model
-    @api.onchange('total', 'settlement','freight_in','aduana','maneuvers','adjustment','storage','freight_out','commission')
+    @api.onchange('total', 'settlement','freight_in','aduana','maneuvers','adjustment','storage','freight_out','commission','storage_total','maneuvers_total')
     def _compute_utility(self):
         if self.price_type=="open":
-            var = self.commission+self.freight_in+self.aduana+self.maneuvers+self.adjustment+self.storage+self.freight_out
+            var = self.commission + self.freight_in+self.aduana+self.maneuvers+self.adjustment+self.storage+self.freight_out
             self.utility=self.total - var
         else:    
             var = self.settlement+self.freight_in+self.aduana+self.maneuvers+self.adjustment+self.storage+self.freight_out
             self.utility=self.total - var
 
     @api.model
-    @api.onchange('total','maneuvers','adjustment','storage')
+    @api.onchange('total','maneuvers','adjustment','storage','storage_total','maneuvers_total', 'check_storage', 'check_maneuvers', 'check_adjustment')
     def _compute_calculated_sales(self):
-        self.calculated_sales=self.total-(self.maneuvers+self.adjustment+self.storage)
+        self.calculated_sales=self.total-(self.check_maneuvers and self.maneuvers or 0 + self.check_adjustment and self.adjustment or 0 + self.check_storage and self.storage or 0)
 
     @api.model
     @api.onchange('total', 'utility')
@@ -74,7 +74,7 @@ class SettlementsInherit(models.Model):
              
 
     @api.model
-    @api.onchange('settlements_line_ids', 'commission_percentage', 'total', 'settlement','freight_in','aduana','maneuvers','adjustment','storage','freight_out')
+    @api.onchange('settlements_line_ids', 'commission_percentage', 'total', 'settlement','freight_in','aduana','maneuvers','maneuvers_total','adjustment','storage','freight_out','storage_total')
     def _get_settlement(self):
         var = []
         for i in self.settlements_line_ids:
@@ -105,26 +105,20 @@ class SettlementsInherit(models.Model):
     @api.model
     @api.onchange('check_maneuvers')
     def _get_maneuvers(self):
-        if not self.check_maneuvers:
-            self.maneuvers=0
-        else:
-            self.maneuvers=self.maneuvers_unic
+        self.maneuvers=self.maneuvers_unic
+        self.maneuvers_total = self.maneuvers_unic
 
     @api.model
     @api.onchange( 'check_adjustment')
     def _get_adjustment(self):
-        if not self.check_adjustment:
-            self.adjustment=0
-        else:
-            self.adjustment=self.adjustment_unic
+        self.adjustment=self.adjustment_unic
+        self.adjustment_total=self.adjustment_unic
 
     @api.model
     @api.onchange( 'check_storage')
     def _get_storage(self):
-        if not self.check_storage:
-            self.storage=0
-        else:
-            self.storage=self.storage_unic
+        self.storage=self.storage_unic
+        self.storage_total = self.storage_unic
 
     @api.model
     @api.onchange( 'check_freight_out')
@@ -153,13 +147,15 @@ class SettlementsInherit(models.Model):
     @api.onchange('settlements_line_ids')
     def _get_subtotal_total(self):
         subtotal=0
+        
         for line in self.settlements_line_ids:
             subtotal=subtotal+line.total
         self.total_subtotal=subtotal
     @api.model
     @api.onchange('aduana_total', 'freight_total','total_subtotal')        
     def _get_total_total(self):
-        self.total_total=self.total_subtotal+self.aduana_total+self.freight_total
+        cost = not self.check_storage and self.storage_total or 0 + (not self.check_maneuvers and self.maneuvers_total or 0) + (not self.check_adjustment and self.adjustment_total)
+        self.total_total=self.total_subtotal+self.aduana_total+self.freight_total - cost
 
     @api.model
     @api.onchange( 'check_aduana')
@@ -172,7 +168,7 @@ class SettlementsInherit(models.Model):
     @api.onchange('commission_percentage')
     def _compute_line_commision(self):
         for line in self.settlements_line_ids:
-            line.update({'commission': ((line.price_unit_origin*line.box_rec)*(self.commission_percentage/100))})
+            line.update({'commission': ((line.price_unit*line.box_rec)*(self.commission_percentage/100))})
             line.update({'total': (line.amount-line.commission)})
     
 
@@ -193,7 +189,7 @@ class SettlementsInherit(models.Model):
                sumBox2 = sumBox2+ float(line.box_rec)
         for line in self.settlements_line_ids:
                 sumBox=sumBox+ float(line.box_rec)
-        var_res=(self.maneuvers+self.storage+self.adjustment)/sumBox
+        var_res=(self.check_maneuvers and self.maneuvers or 0 + self.check_storage and self.storage or 0 + self.check_adjustment and self.adjustment)/sumBox
         self.box_emb_total =sumBox
         self.box_rec_total = sumBox2
         if self.price_type == "open":
@@ -267,6 +263,12 @@ class SettlementsInherit(models.Model):
          tracking=True, string="SubTotal", default=_get_subtotal_total)
     freight_out_unic = fields.Float(
          tracking=True, string="Freight Out")
+    storage_total = fields.Float(
+         tracking=True, string="Storage")
+    adjustment_total = fields.Float(
+         tracking=True, string="Adjustment")
+    maneuvers_total = fields.Float(
+         tracking=True, string="Maneuvers")
     price_type = fields.Selection([('open','Open price'),
                                    ('close','Closed price')], 
                                    String="Tipo de precio", required=True,
@@ -309,7 +311,6 @@ class SettlementsInheritLines(models.Model):
             line.amount = line.price_unit*line.box_rec
             line.total = (line.price_unit*line.box_rec) - line.commission
 
-
     date = fields.Datetime(tracking=True, string="Fecha")
     product_id = fields.Many2one(
         'product.product',  tracking=True, string="Producto")
@@ -320,6 +321,7 @@ class SettlementsInheritLines(models.Model):
         tracking=True, string="Cajas Embalaje")
     # Este lo escribe el usuario
     box_rec = fields.Integer(tracking=True, string="Cajas Rec.")
+    current_stock = fields.Float(tracking=True, string="Stock")
     price_unit = fields.Float(
         tracking=True, string="Precio Unitario")
     price_unit_origin = fields.Float(
