@@ -38,19 +38,23 @@ class SettlementsInherit(models.Model):
         self.order_id.write({'settlements_status': 'draft'})
 
     @api.model
-    @api.onchange('total', 'settlement','freight_in','aduana','maneuvers','adjustment','storage','freight_out','commission','storage_total','maneuvers_total')
+    @api.onchange('total', 'settlement','freight_in','aduana','maneuvers','adjustment','storage','freight_out','commission')
     def _compute_utility(self):
         if self.price_type=="open":
-            var = self.commission + self.freight_in+self.aduana+self.maneuvers+self.adjustment+self.storage+self.freight_out
-            self.utility=self.total - var
+            cost = self.commission + self.freight_in+self.aduana+self.maneuvers+self.adjustment+self.storage+self.freight_out
+            self.utility=self.total - cost
         else:    
-            var = self.settlement+self.freight_in+self.aduana+self.maneuvers+self.adjustment+self.storage+self.freight_out
-            self.utility=self.total - var
+            cost = self.settlement+self.freight_in+self.aduana+self.maneuvers+self.adjustment+self.storage+self.freight_out
+            self.utility=self.total - cost
 
     @api.model
-    @api.onchange('total','maneuvers','adjustment','storage','storage_total','maneuvers_total', 'check_storage', 'check_maneuvers', 'check_adjustment')
+    @api.onchange('total','maneuvers','adjustment','storage', 'check_storage', 'check_maneuvers', 'check_adjustment')
     def _compute_calculated_sales(self):
-        self.calculated_sales=self.total-(self.check_maneuvers and self.maneuvers or 0 + self.check_adjustment and self.adjustment or 0 + self.check_storage and self.storage or 0)
+        cost = 0
+        cost += self.check_maneuvers and self.maneuvers or 0
+        cost += self.check_adjustment and self.adjustment or 0
+        cost += self.check_storage and self.storage or 0
+        self.calculated_sales = self.total - cost
 
     @api.model
     @api.onchange('total', 'utility')
@@ -71,10 +75,10 @@ class SettlementsInherit(models.Model):
         if self.commission_percentage > 100 or self.commission_percentage < 0:
             self.commission_percentage=0
             raise ValidationError(('Enter Value Between 0-100.'))
-             
+            
 
     @api.model
-    @api.onchange('settlements_line_ids', 'commission_percentage', 'total', 'settlement','freight_in','aduana','maneuvers','maneuvers_total','adjustment','storage','freight_out','storage_total')
+    @api.onchange('settlements_line_ids', 'commission_percentage', 'total', 'settlement','freight_in','aduana','maneuvers','maneuvers_total','adjustment','storage','freight_out','storage_total','adjustment_total')
     def _get_settlement(self):
         var = []
         for i in self.settlements_line_ids:
@@ -115,9 +119,27 @@ class SettlementsInherit(models.Model):
         self.adjustment_total=self.adjustment_unic
 
     @api.model
-    @api.onchange( 'check_storage')
+    @api.onchange('storage')
+    def _set_storage(self):
+        self.storage_unic = self.storage
+        self.storage_total = self.storage
+
+    @api.model
+    @api.onchange('maneuvers')
+    def _set_maneuvers(self):
+        self.maneuvers_unic = self.maneuvers
+        self.maneuvers_total = self.maneuvers
+
+    @api.model
+    @api.onchange('adjustment')
+    def _set_adjustment(self):
+        self.adjustment_unic = self.adjustment
+        self.adjustment_total=self.adjustment
+
+    @api.model
+    @api.onchange('check_storage')
     def _get_storage(self):
-        self.storage=self.storage_unic
+        self.storage = self.storage_unic
         self.storage_total = self.storage_unic
 
     @api.model
@@ -147,14 +169,15 @@ class SettlementsInherit(models.Model):
     @api.onchange('settlements_line_ids')
     def _get_subtotal_total(self):
         subtotal=0
-        
         for line in self.settlements_line_ids:
             subtotal=subtotal+line.total
         self.total_subtotal=subtotal
     @api.model
     @api.onchange('aduana_total', 'freight_total','total_subtotal')        
     def _get_total_total(self):
-        cost = not self.check_storage and self.storage_total or 0 + (not self.check_maneuvers and self.maneuvers_total or 0) + (not self.check_adjustment and self.adjustment_total)
+        cost = not self.check_storage and self.storage or 0 
+        cost += not self.check_maneuvers and self.maneuvers or 0 
+        cost += not self.check_adjustment and self.adjustment or 0
         self.total_total=self.total_subtotal+self.aduana_total+self.freight_total - cost
 
     @api.model
@@ -186,10 +209,14 @@ class SettlementsInherit(models.Model):
         sumBox=0
         sumBox2=0
         for line in self.settlements_line_ids:
-               sumBox2 = sumBox2+ float(line.box_rec)
+            sumBox2 = sumBox2+ float(line.box_rec)
         for line in self.settlements_line_ids:
-                sumBox=sumBox+ float(line.box_rec)
-        var_res=(self.check_maneuvers and self.maneuvers or 0 + self.check_storage and self.storage or 0 + self.check_adjustment and self.adjustment)/sumBox
+            sumBox=sumBox+ float(line.box_rec)
+        cost = 0
+        cost += self.check_maneuvers and self.maneuvers or 0
+        cost += self.check_storage and self.storage or 0
+        cost += self.check_adjustment and self.adjustment or 0
+        var_res = cost/sumBox
         self.box_emb_total =sumBox
         self.box_rec_total = sumBox2
         if self.price_type == "open":
