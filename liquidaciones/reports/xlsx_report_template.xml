@@ -2,7 +2,7 @@
 <odoo>
     <report 
         id="xlsx_report"
-        model="sale.settlement"
+        model="sale.settlements"
         string="Plantilla de excel"
         report_type="xlsx"
         name="liquidaciones.xlsx_report"
