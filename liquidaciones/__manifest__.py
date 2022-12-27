@@ -8,7 +8,7 @@
 """,
     'author': 'ANAVALE, S. de R.L. de C.V.',
     'website': '',
-    'depends': ['sale_management'],
+    'depends': ['sale_management', 'odoo_report_xlsx'],
      # always loaded
     'data': [
          'views/settlement_views.xml',
@@ -16,7 +16,8 @@
          'security/ir.model.access.csv',
          'wizard/selection_views.xml',
          'reports/settlements_report_templates.xml',
-         'reports/settlements_report_view.xml'
+         'reports/settlements_report_view.xml', 
+         'reports/xlsx_report_template.xml'
     ],
     #Se agrega relación de assets
     #'assets': {
