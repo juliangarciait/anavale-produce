@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <report 
+        id="xlsx_report"
+        model="sale.settlements"
+        string="Plantilla de excel"
+        report_type="xlsx"
+        name="liquidaciones.xlsx_report"
+        file="liquidaciones.xlsx_report"
+    />
+</odoo>
