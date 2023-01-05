@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <report 
+        id="pnl_excel"
+        model="profit.loss.wizard"
+        string="Profit and Loss"
+        report_type="xlsx"
+        name="profit_and_loss_by_analytic_tags.pnl_excel"
+        file="Profit and Loss"
+    />
+</odoo>

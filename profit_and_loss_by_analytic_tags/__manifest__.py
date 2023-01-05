@@ -1,0 +1,20 @@
+{
+    'name': 'Anavale Profit and loss',
+    'category': 'Uncategorized',
+    'version': '0.1',
+    'summary': 'Anavale Profit and loss',
+    'description': """Anavale Profit and loss""",
+    "author" : "Ernesto García",
+    'sequence': 1,
+    "website":'',
+    'depends': ['account_accountant', 'odoo_report_xlsx'],
+    'data': [
+            'security/ir.model.access.csv',
+            'report/profit_loss_report_template.xml',
+            'wizard/generate_pnl_wizard_views.xml',
+             ],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+}
