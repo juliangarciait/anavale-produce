@@ -7,7 +7,7 @@
     "author" : "Ernesto García",
     'sequence': 1,
     "website":'',
-    'depends': ['account_accountant'],
+    'depends': ['account_accountant', 'odoo_report_xlsx'],
     'data': [
             'security/ir.model.access.csv',
             'report/profit_loss_report_template.xml',
