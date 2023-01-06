@@ -122,7 +122,7 @@ GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code  ORDE
         groupby_tag_op_revenue = {}
         for line in lines_op_revenue:
             account_list = groupby_tag_op_revenue.get(line.get("tag_name"), {})
-            sum_tag =  groupby_tag_income.get(line.get("tag_name"), {}).get("total", 0)
+            sum_tag =  groupby_tag_op_revenue.get(line.get("tag_name"), {}).get("total", 0)
             sum_tag += line.get("op_revenue", 0)
             account_list.update({line.get("acc_code"): line.get("op_revenue", 0), 'total': sum_tag})
             groupby_tag_op_revenue[line.get("tag_name")] = account_list
@@ -254,7 +254,7 @@ GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER
         groupby_tag_depre = {}
         for line in lines_depre:
             account_list = groupby_tag_depre.get(line.get("tag_name"), {})
-            sum_tag =  groupby_tag_expense.get(line.get("tag_name"), {}).get("total", 0)
+            sum_tag =  groupby_tag_depre.get(line.get("tag_name"), {}).get("total", 0)
             sum_tag += line.get("depreciation", 0)
             account_list.update({line.get("acc_code"): line.get("depreciation", 0), 'total': sum_tag})
             groupby_tag_depre[line.get("tag_name")] = account_list
