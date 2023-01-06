@@ -64,6 +64,7 @@ ON at.id = aat_acl.account_analytic_tag_id
 GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER BY aat_acl.account_analytic_tag_id,account.code""" % (domain_income)
         self._cr.execute(query_op_income)
         lines_operating_income = self._cr.dictfetchall()
+        
         account_name = {item['acc_code']:item["acc_name"] for item in lines_operating_income}
         sheet.write(1, 0, "Income", bold)
         sheet.write(2, 0, "Gross Profit", bold)
@@ -75,18 +76,20 @@ GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER
             row_title += 1
         groupby_tag_income = {}
         for line in lines_operating_income:
-            account_list = groupby_tag_income.get("tag_name", {})
-            account_list.update({line.get("acc_code"): line.get("op_income", 0)})
+            account_list = groupby_tag_income.get(line.get("tag_name"), {})
+            _logger.info(account_list)
+            sum_tag =  groupby_tag_income.get(line.get("tag_name"), {}).get("total", 0)
+            sum_tag += line.get("op_income", 0)
+            account_list.update({line.get("acc_code"): line.get("op_income", 0), 'total': sum_tag})
             groupby_tag_income[line.get("tag_name")] = account_list
+        
         tag_ids = groupby_tag_income.keys()
-        tag_index = 1
-        income_cell_start =  xl_rowcol_to_cell(row_tag, tag_index)
+        tag_index = 1        
         for tag, line in groupby_tag_income.items():
             sheet.write(0, tag_index, tag, bold)
             for code,acc_name in account_name.items():
                 sheet.write(row_tag, tag_index, line.get(code, 0), money_format)
                 row_tag += 1
-            income_cell_end =  xl_rowcol_to_cell(row_tag, tag_index)
             row_tag = 4
             tag_index += 1
         
@@ -118,15 +121,17 @@ GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code  ORDE
             row_title += 1
         groupby_tag_op_revenue = {}
         for line in lines_op_revenue:
-            account_list = groupby_tag_op_revenue.get("tag_name", {})
-            account_list.update({line.get("acc_code"): line.get("op_revenue", 0)})
+            account_list = groupby_tag_op_revenue.get(line.get("tag_name"), {})
+            sum_tag =  groupby_tag_income.get(line.get("tag_name"), {}).get("total", 0)
+            sum_tag += line.get("op_revenue", 0)
+            account_list.update({line.get("acc_code"): line.get("op_revenue", 0), 'total': sum_tag})
             groupby_tag_op_revenue[line.get("tag_name")] = account_list
         for tag in tag_ids:
             line = groupby_tag_op_revenue.get(tag, {})
             for code,acc_name in account_name.items():
                 sheet.write(row_tag, tag_index, line.get(code, 0), money_format)
                 row_tag += 1
-            sheet.write(row_tag,tag_index, "=SUM(%s:%s)"%(income_cell_start,income_cell_end))
+            sheet.write(row_tag,tag_index, "=%f-%f"%( groupby_tag_income.get(tag, {}).get("total",0) , groupby_tag_op_revenue.get(tag, {}).get("total",0) ) )
             row_tag = row_origin
             tag_index += 1
         
@@ -160,7 +165,7 @@ GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER
             row_title += 1
         groupby_tag_other_income = {}
         for line in lines_other_income:
-            account_list = groupby_tag_other_income.get("tag_name", {})
+            account_list = groupby_tag_other_income.get(line.get("tag_name"), {})
             account_list.update({line.get("acc_code"): line.get("other_income", 0)})
             groupby_tag_other_income[line.get("tag_name")] = account_list
         for tag in tag_ids:
@@ -204,7 +209,7 @@ GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER
             row_title += 1
         groupby_tag_expense = {}
         for line in lines_expense:
-            account_list = groupby_tag_expense.get("tag_name", {})
+            account_list = groupby_tag_expense.get(line.get("tag_name"), {})
             account_list.update({line.get("acc_code"): line.get("expense", 0)})
             groupby_tag_expense[line.get("tag_name")] = account_list
         for tag in tag_ids:
@@ -243,7 +248,7 @@ GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER
             row_title += 1
         groupby_tag_depre = {}
         for line in lines_depre:
-            account_list = groupby_tag_depre.get("tag_name", {})
+            account_list = groupby_tag_depre.get(line.get("tag_name"), {})
             account_list.update({line.get("acc_code"): line.get("depreciation", 0)})
             groupby_tag_depre[line.get("tag_name")] = account_list
         for tag in tag_ids:
