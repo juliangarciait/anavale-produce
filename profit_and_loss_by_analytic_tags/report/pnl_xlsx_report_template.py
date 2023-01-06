@@ -47,10 +47,10 @@ class XlsxReport(models.AbstractModel):
         sheet.set_landscape()
         sheet.fit_to_pages(1, 0)
         sheet.set_zoom(100)
-        sheet.set_column(0, 0, 15)
+        sheet.set_column(0, 0, 25)
         domain_income = self.get_domain_query(13, objects)
         query_op_income = """
-SELECT aat_acl.account_analytic_tag_id as tag_id,at.name, sum(aml.balance)* -1 as op_income
+SELECT aat_acl.account_analytic_tag_id as tag_id,at.name as tag_name,account.name as acc_name,account.code as acc_code, sum(aml.balance)* -1 as op_income
 FROM account_analytic_tag_account_move_line_rel as aat_acl
 JOIN account_move_line as aml 
 ON aat_acl.account_move_line_id = aml.id
@@ -61,14 +61,41 @@ ON aml.account_id = account.id
 JOIN account_analytic_tag as at
 ON at.id = aat_acl.account_analytic_tag_id
 %s
-GROUP BY aat_acl.account_analytic_tag_id,at.name ORDER BY aat_acl.account_analytic_tag_id""" % (domain_income)
+GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER BY aat_acl.account_analytic_tag_id,account.code""" % (domain_income)
         self._cr.execute(query_op_income)
         lines_operating_income = self._cr.dictfetchall()
-        groupby_tag_income = {item['name']:item for item in lines_operating_income}
+        account_name = {item['acc_code']:item["acc_name"] for item in lines_operating_income}
+        sheet.write(1, 0, "Income", bold)
+        sheet.write(2, 0, "Gross Profit", bold)
+        sheet.write(3, 0, "Operating Income", bold)
+        row_title = row_tag = 4
         
+        for code, name in account_name.items():
+            sheet.write(row_title, 0, "%s %s"%(code,name))
+            row_title += 1
+        groupby_tag_income = {}
+        for line in lines_operating_income:
+            account_list = groupby_tag_income.get("tag_name", {})
+            account_list.update({line.get("acc_code"): line.get("op_income", 0)})
+            groupby_tag_income[line.get("tag_name")] = account_list
+        tag_ids = groupby_tag_income.keys()
+        tag_index = 1
+        income_cell_start =  xl_rowcol_to_cell(row_tag, tag_index)
+        for tag, line in groupby_tag_income.items():
+            sheet.write(0, tag_index, tag, bold)
+            for code,acc_name in account_name.items():
+                sheet.write(row_tag, tag_index, line.get(code, 0), money_format)
+                row_tag += 1
+            income_cell_end =  xl_rowcol_to_cell(row_tag, tag_index)
+            row_tag = 4
+            tag_index += 1
+        
+        sheet.write(row_title, 0, "Operating Revenue", bold)
+        row_title += 1
+
         domain_revenue = self.get_domain_query(17, objects)
         query_op_revenue = """
-SELECT aat_acl.account_analytic_tag_id as tag_id,at.name, sum(aml.balance) as op_revenue
+SELECT aat_acl.account_analytic_tag_id as tag_id,at.name as tag_name, account.name as acc_name,account.code as acc_code,sum(aml.balance) as op_revenue
 FROM account_analytic_tag_account_move_line_rel as aat_acl
 JOIN account_move_line as aml 
 ON aat_acl.account_move_line_id = aml.id
@@ -79,15 +106,38 @@ ON aml.account_id = account.id
 JOIN account_analytic_tag as at
 ON at.id = aat_acl.account_analytic_tag_id
 %s
-GROUP BY aat_acl.account_analytic_tag_id,at.name ORDER BY aat_acl.account_analytic_tag_id""" % (domain_revenue)
+GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code  ORDER BY aat_acl.account_analytic_tag_id,account.code""" % (domain_revenue)
         self._cr.execute(query_op_revenue)
         lines_op_revenue = self._cr.dictfetchall()
-        groupby_tag_revenue = {item['name']:item for item in lines_op_revenue}
-
+        account_name = {item['acc_code']:item["acc_name"] for item in lines_op_revenue}
+        tag_index = 1
+        row_tag = row_title
+        row_origin = row_title
+        for code, name in account_name.items():
+            sheet.write(row_title, 0, "%s %s"%(code,name))
+            row_title += 1
+        groupby_tag_op_revenue = {}
+        for line in lines_op_revenue:
+            account_list = groupby_tag_op_revenue.get("tag_name", {})
+            account_list.update({line.get("acc_code"): line.get("op_revenue", 0)})
+            groupby_tag_op_revenue[line.get("tag_name")] = account_list
+        for tag in tag_ids:
+            line = groupby_tag_op_revenue.get(tag, {})
+            for code,acc_name in account_name.items():
+                sheet.write(row_tag, tag_index, line.get(code, 0), money_format)
+                row_tag += 1
+            sheet.write(row_tag,tag_index, "=SUM(%s:%s)"%(income_cell_start,income_cell_end))
+            row_tag = row_origin
+            tag_index += 1
+        
+        sheet.write(row_title, 0, "Total Gross Profit", bold)
+        row_title += 1
+        sheet.write(row_title, 0, "Other Income", bold)
+        row_title += 1
 
         domain_other_income = self.get_domain_query(14, objects)
         query_other_income = """
-SELECT aat_acl.account_analytic_tag_id as tag_id,at.name, sum(aml.balance)*-1 as other_income
+SELECT aat_acl.account_analytic_tag_id as tag_id,at.name as tag_id,at.name as tag_name, account.name as acc_name,account.code as acc_code, sum(aml.balance)*-1 as other_income
 FROM account_analytic_tag_account_move_line_rel as aat_acl
 JOIN account_move_line as aml 
 ON aat_acl.account_move_line_id = aml.id
@@ -98,16 +148,40 @@ ON aml.account_id = account.id
 JOIN account_analytic_tag as at
 ON at.id = aat_acl.account_analytic_tag_id
 %s
-GROUP BY aat_acl.account_analytic_tag_id,at.name ORDER BY aat_acl.account_analytic_tag_id""" % (domain_other_income)
+GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER BY aat_acl.account_analytic_tag_id,account.code""" % (domain_other_income)
         self._cr.execute(query_other_income)
         lines_other_income = self._cr.dictfetchall()
-        groupby_tag_other_income = {item['name']:item for item in lines_other_income}
+        account_name = {item['acc_code']:item["acc_name"] for item in lines_other_income}
+        tag_index = 1
+        row_tag = row_title
+        row_origin = row_title
+        for code, name in account_name.items():
+            sheet.write(row_title, 0, "%s %s"%(code,name))
+            row_title += 1
+        groupby_tag_other_income = {}
+        for line in lines_other_income:
+            account_list = groupby_tag_other_income.get("tag_name", {})
+            account_list.update({line.get("acc_code"): line.get("other_income", 0)})
+            groupby_tag_other_income[line.get("tag_name")] = account_list
+        for tag in tag_ids:
+            line = groupby_tag_other_income.get(tag, {})
+            for code,acc_name in account_name.items():
+                sheet.write(row_tag, tag_index, line.get(code, 0), money_format)
+                row_tag += 1
+            row_tag = row_origin
+            tag_index += 1
+        sheet.write(row_title, 0, "Total Income", bold)
+        row_title += 1
 
 
+        sheet.write(row_title, 0, "Expenses", bold)
+        row_title += 1
+        sheet.write(row_title, 0, "Expenses", bold)
+        row_title += 1
 
         domain_expense = self.get_domain_query(15, objects)
         query_expense = """
-SELECT aat_acl.account_analytic_tag_id as tag_id,at.name, sum(aml.balance) as expense
+SELECT aat_acl.account_analytic_tag_id as tag_id,at.name as tag_id,at.name as tag_name, account.name as acc_name,account.code as acc_code,sum(aml.balance) as expense
 FROM account_analytic_tag_account_move_line_rel as aat_acl
 JOIN account_move_line as aml 
 ON aat_acl.account_move_line_id = aml.id
@@ -118,15 +192,35 @@ ON aml.account_id = account.id
 JOIN account_analytic_tag as at
 ON at.id = aat_acl.account_analytic_tag_id
 %s
-GROUP BY aat_acl.account_analytic_tag_id,at.name ORDER BY aat_acl.account_analytic_tag_id""" % (domain_expense)
+GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER BY aat_acl.account_analytic_tag_id,account.code""" % (domain_expense)
         self._cr.execute(query_expense)
         lines_expense = self._cr.dictfetchall()
-        groupby_tag_expense = {item['name']:item for item in lines_expense}
+        account_name = {item['acc_code']:item["acc_name"] for item in lines_expense}
+        tag_index = 1
+        row_tag = row_title
+        row_origin = row_title
+        for code, name in account_name.items():
+            sheet.write(row_title, 0, "%s %s"%(code,name))
+            row_title += 1
+        groupby_tag_expense = {}
+        for line in lines_expense:
+            account_list = groupby_tag_expense.get("tag_name", {})
+            account_list.update({line.get("acc_code"): line.get("expense", 0)})
+            groupby_tag_expense[line.get("tag_name")] = account_list
+        for tag in tag_ids:
+            line = groupby_tag_expense.get(tag, {})
+            for code,acc_name in account_name.items():
+                sheet.write(row_tag, tag_index, line.get(code, 0), money_format)
+                row_tag += 1
+            row_tag = row_origin
+            tag_index += 1
 
+        sheet.write(row_title, 0, "Depreciation", bold)
+        row_title += 1
 
         domain_depre = self.get_domain_query(16, objects)
         query_depre = """
-SELECT aat_acl.account_analytic_tag_id as tag_id,at.name, sum(aml.balance) as depreciation
+SELECT aat_acl.account_analytic_tag_id as tag_id,at.name as tag_name, account.name as acc_name,account.code as acc_code, sum(aml.balance) as depreciation
 FROM account_analytic_tag_account_move_line_rel as aat_acl
 JOIN account_move_line as aml 
 ON aat_acl.account_move_line_id = aml.id
@@ -137,38 +231,44 @@ ON aml.account_id = account.id
 JOIN account_analytic_tag as at
 ON at.id = aat_acl.account_analytic_tag_id
 %s
-GROUP BY aat_acl.account_analytic_tag_id,at.name ORDER BY aat_acl.account_analytic_tag_id""" % (domain_depre)
+GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER BY aat_acl.account_analytic_tag_id,account.code""" % (domain_depre)
         self._cr.execute(query_depre)
         lines_depre = self._cr.dictfetchall()
-        groupby_tag_depre = {item['name']:item for item in lines_depre}
-
-
-        final_dict_by_tag = merge(groupby_tag_income, groupby_tag_revenue, groupby_tag_other_income, groupby_tag_expense, groupby_tag_depre)
+        account_name = {item['acc_code']:item["acc_name"] for item in lines_depre}
         tag_index = 1
-        sheet.write(1, 0, "Income", bold)
-        sheet.write(2, 0, "Gross Profit", bold)
-        sheet.write(3, 0, "Operating Income")
-        sheet.write(4, 0, "Operating Revenue")
-        sheet.write(5, 0, "Total Gross Profit", bold)
-        sheet.write(6, 0, "Other Income")
-        sheet.write(7, 0, "Total Income", bold)
-        sheet.write(8, 0, "Expenses", bold)
-        sheet.write(9, 0, "Expenses")
-        sheet.write(10, 0, "Depreciation")
-        sheet.write(11, 0, "Total Expenses", bold)
-        sheet.write(12, 0, "Net Profit", bold)
-        for tag, line in final_dict_by_tag.items():
-            sheet.write(0, tag_index, tag, bold)
-            sheet.write(3, tag_index, line.get("op_income", 0), money_format)
-            sheet.write(4, tag_index, line.get("op_revenue", 0), money_format)
-            sheet.write(5, tag_index, line.get("op_income", 0) - line.get("op_revenue", 0), money_format_bold)
-            sheet.write(6, tag_index, line.get("other_income", 0), money_format)
-            sheet.write(7, tag_index, (line.get("op_income", 0) - line.get("op_revenue", 0)) + line.get("other_income", 0), money_format_bold)
+        row_tag = row_title
+        row_origin = row_title
+        for code, name in account_name.items():
+            sheet.write(row_title, 0, "%s %s"%(code,name))
+            row_title += 1
+        groupby_tag_depre = {}
+        for line in lines_depre:
+            account_list = groupby_tag_depre.get("tag_name", {})
+            account_list.update({line.get("acc_code"): line.get("depreciation", 0)})
+            groupby_tag_depre[line.get("tag_name")] = account_list
+        for tag in tag_ids:
+            line = groupby_tag_depre.get(tag, {})
+            for code,acc_name in account_name.items():
+                sheet.write(row_tag, tag_index, line.get(code, 0), money_format)
+                row_tag += 1
+            row_tag = row_origin
+            tag_index += 1         
+        sheet.write(row_title, 0, "Total Expenses", bold)
+        row_title += 1
+        sheet.write(row_title, 0, "Net Profit", bold)
+        row_title += 1
+#         for tag, line in final_dict_by_tag.items():
+#             sheet.write(0, tag_index, tag, bold)
+#             sheet.write(3, tag_index, line.get("op_income", 0), money_format)
+#             sheet.write(4, tag_index, line.get("op_revenue", 0), money_format)
+#             sheet.write(5, tag_index, line.get("op_income", 0) - line.get("op_revenue", 0), money_format_bold)
+#             sheet.write(6, tag_index, line.get("other_income", 0), money_format)
+#             sheet.write(7, tag_index, (line.get("op_income", 0) - line.get("op_revenue", 0)) + line.get("other_income", 0), money_format_bold)
 
-            sheet.write(9, tag_index, line.get("expense", 0), money_format)
-            sheet.write(10, tag_index, line.get("depreciation", 0), money_format)
-            sheet.write(11, tag_index, line.get("expense", 0) + line.get("depreciation", 0), money_format_bold)
-            sheet.write(12, tag_index, (line.get("op_income", 0) - line.get("op_revenue", 0)) + line.get("other_income", 0) - (line.get("expense", 0) -  line.get("depreciation", 0)), money_format_bold)
-            tag_index += 1
+#             sheet.write(9, tag_index, line.get("expense", 0), money_format)
+#             sheet.write(10, tag_index, line.get("depreciation", 0), money_format)
+#             sheet.write(11, tag_index, line.get("expense", 0) + line.get("depreciation", 0), money_format_bold)
+#             sheet.write(12, tag_index, (line.get("op_income", 0) - line.get("op_revenue", 0)) + line.get("other_income", 0) - (line.get("expense", 0) -  line.get("depreciation", 0)), money_format_bold)
+#             tag_index += 1
 
         
