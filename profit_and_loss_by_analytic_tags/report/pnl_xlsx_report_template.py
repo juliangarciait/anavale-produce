@@ -135,7 +135,7 @@ GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code  ORDE
             row_tag = row_origin
             tag_index += 1
         
-        sheet.write(row_title, 0, "Total Gross Profit", bold)
+        sheet.write(row_title, 0, "Total Cost Revenue", bold)
         row_title += 1
         sheet.write(row_title, 0, "Other Income", bold)
         row_title += 1
