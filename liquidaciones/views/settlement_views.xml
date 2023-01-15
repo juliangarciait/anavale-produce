@@ -66,20 +66,10 @@
                             </div>
                         </group>
                         <div attrs="{'invisible': [('price_type','=', 'close')]}">
-                        <div class="oe_left">
-                            <group>
-                                <div class="oe_tittle">
-                                    <h2>
-                                        <span>
-                                      Viaje
-                                    </span>
-                                    </h2>
-                                </div>
+                        <group>
+                            <group string="Viaje">
                                 <field name="check_maneuvers" attrs="{'invisible': True}" />
                                 <field name="price_type" attrs="{'invisible': True}" />
-                                <field name="maneuvers_unic" attrs="{'invisible': True}" />
-                                <field name="adjustment_unic" attrs="{'invisible': True}" />
-                                <field name="storage_unic" attrs="{'invisible': True}" />
                                 <field name="check_adjustment" attrs="{'invisible': True}" />
                                 <field name="check_storage" attrs="{'invisible': True}" />
                                 <field name="check_freight_out" attrs="{'invisible': True}" />
@@ -92,7 +82,6 @@
                                 <field name="total_amount" force_save="1"  attrs="{'invisible': True}"/>
                                 <field name="total" />
                                 <field name="settlement" attrs="{'invisible': [('price_type','=', 'open')]}" />
-
                                 <label for="storage" />
                                 <div class="o_row">
                                     <field name="storage"/>
@@ -121,9 +110,6 @@
                                     <field name="ajuste_precio" />
                                 </div>
                             </group>
-                        </div>
-
-                        <div class="oe_right">
                             <group>
                                 <field name="calculated_sales" invisible="1" readonly="1" />
                                 <label for="commission_percentage" attrs="{'invisible': [('price_type','=', 'close')]}" />
@@ -174,7 +160,8 @@
                                     <button string="Print" class="oe_highlight" type="object" name="action_print_report" />
                                 </footer>
                             </group>
-                        </div>
+                        </group>
+
                     </div>
 <!--  /////////////////////////////////////////////////// -->
                     <!-- Tabla de productos -->
@@ -186,10 +173,8 @@
                             <field name="price_unit_origin" string="P.U. original"/>
                             <field name="price_unit" />
                             <field name="amount" />
-                            <field name="commission" invisible="1"/>
-                            <field name="total" invisible="1"/>
-                            <field name="commission_rel" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"/>
-                            <field name="total_rel" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"/>
+                            <field name="commission" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"/>
+                            <field name="total" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"/>
                         </tree>
                     </field>
                     <!--  /////////////////////////////////////////////////// -->
@@ -221,9 +206,6 @@
                                 </div>
                                 <field name="check_maneuvers" attrs="{'invisible': True}" />
                                 <field name="price_type" attrs="{'invisible': True}" />
-                                <field name="maneuvers_unic" attrs="{'invisible': True}" />
-                                <field name="adjustment_unic" attrs="{'invisible': True}" />
-                                <field name="storage_unic" attrs="{'invisible': True}" />
                                 <field name="check_adjustment" attrs="{'invisible': True}" />
                                 <field name="check_storage" attrs="{'invisible': True}" />
                                 <field name="check_freight_out" attrs="{'invisible': True}" />
@@ -298,6 +280,11 @@
                         </div>
                     </div>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
             </form>
         </field>
     </record>
@@ -306,7 +293,7 @@
         <field name="name">Liquidaciones</field>
         <field name="model">sale.settlements</field>
         <field name="arch" type="xml">
-            <form create="0" edit="0">
+            <form create="0" edit="0" >
                 <header>
                     <field name="status" widget="statusbar"/>
                     <button name="draft_settlements" type="object" class="oe_highlight" string="Set to Draft" attrs="{'invisible': [('status', '!=', 'close')]}"/>
@@ -344,9 +331,6 @@
                                 </div>
                                 <field name="check_maneuvers" attrs="{'invisible': True}" />
                                 <field name="price_type" attrs="{'invisible': True}" />
-                                <field name="maneuvers_unic" attrs="{'invisible': True}" />
-                                <field name="adjustment_unic" attrs="{'invisible': True}" />
-                                <field name="storage_unic" attrs="{'invisible': True}" />
                                 <field name="check_adjustment" attrs="{'invisible': True}" />
                                 <field name="check_storage" attrs="{'invisible': True}" />
                                 <field name="check_freight_out" attrs="{'invisible': True}" />
@@ -453,9 +437,8 @@
                             <field name="price_unit" />
                             <field name="amount" />
                             <field name="commission" invisible="1"/>
-                            <field name="total" invisible="1"/>
+                            <field name="total" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"/>
                             <field name="commission_rel" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"/>
-                            <field name="total_rel" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"/>
                         </tree>
                     </field>
                     <!--  /////////////////////////////////////////////////// -->
@@ -484,9 +467,6 @@
                                 </div>
                                 <field name="check_maneuvers" attrs="{'invisible': True}" />
                                 <field name="price_type" attrs="{'invisible': True}" />
-                                <field name="maneuvers_unic" attrs="{'invisible': True}" />
-                                <field name="adjustment_unic" attrs="{'invisible': True}" />
-                                <field name="storage_unic" attrs="{'invisible': True}" />
                                 <field name="check_adjustment" attrs="{'invisible': True}" />
                                 <field name="check_storage" attrs="{'invisible': True}" />
                                 <field name="check_freight_out" attrs="{'invisible': True}" />
@@ -564,6 +544,11 @@
                         </div>
                     </div>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
             </form>
         </field>
     </record>
