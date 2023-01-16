@@ -99,6 +99,11 @@
                                     <field name="maneuvers"/>
                                     <field name="check_maneuvers" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 </div>
+                                <label for="others" />
+                                <div class="o_row">
+                                    <field name="others"/>
+                                    <field name="check_others" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                </div>
 
                                 <label for="user_res_partner" attrs="{'invisible': True}" />
                                 <div class="o_row" attrs="{'invisible': True}" style="margin-right:10px;">
@@ -170,9 +175,10 @@
                             <field name="product_id" />
                             <field name="box_rec" />
                             <field name="current_stock" />
+                            <field name="stock_value" string="Stock value"/>
                             <field name="price_unit_origin" string="P.U. original"/>
-                            <field name="price_unit" />
                             <field name="amount" />
+                            <field name="price_unit" />
                             <field name="commission" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"/>
                             <field name="total" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"/>
                         </tree>
@@ -434,8 +440,8 @@
                             <field name="box_emb" />
                             <field name="box_rec" />
                             <field name="price_unit_origin" string="P.U. original"/>
-                            <field name="price_unit" />
                             <field name="amount" />
+                            <field name="price_unit" />
                             <field name="commission" invisible="1"/>
                             <field name="total" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"/>
                             <field name="commission_rel" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"/>
