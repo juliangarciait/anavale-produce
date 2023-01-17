@@ -191,19 +191,19 @@ class SettlementsInherit(models.Model):
     @api.onchange("storage", "check_storage", "maneuvers", "check_maneuvers", "adjustment", "check_adjustment", "ajuste_precio", "others", "check_others", "commission_percentage")
     def _update_lines(self):
         total_cost = unit_cost = 0
-        total_cost += self.check_storage and self.storage or 0
-        total_cost += self.check_maneuvers and self.maneuvers or 0
-        total_cost += self.check_adjustment and self.adjustment or 0
-        total_cost += self.check_others and self.others or 0
+        total_cost += not self.check_storage and self.storage or 0
+        total_cost += not self.check_maneuvers and self.maneuvers or 0
+        total_cost += not self.check_adjustment and self.adjustment or 0
+        total_cost += not self.check_others and self.others or 0
         total_box = sum([line.box_rec for line in self.settlements_line_ids])
         unit_cost = total_cost/total_box
         if self.price_type == "open":
             for line in self.settlements_line_ids:
                 line.price_unit = line.price_unit_origin - unit_cost - self.ajuste_precio
                 line.commission = line.amount * (self.commission_percentage/100)
-        self.storage_total = self.storage
-        self.maneuvers_total = self.maneuvers
-        self.adjustment_total = self.adjustment
+        self.storage_total = self.check_storage and self.storage or 0
+        self.maneuvers_total = self.check_maneuvers and self.maneuvers or 0
+        self.adjustment_total = self.check_adjustment and self.adjustment or 0
 
     @api.depends('settlements_line_ids')
     def _get_subtotal_total(self):
@@ -225,23 +225,21 @@ class SettlementsInherit(models.Model):
         self.total_total = self.total_subtotal + self.aduana_total + self.freight_total - cost
     
     def _get_commission(self):
-        if self.commission_percentage > 0 and self.commission_percentage < 101:
+        if self.commission_percentage >= 0 and self.commission_percentage < 101:
             self.commission = (self.commission_percentage/100) * self.total
         else:
             raise ValidationError(('Enter Value Between 0-100.'))
     
     def _compute_utility_percentage(self):
         if self.price_type=="open":
-            cost = self.commission + self.freight_in + self.aduana + self.maneuvers + self.adjustment + self.storage + self.freight_out
-            self.utility = self.total - cost
-        else:    
-            cost = self.settlement + self.freight_in + self.aduana + self.maneuvers + self.adjustment + self.storage + self.freight_out
-            self.utility = self.total - cost
+            self.utility = self.total - self.total_total
+        else:
+            self.utility = self.total - self.total_total
         if self.utility>0 and self.total>0:
             self.utility_percentage = (self.utility/self.total) * 100
 
     def action_print_report(self):
-        return self.env.ref('liquidaciones.report_settlement_templates').with_context(landscape=True).report_action(self, data={})
+        return self.env.ref('liquidaciones.xlsx_report').with_context(landscape=True).report_action(self, data={})
 
 
 class SettlementsInheritLines(models.Model):
