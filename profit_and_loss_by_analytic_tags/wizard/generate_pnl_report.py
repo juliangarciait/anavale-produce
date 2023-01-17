@@ -12,6 +12,14 @@ class ProfitNLossWizard(models.TransientModel):
     start_date = fields.Date(default=fields.Date.context_today)
     end_date = fields.Date(default=fields.Date.context_today)
     tag_ids = fields.Many2many("account.analytic.tag")
+    partner_id = fields.Many2one("res.partner")
+    partner_ids = fields.Many2many("res.partner")
+
+
+    @api.onchange("start_date", "end_date")
+    def change_range_date_get_partner(self):
+        move_ids = self.env["account.move"].search([("date", ">=", self.start_date), ("date", "<=", self.end_date)])
+        self.partner_ids = move_ids.mapped(lambda move: move.partner_id)
 
 
     def gen_report(self):

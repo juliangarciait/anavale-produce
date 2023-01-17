@@ -12,8 +12,10 @@
                         <field name="end_date"/>
                     </group>
                     <group>
+                        <field name="partner_id" domain="[('id', 'in', partner_ids)]"/>
                         <field name="tag_ids" widget="many2many_tags" options="{'no_create': True}"/>
                     </group>
+                    <field name="partner_ids" invisible="1"></field>
                 </group>
                 <footer>
                     <button name="gen_report" string="Generate" type="object" class="btn-primary"/>
