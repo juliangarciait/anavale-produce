@@ -225,7 +225,7 @@ class SettlementsInherit(models.Model):
         self.total_total = self.total_subtotal + self.aduana_total + self.freight_total - cost
     
     def _get_commission(self):
-        if self.commission_percentage > 0 and self.commission_percentage < 101:
+        if self.commission_percentage >= 0 and self.commission_percentage < 101:
             self.commission = (self.commission_percentage/100) * self.total
         else:
             raise ValidationError(('Enter Value Between 0-100.'))
@@ -241,7 +241,7 @@ class SettlementsInherit(models.Model):
             self.utility_percentage = (self.utility/self.total) * 100
 
     def action_print_report(self):
-        return self.env.ref('liquidaciones.report_settlement_templates').with_context(landscape=True).report_action(self, data={})
+        return self.env.ref('liquidaciones.xlsx_report').with_context(landscape=True).report_action(self, data={})
 
 
 class SettlementsInheritLines(models.Model):
