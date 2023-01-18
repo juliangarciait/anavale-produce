@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="res.groups" id ="replace_privileges">
+        <field name="name">Change Vendor in Purchase Order</field>
+    </record>
+</odoo>
