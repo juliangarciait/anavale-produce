@@ -210,19 +210,23 @@ class SettlementsInherit(models.Model):
         subtotal = sum([ line.total for line in self.settlements_line_ids])
         self.total_subtotal = subtotal
     
+    @api.depends('freight_out', 'check_freight_out', 'freight_in', 'check_freight_in')
     def _get_freight_total(self):
-        self.freight_total = (self.freight_out + self.freight_in)*-1
+        freight_total = 0
+        freight_total += self.check_freight_out and self.freight_out or 0
+        freight_total += self.check_freight_in and self.freight_in or 0
+        self.freight_total = freight_total
     
-    @api.onchange('aduana')
+    @api.depends('aduana', 'check_aduana')
     def _get_aduana_total(self):
-        self.aduana_total = self.aduana * -1
+        self.aduana_total = self.check_aduana and self.aduana or 0
     
     def _get_total_total(self):
         cost = self.storage_total
         cost += self.maneuvers_total
         cost += self.adjustment_total
         cost += self.others
-        self.total_total = self.total_subtotal + self.aduana_total + self.freight_total - cost
+        self.total_total = self.total_subtotal - self.aduana_total - self.freight_total - cost
     
     def _get_commission(self):
         if self.commission_percentage >= 0 and self.commission_percentage < 101:
@@ -235,7 +239,7 @@ class SettlementsInherit(models.Model):
             self.utility = self.total - self.total_total
         else:
             self.utility = self.total - self.total_total
-        if self.utility>0 and self.total>0:
+        if self.utility > 0 and self.total > 0:
             self.utility_percentage = (self.utility/self.total) * 100
 
     def action_print_report(self):
