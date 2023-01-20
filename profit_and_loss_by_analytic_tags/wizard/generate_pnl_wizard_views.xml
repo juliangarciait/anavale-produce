@@ -10,12 +10,12 @@
                     <group>
                         <field name="start_date"/>
                         <field name="end_date"/>
+                        <field name="filter_by" widget="radio"/>
                     </group>
                     <group>
-                        <field name="partner_id" domain="[('id', 'in', partner_ids)]"/>
-                        <field name="tag_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                        <field name="tag_ids" widget="many2many_tags" options="{'no_create': True}" domain="[('id', 'in', tag_domain_ids)]"/>
                     </group>
-                    <field name="partner_ids" invisible="1"></field>
+                    <field name="tag_domain_ids" invisible="1"></field>
                 </group>
                 <footer>
                     <button name="gen_report" string="Generate" type="object" class="btn-primary"/>
