@@ -44,6 +44,7 @@ select DISTINCT tag.account_analytic_tag_id as id from account_analytic_tag_acco
         self._cr.execute(query_tags)
         tag_to_domain = self._cr.dictfetchall()
         self.tag_domain_ids = [tag.get("id") for tag in tag_to_domain]
+        self.tag_ids = [tag.get("id") for tag in tag_to_domain]
 
 
     def gen_report(self):
