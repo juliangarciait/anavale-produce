@@ -61,6 +61,7 @@ class PurchaseOrder(models.Model):
         domain = [('lot_id', 'in', tuple(self._get_list_lot_ids(move_sale.lot_id))),
                   ('product_id', '=', move_sale.product_id.id)]
         lines = self.env['sale.order.line'].search(domain)
+        
         for line in lines:
             # Update Purchase Move
             for move in line.move_ids:
@@ -73,13 +74,16 @@ class PurchaseOrder(models.Model):
                     self._update_work_flow_invoice(ivl.move_id)
 
     def _update_account_move(self, stock_move, product_id, price_unit):
+        tag_ids = stock_move.lot_id.analytic_tag_ids
+        sol_id = stock_move.sale_line_id
         for rec in self.env['account.move'].search([('stock_move_id', '=', stock_move.id)]):
             if rec.state == 'posted':
-                _logger.info("Move Update")
-                _logger.info(rec.name)
                 rec.button_draft()
                 prepare_ids = []  # (1, ID, { values })
-                for line_ac in rec.invoice_line_ids:
+                line_ids = rec.invoice_line_ids
+                if sol_id:
+                    line_ids = rec.invoice_line_ids.filtered(lambda line: line.analytic_tag_ids in tag_ids)
+                for line_ac in line_ids:
                     if line_ac.product_id == product_id:
                         if line_ac.credit != 0:
                             prepare_ids.append((1, line_ac.id, {'credit': price_unit * abs(line_ac.quantity)}))
