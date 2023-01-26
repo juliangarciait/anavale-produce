@@ -51,7 +51,7 @@ class PurchaseOrder(models.Model):
 
     @staticmethod
     def _get_list_lot_ids(lot_id):
-        _logger.info(lot_id)
+        _logger.info(lot_id.name)
         result = [lot_id.id]
         for child_lot in lot_id.child_lot_ids:
             result.append(child_lot.id)
@@ -119,11 +119,12 @@ class PurchaseOrder(models.Model):
                 if line.product_id and line.price_total:
                     # Update Purchase Move
                     line._compute_total_invoiced()
-                    for move in line.move_ids:
+                    for move in line.move_ids.filtered(lambda move: move.state == "done"):
                         self._update_account_move(move, line.product_id, line.price_unit)
                         self._update_stock_valuation_by_lot(move, line.product_id, line.price_unit)
                         self._update_stock_valuation_layer(move, line.product_id, line.price_unit)
                         for move_sale in move.move_line_nosuggest_ids:
+                            
                             if move_sale.lot_id:
                                 self._update_account_move_from_sale(move_sale, line.product_id, line.price_unit)
 
