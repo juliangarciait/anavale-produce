@@ -13,7 +13,7 @@ class XlsxReport(models.AbstractModel):
     _name = 'report.liquidaciones.xlsx_report'
     _inherit = 'report.odoo_report_xlsx.abstract'
     
-    def generate_xlsx_report(self, workbook, data, objects): 
+    def generate_xlsx_report(self, workbook, data, objects):
         workbook.set_properties({
             'comments' : 'Created with Python and XlsxWrite from Odoo 13.0'
         })
@@ -78,6 +78,17 @@ class XlsxReport(models.AbstractModel):
             'align'      : 'center',
         })
         light_box = workbook.add_format({
+            'font_color' : 'red',
+            'font_size'  : '14', 
+            'font_name'  : 'arial',
+            'bottom'     : 1,
+            'top'        : 1, 
+            'right'      : 1,
+            'left'       : 1,
+            'bg_color'   : 'yellow',
+            'align'      : 'center',
+        })
+        light_box_currency = workbook.add_format({
             'font_color' : 'red',
             'font_size'  : '14', 
             'font_name'  : 'arial',
@@ -166,6 +177,15 @@ class XlsxReport(models.AbstractModel):
             'bold'       : True
         })
         
+        currency_id = self.env.user.company_id.currency_id
+        light_box_currency.num_format = currency_id.symbol + '#,##0.00'
+        
+        lang = self.env.user.lang
+        lang_id = self.env['res.lang'].search([('code', '=', lang)])[0]
+        datestring = fields.Date.from_string(str(data.get('date'),)).strftime(lang_id.date_format)
+        
+        i = 9
+        
         sheet.write(4, 0, 'NOTA', report_format)
         sheet.write(4, 1, 'VIAJE', report_format)
         
@@ -196,6 +216,73 @@ class XlsxReport(models.AbstractModel):
         sheet.write(7, 9, '', light_header_bottom)
         sheet.write(7, 10, 'total', bold_header)
         
+        sheet.write(9, 0, datestring, light_box)
+        sheet.write(9, 10, data.get('freight_spoilage_total'), light_box_currency)
+        for line in data.get('lines'):
+            i += 1
+            sheet.write(i, 0, '', light_box)
+            sheet.write(i, 1, line.get('product'), light_box)
+            sheet.write(i, 2, line.get('product_uom'), light_box)
+            sheet.write(i, 3, line.get('box_emb'), light_box)
+            sheet.write(i, 4, line.get('box_rec'), light_box)
+            sheet.write(i, 5, line.get('price_unit'), light_box_currency)
+            sheet.write(i, 6, line.get('amount'), light_box_currency)
+            sheet.write(i, 7, line.get('freight'), light_box_currency)
+            sheet.write(i, 8, line.get('spoilage'), light_box_currency)
+            sheet.write(i, 9, line.get('stock_value'), light_box_currency)
+            sheet.write(i, 10, line.get('total'), light_box_currency)
+    
+        for j in range(19 - i): 
+            if i < 19: 
+                i += 1
+                sheet.write(i, 0, '', light_box)
+                sheet.write(i, 1, '', light_box)
+                sheet.write(i, 2, '', light_box)
+                sheet.write(i, 3, '', light_box)
+                sheet.write(i, 4, '', light_box)
+                sheet.write(i, 5, '', light_box)
+                sheet.write(i, 6, '', light_box)
+                sheet.write(i, 7, '', light_box)
+                sheet.write(i, 8, '', light_box)
+                sheet.write(i, 9, '', light_box)
+                sheet.write(i, 10, '', light_box)
+                
+        sheet.write(19, 0, '', light_box)
+        sheet.write(19, 1, '', light_box)
+        sheet.write(19, 2, '', light_box)
+        sheet.write(19, 3, data.get('box_emb_total'), light_box)
+        sheet.write(19, 4, data.get('box_rec_total'), light_box)
+        sheet.write(19, 5, '', light_box)
+        sheet.write(19, 6, data.get('amount_total'), light_box_currency)
+        sheet.write(19, 7, data.get('freight_total'), light_box_currency)
+        sheet.write(19, 8, data.get('spoilage_total'), light_box_currency)
+        sheet.write(19, 9, '', light_box)
+        sheet.write(19, 10, data.get('total'), light_box_currency)
+
+
+        sheet.merge_range(5, 2, 5, 10, data.get('company'), report_format_title)
+        
+        
+        sheet.write(4, 17, 'Viaje', travels)
+        sheet.write(5, 17, 'VENTAS', travels_title_top_left)
+        sheet.write(8, 17, 'LIQUIDACIONES', travels_middle_left)
+        sheet.write(9, 17, 'Freight In', travels_middle_left)
+        sheet.write(10, 17, 'Aduana', travels_middle_left)
+        sheet.write(11, 17, 'MANIOBRAS', travels_middle_left_red)
+        sheet.write(12, 17, 'AJUSTE', travels_middle_left_red)
+        sheet.write(13, 17, 'STORAGE', travels_middle_left_red)
+        sheet.write(14, 17, 'FREIGHT OUT', travels_middle_left_red)
+        sheet.write(17, 17, 'UTILIDAD', travels_middle_left)
+        sheet.write(5, 18, data.get('sales'), travels_title_top_right)
+        sheet.write(9, 18, data.get('freight_in'), travels_middle_right)
+        sheet.write(10, 18, data.get('aduana'), travels_middle_right)
+        sheet.write(11, 18, data.get('maneuvers'), travels_middle_right_red)
+        sheet.write(12, 18, data.get('adjustment'), travels_middle_right_red)
+        sheet.write(13, 18, data.get('storage'), travels_middle_right_red)
+        sheet.write(14, 18, data.get('freight_out'), travels_middle_right_red)
+        sheet.write(17, 18, data.get('utility'), travels_middle_right)
+        sheet.write(19, 18, str(data.get('utility_percentage')) + '%', travels_bottom_right)
+
         sheet.write(8, 0, '', light_box)
         sheet.write(8, 1, '', light_box)
         sheet.write(8, 2, '', light_box)
@@ -207,7 +294,6 @@ class XlsxReport(models.AbstractModel):
         sheet.write(8, 8, '', light_box)
         sheet.write(8, 9, '', light_box)
         sheet.write(8, 10, '', light_box)
-        sheet.write(9, 0, '', light_box)
         sheet.write(9, 1, '', light_box)
         sheet.write(9, 2, '', light_box)
         sheet.write(9, 3, '', light_box)
@@ -218,159 +304,18 @@ class XlsxReport(models.AbstractModel):
         sheet.write(9, 8, '', light_box)
         sheet.write(9, 9, '', light_box)
         sheet.write(9, 10, '', light_box)
-        sheet.write(10, 0, '', light_box)
-        sheet.write(10, 1, '', light_box)
-        sheet.write(10, 2, '', light_box)
-        sheet.write(10, 3, '', light_box)
-        sheet.write(10, 4, '', light_box)
-        sheet.write(10, 5, '', light_box)
-        sheet.write(10, 6, '', light_box)
-        sheet.write(10, 7, '', light_box)
-        sheet.write(10, 8, '', light_box)
-        sheet.write(10, 9, '', light_box)
-        sheet.write(10, 10, '', light_box)
-        sheet.write(10, 12, '', light_box)
-        sheet.write(10, 13, '', light_box)
-        sheet.write(10, 14, '', light_box)
-        sheet.write(11, 0, '', light_box)
-        sheet.write(11, 1, '', light_box)
-        sheet.write(11, 2, '', light_box)
-        sheet.write(11, 3, '', light_box)
-        sheet.write(11, 4, '', light_box)
-        sheet.write(11, 5, '', light_box)
-        sheet.write(11, 6, '', light_box)
-        sheet.write(11, 7, '', light_box)
-        sheet.write(11, 8, '', light_box)
-        sheet.write(11, 9, '', light_box)
-        sheet.write(11, 10, '', light_box)
-        sheet.write(12, 0, '', light_box)
-        sheet.write(12, 1, '', light_box)
-        sheet.write(12, 2, '', light_box)
-        sheet.write(12, 3, '', light_box)
-        sheet.write(12, 4, '', light_box)
-        sheet.write(12, 5, '', light_box)
-        sheet.write(12, 6, '', light_box)
-        sheet.write(12, 7, '', light_box)
-        sheet.write(12, 8, '', light_box)
-        sheet.write(12, 9, '', light_box)
-        sheet.write(12, 10, '', light_box)
-        sheet.write(13, 0, '', light_box)
-        sheet.write(13, 1, '', light_box)
-        sheet.write(13, 2, '', light_box)
-        sheet.write(13, 3, '', light_box)
-        sheet.write(13, 4, '', light_box)
-        sheet.write(13, 5, '', light_box)
-        sheet.write(13, 6, '', light_box)
-        sheet.write(13, 7, '', light_box)
-        sheet.write(13, 8, '', light_box)
-        sheet.write(13, 9, '', light_box)
-        sheet.write(13, 10, '', light_box)
-        sheet.write(14, 0, '', light_box)
-        sheet.write(14, 1, '', light_box)
-        sheet.write(14, 2, '', light_box)
-        sheet.write(14, 3, '', light_box)
-        sheet.write(14, 4, '', light_box)
-        sheet.write(14, 5, '', light_box)
-        sheet.write(14, 6, '', light_box)
-        sheet.write(14, 7, '', light_box)
-        sheet.write(14, 8, '', light_box)
-        sheet.write(14, 9, '', light_box)
-        sheet.write(14, 10, '', light_box)
-        sheet.write(15, 0, '', light_box)
-        sheet.write(15, 1, '', light_box)
-        sheet.write(15, 2, '', light_box)
-        sheet.write(15, 3, '', light_box)
-        sheet.write(15, 4, '', light_box)
-        sheet.write(15, 5, '', light_box)
-        sheet.write(15, 6, '', light_box)
-        sheet.write(15, 7, '', light_box)
-        sheet.write(15, 8, '', light_box)
-        sheet.write(15, 9, '', light_box)
-        sheet.write(15, 10, '', light_box)
-        sheet.write(16, 0, '', light_box)
-        sheet.write(16, 1, '', light_box)
-        sheet.write(16, 2, '', light_box)
-        sheet.write(16, 3, '', light_box)
-        sheet.write(16, 4, '', light_box)
-        sheet.write(16, 5, '', light_box)
-        sheet.write(16, 6, '', light_box)
-        sheet.write(16, 7, '', light_box)
-        sheet.write(16, 8, '', light_box)
-        sheet.write(16, 9, '', light_box)
-        sheet.write(16, 10, '', light_box)
-        sheet.write(17, 0, '', light_box)
-        sheet.write(17, 1, '', light_box)
-        sheet.write(17, 2, '', light_box)
-        sheet.write(17, 3, '', light_box)
-        sheet.write(17, 4, '', light_box)
-        sheet.write(17, 5, '', light_box)
-        sheet.write(17, 6, '', light_box)
-        sheet.write(17, 7, '', light_box)
-        sheet.write(17, 8, '', light_box)
-        sheet.write(17, 9, '', light_box)
-        sheet.write(17, 10, '', light_box)
-        sheet.write(18, 0, '', light_box)
-        sheet.write(18, 1, '', light_box)
-        sheet.write(18, 2, '', light_box)
-        sheet.write(18, 3, '', light_box)
-        sheet.write(18, 4, '', light_box)
-        sheet.write(18, 5, '', light_box)
-        sheet.write(18, 6, '', light_box)
-        sheet.write(18, 7, '', light_box)
-        sheet.write(18, 8, '', light_box)
-        sheet.write(18, 9, '', light_box)
-        sheet.write(18, 10, '', light_box)
-        sheet.write(19, 0, '', light_box)
-        sheet.write(19, 1, '', light_box)
-        sheet.write(19, 2, '', light_box)
-        sheet.write(19, 3, '', light_box)
-        sheet.write(19, 4, '', light_box)
-        sheet.write(19, 5, '', light_box)
-        sheet.write(19, 6, '', light_box)
-        sheet.write(19, 7, '', light_box)
-        sheet.write(19, 8, '', light_box)
-        sheet.write(19, 9, '', light_box)
-        sheet.write(19, 10, '', light_box)
-
-
-        sheet.merge_range(5, 2, 5, 10, 'AGROFRESH', report_format_title)
-        
-        
-        sheet.write(4, 17, 'Viaje', travels)
-        sheet.write(5, 17, 'VENTAS', travels_title_top_left)
-        sheet.write(5, 18, '', travels_title_top_right)
-        
         sheet.write(6, 17, '', travels_middle_left)
         sheet.write(7, 17, '', travels_middle_left)
-        sheet.write(8, 17, 'LIQUIDACIONES', travels_middle_left)
-        sheet.write(9, 17, 'Freight In', travels_middle_left)
-        sheet.write(10, 17, 'Aduana', travels_middle_left)
         sheet.write(15, 17, '', travels_middle_left)
         sheet.write(16, 17, '', travels_middle_left)
-        sheet.write(17, 17, 'UTILIDAD', travels_middle_left)
         sheet.write(18, 17, '', travels_middle_left)
-        
         sheet.write(6, 18, '', travels_middle_right)
         sheet.write(7, 18, '', travels_middle_right)
         sheet.write(8, 18, '', travels_middle_right)
-        sheet.write(9, 18, '', travels_middle_right)
-        sheet.write(10, 18, '', travels_middle_right)
         sheet.write(15, 18, '', travels_middle_right)
         sheet.write(16, 18, '', travels_middle_right)
-        sheet.write(17, 18, '', travels_middle_right)
         sheet.write(18, 18, '', travels_middle_right)
-        
-        sheet.write(11, 17, 'MANIOBRAS', travels_middle_left_red)
-        sheet.write(12, 17, 'AJUSTE', travels_middle_left_red)
-        sheet.write(13, 17, 'STORAGE', travels_middle_left_red)
-        sheet.write(14, 17, 'FREIGHT OUT', travels_middle_left_red)
-        sheet.write(11, 18, '', travels_middle_right_red)
-        sheet.write(12, 18, '', travels_middle_right_red)
-        sheet.write(13, 18, '', travels_middle_right_red)
-        sheet.write(14, 18, '', travels_middle_right_red)
-        
         sheet.write(19, 17, '', travels_bottom_left)
-        sheet.write(19, 18, '', travels_bottom_right)
         
         
     
