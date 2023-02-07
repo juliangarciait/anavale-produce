@@ -124,7 +124,7 @@ class QuantProductRepackWizard(models.TransientModel):
         self.env.cr.execute(sql, vals)
         result = self.env.cr.dictfetchone()
         if result:
-            return result.get('id')
+            return self.env['stock.production.lot'].sudo().browse(result.get('id'))
         return self.env['stock.production.lot'].sudo().create(vals)
 
     def get_name_lot_from_variant(self, product_id):
@@ -168,7 +168,7 @@ class QuantProductRepackWizard(models.TransientModel):
             'prod_lot_id': lot_ids[1].id,
             'product_id': self.product_dest_id.id,
             'location_id': self.location_id.id,
-            'product_qty': self.final_qty
+            'product_qty': self.final_qty #+ lot_ids[1].product_qty #aumentar lo que originalmente tiene
         }))]
         si.line_ids = False
         si.line_ids = list_line_ids
