@@ -56,68 +56,42 @@ class PurchaseOrder(models.Model):
         for child_lot in lot_id.child_lot_ids:
             result.append(child_lot.id)
         return result
-    
-    @staticmethod
-    def _get_list_product_by_lot_ids(lot_id):
-        result = [lot_id.product_id.id]
-        for child_lot in lot_id.child_lot_ids:
-            result.append(child_lot.product_id.id)
-        return result
 
     def _update_account_move_from_sale(self, move_sale, product_id, price_unit):
         domain = [('lot_id', 'in', tuple(self._get_list_lot_ids(move_sale.lot_id))),
-                  ('product_id', 'in', self._get_list_product_by_lot_ids(move_sale.lot_id))]
+                  ('product_id', '=', move_sale.product_id.id)]
         lines = self.env['sale.order.line'].search(domain)
+        
         for line in lines:
             # Update Purchase Move
             for move in line.move_ids:
                 _logger.info("Move Update SALE")
                 self._update_account_move(move, product_id, price_unit)
                 self._update_stock_valuation_layer(move, product_id, price_unit)
-            # Update Invoice Lines - Removi esto porque estaba reseteando la factura
-            # for ivl in line.invoice_lines:
-            #     if ivl.move_id:
-            #         self._update_work_flow_invoice(ivl.move_id)
+            # Update Invoice Lines
+            for ivl in line.invoice_lines:
+                if ivl.move_id:
+                    self._update_work_flow_invoice(ivl.move_id)
 
     def _update_account_move(self, stock_move, product_id, price_unit):
+        tag_ids = stock_move.lot_id.analytic_tag_ids
         sol_id = stock_move.sale_line_id
-        acc_move_ids = self.env['account.move'].search([('stock_move_id', '=', stock_move.id)])
-        if sol_id:            
-            acc_move_ids = sol_id.invoice_lines.move_id
-        product_ids = self._get_list_product_by_lot_ids(stock_move.lot_id)
-        
-        for rec in acc_move_ids:
-            if sol_id:
-                acc_expense_id = self.env.ref("l10n_generic_coa.1_expense")
-                acc_stock_out_id = self.env.ref("l10n_generic_coa.1_stock_out")
-                if len(product_ids) > 1:
-                    self._cr.execute("SELECT id, quantity, credit,debit,product_id,account_id FROM account_move_line where move_id=%s and account_id in %s and product_id in %s" % (rec.id, (acc_expense_id.id,acc_stock_out_id.id), tuple(product_ids)))
-                else:
-                    self._cr.execute("SELECT id, quantity, credit,debit,product_id,account_id FROM account_move_line where move_id=%s and account_id in %s and product_id = %s" % (rec.id, (acc_expense_id.id,acc_stock_out_id.id), product_ids[0]))
-                a_line_ids = self._cr.dictfetchall()
-                for line in a_line_ids:
-                    _logger.info("/"*900)
-                    _logger.info(line)
-                    price_unit_calc = price_unit * abs(line.get("quantity",0))
-                    if line.get("credit", 0) != 0:
-                        self._cr.execute("UPDATE account_move_line set credit=%f where id=%s" % (price_unit_calc, line.get("id")))
-                    elif line.get("debit", 0) != 0:
-                        self._cr.execute("UPDATE account_move_line set debit=%f where id=%s" % (price_unit_calc, line.get("id")))
-            else:
-                if rec.state == 'posted':
-                    rec.button_draft()
-                    prepare_ids = []  # (1, ID, { values })
-                    line_ids = rec.invoice_line_ids
-                    for line_ac in line_ids:
-                        if line_ac.product_id.id in product_ids:
-                            if line_ac.credit != 0:
-                                prepare_ids.append((1, line_ac.id, {'credit': price_unit * abs(line_ac.quantity)}))
-                            else:
-                                prepare_ids.append((1, line_ac.id, {'debit': price_unit * abs(line_ac.quantity)}))
-                    if prepare_ids:
-                        rec.sudo().invoice_line_ids = prepare_ids
-                    rec.action_post()
-                
+        for rec in self.env['account.move'].search([('stock_move_id', '=', stock_move.id)]):
+            if rec.state == 'posted':
+                rec.button_draft()
+                prepare_ids = []  # (1, ID, { values })
+                line_ids = rec.invoice_line_ids
+                if sol_id:
+                    line_ids = rec.invoice_line_ids.filtered(lambda line: line.analytic_tag_ids in tag_ids)
+                for line_ac in line_ids:
+                    if line_ac.product_id == product_id:
+                        if line_ac.credit != 0:
+                            prepare_ids.append((1, line_ac.id, {'credit': price_unit * abs(line_ac.quantity)}))
+                        else:
+                            prepare_ids.append((1, line_ac.id, {'debit': price_unit * abs(line_ac.quantity)}))
+                if prepare_ids:
+                    rec.sudo().invoice_line_ids = prepare_ids
+                rec.action_post()
     
     def _update_stock_valuation_by_lot(self, move, product_id, price_unit):
         for line in move.move_line_ids:
