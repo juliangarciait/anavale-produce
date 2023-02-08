@@ -11,6 +11,7 @@
                         <field name="start_date"/>
                         <field name="end_date"/>
                         <field name="filter_by" widget="radio"/>
+                        <field name="text_lot" string="Lot to search" attrs="{'invisible': [('filter_by', '!=', 'lot_by_supplier')]}"/>
                     </group>
                     <group>
                         <field name="tag_ids" widget="many2many_tags" options="{'no_create': True}" domain="[('id', 'in', tag_domain_ids)]"/>
