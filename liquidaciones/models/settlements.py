@@ -255,9 +255,12 @@ class SettlementsInherit(models.Model):
         total          = 0
         
         for line in self.settlements_line_ids: 
+            _logger.info(line.product_id.read())
+            display_name = line.product_id.display_name.replace(")", "").split("(")
+            variant = len(display_name) > 1 and display_name[1]
             data_lines = {
                 'product'                : line.product_id.name, 
-                'product_uom'            : line.product_uom.name, 
+                'product_uom'            : variant, 
                 'box_emb'                : line.box_emb, 
                 'box_rec'                : line.box_rec,
                 'price_unit'             : line.price_unit, 
@@ -296,7 +299,7 @@ class SettlementsInherit(models.Model):
             'box_emb_total'          : box_emb_total, 
             'box_rec_total'          : box_rec_total, 
             'amount_total'           : amount_total, 
-            'freight_total'          : freight_total, 
+            'freight_total'          : self.freight_total, 
             'spoilage_total'         : spoilage_total, 
             'total'                  : total  
         }

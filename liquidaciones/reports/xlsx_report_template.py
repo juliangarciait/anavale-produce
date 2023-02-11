@@ -85,7 +85,6 @@ class XlsxReport(models.AbstractModel):
             'top'        : 1, 
             'right'      : 1,
             'left'       : 1,
-            'bg_color'   : 'yellow',
             'align'      : 'center',
         })
         light_box_currency = workbook.add_format({
@@ -96,7 +95,6 @@ class XlsxReport(models.AbstractModel):
             'top'        : 1, 
             'right'      : 1,
             'left'       : 1,
-            'bg_color'   : 'yellow',
             'align'      : 'center',
         })
         travels = workbook.add_format({
@@ -195,42 +193,42 @@ class XlsxReport(models.AbstractModel):
         sheet.write(6, 0, '', report_format)
         sheet.write(6, 1, '', report_format)
         sheet.write(6, 2, '', light_header_top)
+        # sheet.write(6, 3, 'Cajas', light_header_top)
         sheet.write(6, 3, 'Cajas', light_header_top)
-        sheet.write(6, 4, 'Cajas', light_header_top)
+        sheet.write(6, 4, '$', light_header_top)
         sheet.write(6, 5, '$', light_header_top)
-        sheet.write(6, 6, '$', light_header_top)
-        sheet.write(6, 7, '(-)Flete', light_header_top)
-        sheet.write(6, 8, '', light_header_top)
-        sheet.write(6, 9, 'Precio Compra', light_header_top)
-        sheet.write(6, 10, '', light_header_top)
+        sheet.write(6, 6, '(-)Flete', light_header_top)
+        sheet.write(6, 7, '', light_header_top)
+        sheet.write(6, 8, 'Precio Compra', light_header_top)
+        sheet.write(6, 9, '', light_header_top)
         
         sheet.write(7, 0, 'Fecha', bold_header)
         sheet.write(7, 1, 'Producto', light_header_bottom)
         sheet.write(7, 2, 'Medida', light_header_bottom)
-        sheet.write(7, 3, 'Emb.', light_header_bottom)
-        sheet.write(7, 4, 'Rec.', light_header_bottom)
-        sheet.write(7, 5, 'P.Unit.', light_header_bottom)
-        sheet.write(7, 6, 'Importe.', light_header_bottom)
+        # sheet.write(7, 3, 'Emb.', light_header_bottom)
+        sheet.write(7, 3, 'Rec.', light_header_bottom)
+        sheet.write(7, 4, 'P.Unit.', light_header_bottom)
+        sheet.write(7, 5, 'Importe.', light_header_bottom)
+        sheet.write(7, 6, '', light_header_bottom)
         sheet.write(7, 7, '', light_header_bottom)
         sheet.write(7, 8, '', light_header_bottom)
-        sheet.write(7, 9, '', light_header_bottom)
-        sheet.write(7, 10, 'total', bold_header)
+        sheet.write(7, 9, 'total', bold_header)
         
         sheet.write(9, 0, datestring, light_box)
-        sheet.write(9, 10, data.get('freight_spoilage_total'), light_box_currency)
+        # sheet.write(9, 10, data.get('freight_spoilage_total'), light_box_currency)
         for line in data.get('lines'):
             i += 1
             sheet.write(i, 0, '', light_box)
             sheet.write(i, 1, line.get('product'), light_box)
             sheet.write(i, 2, line.get('product_uom'), light_box)
-            sheet.write(i, 3, line.get('box_emb'), light_box)
-            sheet.write(i, 4, line.get('box_rec'), light_box)
-            sheet.write(i, 5, line.get('price_unit'), light_box_currency)
-            sheet.write(i, 6, line.get('amount'), light_box_currency)
-            sheet.write(i, 7, line.get('freight'), light_box_currency)
-            sheet.write(i, 8, line.get('spoilage'), light_box_currency)
-            sheet.write(i, 9, line.get('stock_value'), light_box_currency)
-            sheet.write(i, 10, line.get('total'), light_box_currency)
+            # sheet.write(i, 3, line.get('box_emb'), light_box)
+            sheet.write(i, 3, line.get('box_rec'), light_box)
+            sheet.write(i, 4, line.get('price_unit'), light_box_currency)
+            sheet.write(i, 5, line.get('amount'), light_box_currency)
+            sheet.write(i, 6, "", light_box_currency)
+            sheet.write(i, 7, line.get('spoilage'), light_box_currency)
+            sheet.write(i, 8, line.get('stock_value'), light_box_currency)
+            sheet.write(i, 9, line.get('total'), light_box_currency)
     
         for j in range(19 - i): 
             if i < 19: 
@@ -245,22 +243,22 @@ class XlsxReport(models.AbstractModel):
                 sheet.write(i, 7, '', light_box)
                 sheet.write(i, 8, '', light_box)
                 sheet.write(i, 9, '', light_box)
-                sheet.write(i, 10, '', light_box)
+                # sheet.write(i, 10, '', light_box)
                 
         sheet.write(19, 0, '', light_box)
         sheet.write(19, 1, '', light_box)
         sheet.write(19, 2, '', light_box)
-        sheet.write(19, 3, data.get('box_emb_total'), light_box)
-        sheet.write(19, 4, data.get('box_rec_total'), light_box)
-        sheet.write(19, 5, '', light_box)
-        sheet.write(19, 6, data.get('amount_total'), light_box_currency)
-        sheet.write(19, 7, data.get('freight_total'), light_box_currency)
-        sheet.write(19, 8, data.get('spoilage_total'), light_box_currency)
-        sheet.write(19, 9, '', light_box)
-        sheet.write(19, 10, data.get('total'), light_box_currency)
+        # sheet.write(19, 3, data.get('box_emb_total'), light_box)
+        sheet.write(19, 3, data.get('box_rec_total'), light_box)
+        sheet.write(19, 4, '', light_box)
+        sheet.write(19, 5, data.get('amount_total'), light_box_currency)
+        sheet.write(19, 6, data.get('freight_total'), light_box_currency)
+        sheet.write(19, 7, data.get('spoilage_total'), light_box_currency)
+        sheet.write(19, 8, '', light_box)
+        sheet.write(19, 9, data.get('total'), light_box_currency)
 
 
-        sheet.merge_range(5, 2, 5, 10, data.get('company'), report_format_title)
+        sheet.merge_range(5, 2, 5, 9, data.get('company'), report_format_title)
         
         
         sheet.write(4, 17, 'Viaje', travels)
@@ -293,7 +291,7 @@ class XlsxReport(models.AbstractModel):
         sheet.write(8, 7, '', light_box)
         sheet.write(8, 8, '', light_box)
         sheet.write(8, 9, '', light_box)
-        sheet.write(8, 10, '', light_box)
+        # sheet.write(8, 10, '', light_box)
         sheet.write(9, 1, '', light_box)
         sheet.write(9, 2, '', light_box)
         sheet.write(9, 3, '', light_box)
@@ -303,7 +301,7 @@ class XlsxReport(models.AbstractModel):
         sheet.write(9, 7, '', light_box)
         sheet.write(9, 8, '', light_box)
         sheet.write(9, 9, '', light_box)
-        sheet.write(9, 10, '', light_box)
+        # sheet.write(9, 10, '', light_box)
         sheet.write(6, 17, '', travels_middle_left)
         sheet.write(7, 17, '', travels_middle_left)
         sheet.write(15, 17, '', travels_middle_left)
