@@ -77,22 +77,29 @@ GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER
         groupby_tag_income = {}
         for line in lines_operating_income:
             account_list = groupby_tag_income.get(line.get("tag_name"), {})
-            _logger.info(account_list)
             sum_tag =  groupby_tag_income.get(line.get("tag_name"), {}).get("total", 0)
             sum_tag += line.get("op_income", 0)
             account_list.update({line.get("acc_code"): line.get("op_income", 0), 'total': sum_tag})
             groupby_tag_income[line.get("tag_name")] = account_list
         
         tag_ids = groupby_tag_income.keys()
-        tag_index = 1        
+        tag_index = 1
+        list_to_write = []
         for tag, line in groupby_tag_income.items():
             sheet.write(0, tag_index, tag, bold)
             for code,acc_name in account_name.items():
                 sheet.write(row_tag, tag_index, line.get(code, 0), money_format)
+                list_to_write.append(row_tag)
                 row_tag += 1
             row_tag = 4
             tag_index += 1
-        
+        for sumatory in list_to_write:
+            firts_cell = xl_rowcol_to_cell(sumatory, 1)
+            last_cell = xl_rowcol_to_cell(sumatory, tag_index-1)
+            cell_string = '=SUM(%s:%s)' % (firts_cell, last_cell)
+            sheet.write(sumatory, tag_index, cell_string, money_format)
+        sheet.write(0, tag_index, "Sumatoria", bold)# Titulo de sumatoria
+
         sheet.write(row_title, 0, "Operating Revenue", bold)
         row_title += 1
 
@@ -126,15 +133,22 @@ GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code  ORDE
             sum_tag += line.get("op_revenue", 0)
             account_list.update({line.get("acc_code"): line.get("op_revenue", 0), 'total': sum_tag})
             groupby_tag_op_revenue[line.get("tag_name")] = account_list
+        list_to_write = []
         for tag in tag_ids:
             line = groupby_tag_op_revenue.get(tag, {})
             for code,acc_name in account_name.items():
                 sheet.write(row_tag, tag_index, line.get(code, 0), money_format)
+                list_to_write.append(row_tag)
                 row_tag += 1
             sheet.write(row_tag,tag_index, "=%f-%f"%( groupby_tag_income.get(tag, {}).get("total",0) , groupby_tag_op_revenue.get(tag, {}).get("total",0) ) , money_format_bold)
+            list_to_write.append(row_tag)
             row_tag = row_origin
             tag_index += 1
-        
+        for sumatory in list_to_write:
+            firts_cell = xl_rowcol_to_cell(sumatory, 1)
+            last_cell = xl_rowcol_to_cell(sumatory, tag_index-1)
+            cell_string = '=SUM(%s:%s)' % (firts_cell, last_cell)
+            sheet.write(sumatory, tag_index, cell_string, money_format)
         sheet.write(row_title, 0, "Total Cost Revenue", bold)
         row_title += 1
         sheet.write(row_title, 0, "Other Income", bold)
@@ -170,14 +184,22 @@ GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER
             sum_tag += line.get("other_income", 0)
             account_list.update({line.get("acc_code"): line.get("other_income", 0), 'total': sum_tag})
             groupby_tag_other_income[line.get("tag_name")] = account_list
+        list_to_write = []
         for tag in tag_ids:
             line = groupby_tag_other_income.get(tag, {})
             for code,acc_name in account_name.items():
                 sheet.write(row_tag, tag_index, line.get(code, 0), money_format)
+                list_to_write.append(row_tag)
                 row_tag += 1
             sheet.write(row_tag,tag_index, "=(%f-%f)+%f"%(groupby_tag_income.get(tag, {}).get("total",0), groupby_tag_op_revenue.get(tag, {}).get("total",0), groupby_tag_other_income.get(tag, {}).get("total",0) ) , money_format_bold)
+            list_to_write.append(row_tag)
             row_tag = row_origin
             tag_index += 1
+        for sumatory in list_to_write:
+            firts_cell = xl_rowcol_to_cell(sumatory, 1)
+            last_cell = xl_rowcol_to_cell(sumatory, tag_index-1)
+            cell_string = '=SUM(%s:%s)' % (firts_cell, last_cell)
+            sheet.write(sumatory, tag_index, cell_string, money_format)
         sheet.write(row_title, 0, "Total Income", bold)
         row_title += 1
 
@@ -217,14 +239,20 @@ GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER
             sum_tag += line.get("expense", 0)
             account_list.update({line.get("acc_code"): line.get("expense", 0), 'total': sum_tag})
             groupby_tag_expense[line.get("tag_name")] = account_list
+        list_to_write = []
         for tag in tag_ids:
             line = groupby_tag_expense.get(tag, {})
             for code,acc_name in account_name.items():
                 sheet.write(row_tag, tag_index, line.get(code, 0), money_format)
+                list_to_write.append(row_tag)
                 row_tag += 1
             row_tag = row_origin
             tag_index += 1
-
+        for sumatory in list_to_write:
+            firts_cell = xl_rowcol_to_cell(sumatory, 1)
+            last_cell = xl_rowcol_to_cell(sumatory, tag_index-1)
+            cell_string = '=SUM(%s:%s)' % (firts_cell, last_cell)
+            sheet.write(sumatory, tag_index, cell_string, money_format)
         sheet.write(row_title, 0, "Depreciation", bold)
         row_title += 1
 
@@ -258,13 +286,21 @@ GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER
             sum_tag += line.get("depreciation", 0)
             account_list.update({line.get("acc_code"): line.get("depreciation", 0), 'total': sum_tag})
             groupby_tag_depre[line.get("tag_name")] = account_list
+        list_to_write = []
         for tag in tag_ids:
             line = groupby_tag_depre.get(tag, {})
             for code,acc_name in account_name.items():
                 sheet.write(row_tag, tag_index, line.get(code, 0), money_format)
+                list_to_write.append(row_tag)
                 row_tag += 1
             sheet.write(row_tag,tag_index, "=%f+%f"%( groupby_tag_expense.get(tag, {}).get("total",0), groupby_tag_depre.get(tag, {}).get("total",0) ), money_format_bold)
-            tag_index += 1      
+            list_to_write.append(row_tag)
+            tag_index += 1
+        for sumatory in list_to_write:
+            firts_cell = xl_rowcol_to_cell(sumatory, 1)
+            last_cell = xl_rowcol_to_cell(sumatory, tag_index-1)
+            cell_string = '=SUM(%s:%s)' % (firts_cell, last_cell)
+            sheet.write(sumatory, tag_index, cell_string, money_format)  
         sheet.write(row_title, 0, "Total Expenses", bold)
         row_title += 1
         sheet.write(row_title, 0, "Net Profit", bold)
@@ -278,6 +314,3 @@ GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER
                 groupby_tag_expense.get(tag, {}).get("total",0),
                 groupby_tag_depre.get(tag, {}).get("total",0) ), money_format_bold)
             tag_index += 1
-
-
-        
