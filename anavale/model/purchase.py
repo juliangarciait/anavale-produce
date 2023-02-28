@@ -5,8 +5,43 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
+Precios = [
+    ('fijo', 'Precio Fijo'),
+    ('variable', 'Precio Variable'),
+]
+
+porcentajes = [
+    ('8', '8% comision'),
+    ('9', '9% comision'),
+    ('10', '10% comision'),
+    ('11', '11% comision'),
+    ('12', '12% comision'),
+
+]
+
+SiNo = [
+    ('si','SI'),
+    ('no','NO'),
+]
+
 class PurchaseOrder(models.Model):
     _inherit = 'purchase.order'
+
+    tipo_precio = fields.Selection(Precios, string="Tipo de Precio")
+
+    porcentaje_comision = fields.Selection(porcentajes, string="% de Comision")
+
+    Flete_entrada = fields.Selection(SiNo, string='Flete de entrada?')
+
+    Aduana_MX = fields.Selection(SiNo, string='Aduana MX?')
+
+    Aduana_US = fields.Selection(SiNo, string='Aduana US?')
+
+    In_out = fields.Selection(SiNo, string='In and Out?')
+
+    caja = fields.Selection(SiNo, string='caja?')
+
+    referencia = fields.Text('Referencia')
 
     def _update_stock_valuation_layer(self, move, product_id, price_unit):
         for layer in move.stock_valuation_layer_ids:

@@ -15,3 +15,5 @@ from . import stock_production_lot_tag
 from . import account_move_line
 from . import account_move
 from . import stock_production_lot
+from . import stock_scrap
+from . import account_analytic_tag

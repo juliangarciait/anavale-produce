@@ -10,6 +10,12 @@
             <xpath expr="//form/sheet/notebook/page[1]/field[@name='invoice_line_ids']/tree/field[@name='name']" position="after">
                 <field name="lot_id" attrs="{'column_invisible' : [('parent.type', 'in', ('out_invoice', 'out_refund'))]}" optional="hidden"/>
             </xpath>
+            <xpath expr="//form/sheet/notebook/page[1]/field[@name='invoice_line_ids']/tree/field[@name='analytic_tag_ids']" position="replace">
+                <field name="analytic_tag_ids" options="{'no_create': True}" optional="show" groups="analytic.group_analytic_tags" widget="many2many_tags" attrs="{'invisible': [('display_type', 'in', ('line_section', 'line_note'))]}" domain="[('disable','=', False)]"/>
+            </xpath>
+            <xpath expr="//form/sheet/notebook/page[2]/field[@name='line_ids']/tree/field[@name='analytic_tag_ids']" position="replace">
+                <field name="analytic_tag_ids" options="{'no_create': True}" optional="show" groups="analytic.group_analytic_tags" widget="many2many_tags" attrs="{'invisible': [('display_type', 'in', ('line_section', 'line_note'))]}" domain="[('disable','=', False)]"/>
+            </xpath>
         </field>
     </record>
 </odoo>

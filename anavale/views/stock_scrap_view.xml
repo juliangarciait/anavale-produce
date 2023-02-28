@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_stock_scrap_form_inherited" model="ir.ui.view">
+        <field name="name">stock_scrap.form.cajas</field>
+        <field name="model">stock.scrap</field>
+        <field name="inherit_id" ref="stock.stock_scrap_form_view"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <field name="origin" position="after">
+                <field name="tag_ids" widget="many2many_tags" options="{'no_create': True}" domain="[('disable','=', False)]"></field>
+            </field>
+        </field>
+    </record>
+</odoo>

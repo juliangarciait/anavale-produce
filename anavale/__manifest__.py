@@ -44,6 +44,8 @@
             'report/delivery_slip_views.xml',
             'views/general_ledger_view.xml',
             'views/account_move_line_view.xml',
+            'views/stock_scrap_view.xml',
+            'views/account_analytic_tag.xml'
              ],
     'demo': [],
     'test': [],

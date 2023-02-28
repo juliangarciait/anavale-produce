@@ -43,5 +43,24 @@
             <field name="code">action = model.update_total_invoiced()</field>
         </record>
 
+
+        <record id="purchase_order_form_inherit_relative_anavale" model="ir.ui.view">
+            <field name="name">purchase.order.form.inherit.anavele.relative.data</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase_stock.purchase_order_view_form_inherit"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='purchase_delivery_invoice']/group/group/field[@name='incoterm_id']" position="after">
+                    <field name="tipo_precio"/>
+                    <field name="porcentaje_comision"/>
+                    <field name="Flete_entrada"/>
+                    <field name="Aduana_MX"/>
+                    <field name="Aduana_US"/>
+                    <field name="In_out"/>
+                    <field name="caja"/>
+                    <field name="referencia"/>
+                </xpath>
+            </field>
+        </record>
+
     </data>
 </odoo>
