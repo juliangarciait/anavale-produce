@@ -12,6 +12,7 @@ _logger = logging.getLogger(__name__)
 class SettlementsSaleOrder(models.Model):
     _inherit = 'purchase.order'
     settlement_id = fields.Many2one('sale.settlements')
+    settlements_ids = fields.One2many('sale.settlements', 'order_id', 'Liquidaciones')
     settlements_status = fields.Selection([('draft', 'Borrador'), ('close', 'Cerrado')], default = 'draft')
     
     def settlements_wizard_function(self):
@@ -24,6 +25,45 @@ class SettlementsSaleOrder(models.Model):
             'name': 'Liquidaciones',
             'view_id': self.env.ref('liquidaciones.selection_settlements_wizard_form').id
         }
+        
+    price_type = fields.Selection([('open','Open price'),
+                                   ('close','Closed price')], 
+                                   String="Tipo de precio",
+                                   compute='_compute_settlements_fields')
+    commission_percentage = fields.Float(
+         tracking=True, string="Commission Percentage", compute="_compute_settlements_fields")
+    storage = fields.Boolean(
+         tracking=True, string="Storage", compute="_compute_settlements_fields")
+    fleet = fields.Boolean(
+         tracking=True, string="Fleet", compute="_compute_settlements_fields")
+    aduana = fields.Boolean(
+         tracking=True, string="Aduana", compute="_compute_settlements_fields")
+    maneuvers = fields.Boolean(
+        tracking=True, string="Maneuvers", compute="_compute_settlements_fields")
+    boxes = fields.Boolean(
+         tracking=True, string="Boxes", compute="_compute_settlements_fields")
+    in_out = fields.Boolean(
+         tracking=True, string="IN/OUT", compute="_compute_settlements_fields")
+    
+    @api.depends('settlements_ids')
+    def _compute_settlements_fields(self): 
+        for record in self:
+            settlement = self.env['sale.settlements'].search([('order_id', '=', record.id)], order='write_date desc', limit=1)
+            record.price_type = False 
+            record.commission_percentage = 0.0
+            record.fleet = False
+            record.boxes = False
+            record.in_out = False
+            if settlement:
+                record.price_type = settlement.price_type
+                record.commission_percentage = settlement.commission_percentage
+                record.fleet = True
+                record.boxes = True
+                record.in_out = True
+            record.storage = True if settlement.storage else False
+            record.aduana = True if settlement.aduana else False
+            record.maneuvers = True if settlement.maneuvers else False
+            
 
  
 class SettlementsInherit(models.Model):
