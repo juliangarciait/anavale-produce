@@ -53,7 +53,9 @@ class SaleSettlementsWizard(models.TransientModel):
         for tag_id in analytic_tag_ids:
             tag_name += tag_id.name + ' '
         tag_name = tag_name.split("-")
-        sales = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids)
+        if len(tag_name) < 2:
+            tag_name.append("")
+        sales = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids and line.move_id.state == 'posted')
         freight_in = move_line_ids.filtered(lambda line: line.account_id.id == 1387 and line.move_id.state == 'posted')
         freight_out = move_line_ids.filtered(lambda line: line.account_id.id == 1394 and line.move_id.state == 'posted')
         maneuvers = move_line_ids.filtered(lambda line: line.account_id.id == 1390 and line.move_id.state == 'posted')
@@ -82,7 +84,6 @@ class SaleSettlementsWizard(models.TransientModel):
         if str(self.price_type) == 'open':
             for line in purchase_rec.order_line: #3
                 stock = 0
-                _logger.info(lot_ids.read())
                 quants = quant_obj.search([('product_id', '=', line.product_id.id), ('lot_id', 'in', lot_ids.ids), ('location_id', 'in', location_id.ids)])
                 stock = sum([q.quantity for q in quants])
                 subtotal = subAmount.get(line.product_id.id, False)
@@ -95,10 +96,14 @@ class SaleSettlementsWizard(models.TransientModel):
                 product_line.append(line.product_id.id)
         else:
             for line in purchase_rec.order_line: #3
+                stock = 0
+                quants = quant_obj.search([('product_id', '=', line.product_id.id), ('lot_id', 'in', lot_ids.ids), ('location_id', 'in', location_id.ids)])
+                stock = sum([q.quantity for q in quants])
                 new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
                             "product_uom": line.product_uom.id, "price_unit": line.price_unit, "price_unit_origin": line.price_unit,
                             "box_emb": line.product_qty, "box_rec": line.qty_received,
-                            "amount": float(line.qty_received * line.price_unit)}))
+                            "amount": float(line.qty_received * line.price_unit),
+                            "current_stock": stock}))
                 product_line.append(line.product_id.id)
                 
         closed_price = self.env['sale.settlements'].search([('order_id', 'in', purchase_ids), ('status', '=', 'close')])
