@@ -50,14 +50,14 @@
             <field name="inherit_id" ref="purchase_stock.purchase_order_view_form_inherit"/>
             <field name="arch" type="xml">
                 <xpath expr="//page[@name='purchase_delivery_invoice']/group/group/field[@name='incoterm_id']" position="after">
-                    <field name="tipo_precio" required="True"/>
-                    <field name="porcentaje_comision" required="True"/>
-                    <field name="Flete_entrada" required="True"/>
-                    <field name="Aduana_MX" required="True"/>
-                    <field name="Aduana_US" required="True"/>
-                    <field name="In_out" required="True"/>
-                    <field name="caja" required="True"/>
-                    <field name="referencia" required="True"/>
+                    <field name="tipo_precio" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
+                    <field name="porcentaje_comision" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
+                    <field name="Flete_entrada" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
+                    <field name="Aduana_MX" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
+                    <field name="Aduana_US" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
+                    <field name="In_out" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
+                    <field name="caja" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
+                    <field name="referencia" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
                 </xpath>
             </field>
         </record>
