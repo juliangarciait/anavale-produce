@@ -50,14 +50,14 @@
             <field name="inherit_id" ref="purchase_stock.purchase_order_view_form_inherit"/>
             <field name="arch" type="xml">
                 <xpath expr="//page[@name='purchase_delivery_invoice']/group/group/field[@name='incoterm_id']" position="after">
-                    <field name="tipo_precio"/>
-                    <field name="porcentaje_comision"/>
-                    <field name="Flete_entrada"/>
-                    <field name="Aduana_MX"/>
-                    <field name="Aduana_US"/>
-                    <field name="In_out"/>
-                    <field name="caja"/>
-                    <field name="referencia"/>
+                    <field name="tipo_precio" required="True"/>
+                    <field name="porcentaje_comision" required="True"/>
+                    <field name="Flete_entrada" required="True"/>
+                    <field name="Aduana_MX" required="True"/>
+                    <field name="Aduana_US" required="True"/>
+                    <field name="In_out" required="True"/>
+                    <field name="caja" required="True"/>
+                    <field name="referencia" required="True"/>
                 </xpath>
             </field>
         </record>
