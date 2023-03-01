@@ -209,6 +209,8 @@ class SettlementsInherit(models.Model):
     def _get_subtotal_total(self):
         subtotal = sum([ line.total for line in self.settlements_line_ids])
         self.total_subtotal = subtotal
+        if self.price_type == "close":
+            self.settlement = sum([line.amount for line in self.settlements_line_ids])
     
     @api.depends('freight_out', 'check_freight_out', 'freight_in', 'check_freight_in')
     def _get_freight_total(self):
@@ -238,7 +240,8 @@ class SettlementsInherit(models.Model):
         if self.price_type == "open":
             self.utility = self.total - self.total_total
         else:
-            self.utility = self.total - self.total_total
+            self.utility = self.total - (self.settlement + self.freight_in + self.aduana + self.maneuvers + self.adjustment + self.storage + self.freight_out)
+            self.utility_percentage = 0
         if self.utility > 0 and self.total > 0:
             self.utility_percentage = (self.utility/self.total) * 100
 

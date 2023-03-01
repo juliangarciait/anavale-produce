@@ -81,7 +81,7 @@
                                 <field name="box_rec_total" attrs="{'invisible': True}" />
                                 <field name="total_amount" force_save="1"  attrs="{'invisible': True}"/>
                                 <field name="total" />
-                                <field name="settlement" attrs="{'invisible': [('price_type','=', 'open')]}" />
+                                <field name="settlement" attrs="{'invisible': [('price_type','=', 'open')]}" string="Purchases"/>
                                 <label for="storage" />
                                 <div class="o_row">
                                     <field name="storage"/>
@@ -176,9 +176,9 @@
                             <field name="box_rec" />
                             <field name="current_stock" />
                             <field name="stock_value" string="Stock value"/>
-                            <field name="price_unit_origin" string="P.U. original"/>
+                            <field name="price_unit_origin" string="P.U. original" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"/>
                             <field name="amount" />
-                            <field name="price_unit" />
+                            <field name="price_unit" attrs="{'readonly': [('parent.price_type','=', 'close')]}"/>
                             <field name="commission" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"/>
                             <field name="total" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"/>
                         </tree>
@@ -219,7 +219,7 @@
                                 <field name="check_aduana" attrs="{'invisible': True}" />
                                 <field name="total" />
                     
-                                <field name="settlement" attrs="{'invisible': [('price_type','=', 'open')]}" />
+                                <field name="settlement" attrs="{'invisible': [('price_type','=', 'open')]}" string="Purchases"/>
 
                                 <label for="freight_in" />
                                 <div class="o_row">
@@ -348,7 +348,7 @@
                                 <field name="box_rec_total" attrs="{'invisible': True}" />
                                 <field name="total_amount" force_save="1"  attrs="{'invisible': True}"/>
                                 <field name="total" />
-                                <field name="settlement" attrs="{'invisible': [('price_type','=', 'open')]}" />
+                                <field name="settlement" attrs="{'invisible': [('price_type','=', 'open')]}"  string="Purchases"/>
 
                                 <label for="storage" />
                                 <div class="o_row">
@@ -439,9 +439,9 @@
                             <field name="product_id" />
                             <field name="box_emb" />
                             <field name="box_rec" />
-                            <field name="price_unit_origin" string="P.U. original"/>
+                            <field name="price_unit_origin" string="P.U. original" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"/>
                             <field name="amount" />
-                            <field name="price_unit" />
+                            <field name="price_unit" attrs="{'readonly': [('parent.price_type','=', 'close')]}"/>
                             <field name="commission" invisible="1"/>
                             <field name="total" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"/>
                             <field name="commission_rel" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"/>
@@ -480,7 +480,7 @@
                                 <field name="check_aduana" attrs="{'invisible': True}" />
                                 <field name="total" />
                     
-                                <field name="settlement" attrs="{'invisible': [('price_type','=', 'open')]}" />
+                                <field name="settlement" attrs="{'invisible': [('price_type','=', 'open')]}" string="Purchases"/>
 
                                 <label for="freight_in" />
                                 <div class="o_row">
