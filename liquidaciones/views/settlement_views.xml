@@ -270,10 +270,10 @@
                                         <strong attrs="{'invisible': [('price_type','=', 'open')]}">
                                             <span>Utility:</span>
                                         </strong>
-                                        <field name="utility" force_save="1" attrs="{'invisible': [('price_type','=', 'open')]}"/>
+                                        <field name="utility" force_save="1" attrs="{'invisible': [('price_type','=', 'open')]}" decoration-danger="utility &lt; 0"/>
                                         <label for="utility_percentage" />
                                         <div class="o_row">
-                                            <field name="utility_percentage" force_save="1"/>
+                                            <field name="utility_percentage" decoration-danger="utility &lt; 0" force_save="1"/>
                                             <span>%%</span>
                                         </div>
                                     </h4>
