@@ -430,7 +430,6 @@ GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_q
                 sheet.write(row_tag, tag_index, line.get("depreciation", 0), money_format)
                 row_tag += 1
                 tag_index -= 1
-        row_tag = 4
         sheet.write(row_title, 0, "Total Expenses", bold)
         row_title += 1
         sheet.write(row_title, 0, "Net Profit", bold)
