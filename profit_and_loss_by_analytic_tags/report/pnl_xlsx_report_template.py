@@ -14,6 +14,23 @@ class XlsxReport(models.AbstractModel):
     _name = 'report.profit_and_loss_by_analytic_tags.pnl_excel'
     _inherit = 'report.odoo_report_xlsx.abstract'
 
+    def get_domain_query_not_tag(self, type_account, obj_wizard):
+        domain = "WHERE "
+        if type_account == 13:
+            domain += "account.user_type_id = 13"
+        if type_account == 14:
+            domain += "account.user_type_id = 14"
+        if type_account == 15:
+            domain += "account.user_type_id = 15"
+        if type_account == 16:
+            domain += "account.user_type_id = 16"
+        if type_account == 17:
+            domain += "account.user_type_id = 17"
+        if obj_wizard.start_date and obj_wizard.end_date:
+            domain += " AND aml.date >= '%s' AND aml.date <= '%s'"%(obj_wizard.start_date, obj_wizard.end_date)
+        domain += " AND am.state = 'posted'"
+        return domain
+
     def get_domain_query(self, type_account, obj_wizard):
         domain = "WHERE "
         if type_account == 13:
@@ -64,7 +81,22 @@ ON at.id = aat_acl.account_analytic_tag_id
 GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER BY aat_acl.account_analytic_tag_id,account.code""" % (domain_income)
         self._cr.execute(query_op_income)
         lines_operating_income = self._cr.dictfetchall()
-        
+
+        query_op_income_no_grouping = """
+SELECT account.name as acc_name,account.code as acc_code, sum(aml.balance)* -1 as op_income
+FROM account_analytic_tag_account_move_line_rel as aat_acl
+JOIN account_move_line as aml
+ON aat_acl.account_move_line_id = aml.id
+JOIN account_move as am
+ON aml.move_id = am.id
+JOIN account_account as account
+ON aml.account_id = account.id
+JOIN account_analytic_tag as at
+ON at.id = aat_acl.account_analytic_tag_id
+%s
+GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_query_not_tag(13, objects))
+        self._cr.execute(query_op_income_no_grouping)
+        lines_operating_income_no_grouping = self._cr.dictfetchall()
         account_name = {item['acc_code']:item["acc_name"] for item in lines_operating_income}
         sheet.write(1, 0, "Income", bold)
         sheet.write(2, 0, "Gross Profit", bold)
@@ -99,7 +131,18 @@ GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER
             cell_string = '=SUM(%s:%s)' % (firts_cell, last_cell)
             sheet.write(sumatory, tag_index, cell_string, money_format)
         sheet.write(0, tag_index, "Sumatoria", bold)# Titulo de sumatoria
-
+        sheet.write(0, tag_index+1, "Otros", bold)# Titulo de Otros
+        sheet.write(0, tag_index+2, "Total", bold)# Titulo de Total
+        tag_index += 1
+        for  line in lines_operating_income_no_grouping:
+            total_cell = xl_rowcol_to_cell(row_tag, tag_index+1)
+            sum_cell = xl_rowcol_to_cell(row_tag, tag_index-1)
+            sheet.write(row_tag, tag_index, "=%s-%s" %(total_cell, sum_cell), money_format)
+            tag_index += 1
+            sheet.write(row_tag, tag_index, line.get("op_income", 0), money_format)
+            row_tag += 1
+            tag_index -= 1
+        row_tag = 4
         sheet.write(row_title, 0, "Operating Revenue", bold)
         row_title += 1
 
@@ -119,6 +162,22 @@ ON at.id = aat_acl.account_analytic_tag_id
 GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code  ORDER BY aat_acl.account_analytic_tag_id,account.code""" % (domain_revenue)
         self._cr.execute(query_op_revenue)
         lines_op_revenue = self._cr.dictfetchall()
+
+        query_op_revenue_no_grouping = """
+SELECT account.name as acc_name,account.code as acc_code, sum(aml.balance)* -1 as op_revenue
+FROM account_analytic_tag_account_move_line_rel as aat_acl
+JOIN account_move_line as aml
+ON aat_acl.account_move_line_id = aml.id
+JOIN account_move as am
+ON aml.move_id = am.id
+JOIN account_account as account
+ON aml.account_id = account.id
+JOIN account_analytic_tag as at
+ON at.id = aat_acl.account_analytic_tag_id
+%s
+GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_query_not_tag(17, objects))
+        self._cr.execute(query_op_revenue_no_grouping)
+        lines_op_revenue_no_grouping = self._cr.dictfetchall()
         account_name = {item['acc_code']:item["acc_name"] for item in lines_op_revenue}
         tag_index = 1
         row_tag = row_title
@@ -149,6 +208,16 @@ GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code  ORDE
             last_cell = xl_rowcol_to_cell(sumatory, tag_index-1)
             cell_string = '=SUM(%s:%s)' % (firts_cell, last_cell)
             sheet.write(sumatory, tag_index, cell_string, money_format)
+        tag_index += 1
+        for  line in lines_op_revenue_no_grouping:
+            total_cell = xl_rowcol_to_cell(row_tag, tag_index+1)
+            sum_cell = xl_rowcol_to_cell(row_tag, tag_index-1)
+            sheet.write(row_tag, tag_index, "=%s-%s" %(total_cell, sum_cell), money_format)
+            tag_index += 1
+            sheet.write(row_tag, tag_index, line.get("op_revenue", 0), money_format)
+            row_tag += 1
+            tag_index -= 1
+        row_tag = 4
         sheet.write(row_title, 0, "Total Cost Revenue", bold)
         row_title += 1
         sheet.write(row_title, 0, "Other Income", bold)
@@ -170,6 +239,22 @@ ON at.id = aat_acl.account_analytic_tag_id
 GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER BY aat_acl.account_analytic_tag_id,account.code""" % (domain_other_income)
         self._cr.execute(query_other_income)
         lines_other_income = self._cr.dictfetchall()
+
+        query_other_income_no_grouping = """
+SELECT account.name as acc_name,account.code as acc_code, sum(aml.balance)* -1 as other_income
+FROM account_analytic_tag_account_move_line_rel as aat_acl
+JOIN account_move_line as aml
+ON aat_acl.account_move_line_id = aml.id
+JOIN account_move as am
+ON aml.move_id = am.id
+JOIN account_account as account
+ON aml.account_id = account.id
+JOIN account_analytic_tag as at
+ON at.id = aat_acl.account_analytic_tag_id
+%s
+GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_query_not_tag(14, objects))
+        self._cr.execute(query_other_income_no_grouping)
+        lines_other_income_no_grouping = self._cr.dictfetchall()
         account_name = {item['acc_code']:item["acc_name"] for item in lines_other_income}
         tag_index = 1
         row_tag = row_title
@@ -200,6 +285,16 @@ GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER
             last_cell = xl_rowcol_to_cell(sumatory, tag_index-1)
             cell_string = '=SUM(%s:%s)' % (firts_cell, last_cell)
             sheet.write(sumatory, tag_index, cell_string, money_format)
+        tag_index += 1
+        for  line in lines_other_income_no_grouping:
+            total_cell = xl_rowcol_to_cell(row_tag, tag_index+1)
+            sum_cell = xl_rowcol_to_cell(row_tag, tag_index-1)
+            sheet.write(row_tag, tag_index, "=%s-%s" %(total_cell, sum_cell), money_format)
+            tag_index += 1
+            sheet.write(row_tag, tag_index, line.get("other_income", 0), money_format)
+            row_tag += 1
+            tag_index -= 1
+        row_tag = 4
         sheet.write(row_title, 0, "Total Income", bold)
         row_title += 1
 
@@ -225,6 +320,21 @@ ON at.id = aat_acl.account_analytic_tag_id
 GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER BY aat_acl.account_analytic_tag_id,account.code""" % (domain_expense)
         self._cr.execute(query_expense)
         lines_expense = self._cr.dictfetchall()
+        query_expense_no_grouping = """
+SELECT account.name as acc_name,account.code as acc_code, sum(aml.balance)* -1 as expense
+FROM account_analytic_tag_account_move_line_rel as aat_acl
+JOIN account_move_line as aml
+ON aat_acl.account_move_line_id = aml.id
+JOIN account_move as am
+ON aml.move_id = am.id
+JOIN account_account as account
+ON aml.account_id = account.id
+JOIN account_analytic_tag as at
+ON at.id = aat_acl.account_analytic_tag_id
+%s
+GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_query_not_tag(15, objects))
+        self._cr.execute(query_expense_no_grouping)
+        lines_expense_no_grouping = self._cr.dictfetchall()
         account_name = {item['acc_code']:item["acc_name"] for item in lines_expense}
         tag_index = 1
         row_tag = row_title
@@ -253,6 +363,16 @@ GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER
             last_cell = xl_rowcol_to_cell(sumatory, tag_index-1)
             cell_string = '=SUM(%s:%s)' % (firts_cell, last_cell)
             sheet.write(sumatory, tag_index, cell_string, money_format)
+        tag_index += 1
+        for  line in lines_expense_no_grouping:
+            total_cell = xl_rowcol_to_cell(row_tag, tag_index+1)
+            sum_cell = xl_rowcol_to_cell(row_tag, tag_index-1)
+            sheet.write(row_tag, tag_index, "=%s-%s" %(total_cell, sum_cell), money_format)
+            tag_index += 1
+            sheet.write(row_tag, tag_index, line.get("expense", 0), money_format)
+            row_tag += 1
+            tag_index -= 1
+        row_tag = 4
         sheet.write(row_title, 0, "Depreciation", bold)
         row_title += 1
 
@@ -272,6 +392,21 @@ ON at.id = aat_acl.account_analytic_tag_id
 GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER BY aat_acl.account_analytic_tag_id,account.code""" % (domain_depre)
         self._cr.execute(query_depre)
         lines_depre = self._cr.dictfetchall()
+        query_depre_no_grouping = """
+SELECT account.name as acc_name,account.code as acc_code, sum(aml.balance)* -1 as depreciation
+FROM account_analytic_tag_account_move_line_rel as aat_acl
+JOIN account_move_line as aml
+ON aat_acl.account_move_line_id = aml.id
+JOIN account_move as am
+ON aml.move_id = am.id
+JOIN account_account as account
+ON aml.account_id = account.id
+JOIN account_analytic_tag as at
+ON at.id = aat_acl.account_analytic_tag_id
+%s
+GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_query_not_tag(16, objects))
+        self._cr.execute(query_depre_no_grouping)
+        lines_depre_no_grouping = self._cr.dictfetchall()
         account_name = {item['acc_code']:item["acc_name"] for item in lines_depre}
         tag_index = 1
         row_tag = row_title
@@ -300,7 +435,17 @@ GROUP BY aat_acl.account_analytic_tag_id,at.name,account.name,account.code ORDER
             firts_cell = xl_rowcol_to_cell(sumatory, 1)
             last_cell = xl_rowcol_to_cell(sumatory, tag_index-1)
             cell_string = '=SUM(%s:%s)' % (firts_cell, last_cell)
-            sheet.write(sumatory, tag_index, cell_string, money_format)  
+            sheet.write(sumatory, tag_index, cell_string, money_format)
+        tag_index += 1
+        for  line in lines_depre_no_grouping:
+            total_cell = xl_rowcol_to_cell(row_tag, tag_index+1)
+            sum_cell = xl_rowcol_to_cell(row_tag, tag_index-1)
+            sheet.write(row_tag, tag_index, "=%s-%s" %(total_cell, sum_cell), money_format)
+            tag_index += 1
+            sheet.write(row_tag, tag_index, line.get("depreciation", 0), money_format)
+            row_tag += 1
+            tag_index -= 1
+        row_tag = 4
         sheet.write(row_title, 0, "Total Expenses", bold)
         row_title += 1
         sheet.write(row_title, 0, "Net Profit", bold)
