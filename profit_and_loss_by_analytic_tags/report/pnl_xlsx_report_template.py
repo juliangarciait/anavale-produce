@@ -202,15 +202,16 @@ GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_q
             cell_string = '=SUM(%s:%s)' % (firts_cell, last_cell)
             sheet.write(sumatory, tag_index, cell_string, money_format)
         tag_index += 1
-        for  line in lines_op_revenue_no_grouping:
-            if line.get("acc_code") in account_name.keys():
-                total_cell = xl_rowcol_to_cell(row_tag, tag_index+1)
-                sum_cell = xl_rowcol_to_cell(row_tag, tag_index-1)
-                sheet.write(row_tag, tag_index, "=%s-%s" %(total_cell, sum_cell), money_format)
-                tag_index += 1
-                sheet.write(row_tag, tag_index, line.get("op_revenue", 0), money_format)
-                row_tag += 1
-                tag_index -= 1
+        for code,acc_name in account_name.items():
+            for  line in lines_op_revenue_no_grouping:
+                if code == line.get("acc_code"):
+                    total_cell = xl_rowcol_to_cell(row_tag, tag_index+1)
+                    sum_cell = xl_rowcol_to_cell(row_tag, tag_index-1)
+                    sheet.write(row_tag, tag_index, "=%s-%s" %(total_cell, sum_cell), money_format)
+                    tag_index += 1
+                    sheet.write(row_tag, tag_index, line.get("op_revenue", 0), money_format)
+                    row_tag += 1
+                    tag_index -= 1
         row_tag = 4
         sheet.write(row_title, 0, "Total Cost Revenue", bold)
         row_title += 1
@@ -276,15 +277,16 @@ GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_q
             cell_string = '=SUM(%s:%s)' % (firts_cell, last_cell)
             sheet.write(sumatory, tag_index, cell_string, money_format)
         tag_index += 1
-        for  line in lines_other_income_no_grouping:
-            if line.get("acc_code") in account_name.keys():
-                total_cell = xl_rowcol_to_cell(row_tag, tag_index+1)
-                sum_cell = xl_rowcol_to_cell(row_tag, tag_index-1)
-                sheet.write(row_tag, tag_index, "=%s-%s" %(total_cell, sum_cell), money_format)
-                tag_index += 1
-                sheet.write(row_tag, tag_index, line.get("other_income", 0), money_format)
-                row_tag += 1
-                tag_index -= 1
+        for code,acc_name in account_name.items():
+            for  line in lines_other_income_no_grouping:
+                if code == line.get("acc_code"):
+                    total_cell = xl_rowcol_to_cell(row_tag, tag_index+1)
+                    sum_cell = xl_rowcol_to_cell(row_tag, tag_index-1)
+                    sheet.write(row_tag, tag_index, "=%s-%s" %(total_cell, sum_cell), money_format)
+                    tag_index += 1
+                    sheet.write(row_tag, tag_index, line.get("other_income", 0), money_format)
+                    row_tag += 1
+                    tag_index -= 1
         row_tag = 4
         sheet.write(row_title, 0, "Total Income", bold)
         row_title += 1
@@ -351,15 +353,16 @@ GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_q
             cell_string = '=SUM(%s:%s)' % (firts_cell, last_cell)
             sheet.write(sumatory, tag_index, cell_string, money_format)
         tag_index += 1
-        for  line in lines_expense_no_grouping:
-            if line.get("acc_code") in account_name.keys():
-                total_cell = xl_rowcol_to_cell(row_tag, tag_index+1)
-                sum_cell = xl_rowcol_to_cell(row_tag, tag_index-1)
-                sheet.write(row_tag, tag_index, "=%s-%s" %(total_cell, sum_cell), money_format)
-                tag_index += 1
-                sheet.write(row_tag, tag_index, line.get("expense", 0), money_format)
-                row_tag += 1
-                tag_index -= 1
+        for code,acc_name in account_name.items():
+            for  line in lines_expense_no_grouping:
+                if code == line.get("acc_code"):
+                    total_cell = xl_rowcol_to_cell(row_tag, tag_index+1)
+                    sum_cell = xl_rowcol_to_cell(row_tag, tag_index-1)
+                    sheet.write(row_tag, tag_index, "=%s-%s" %(total_cell, sum_cell), money_format)
+                    tag_index += 1
+                    sheet.write(row_tag, tag_index, line.get("expense", 0), money_format)
+                    row_tag += 1
+                    tag_index -= 1
         row_tag = 4
         sheet.write(row_title, 0, "Depreciation", bold)
         row_title += 1
@@ -421,15 +424,16 @@ GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_q
             cell_string = '=SUM(%s:%s)' % (firts_cell, last_cell)
             sheet.write(sumatory, tag_index, cell_string, money_format)
         tag_index += 1
-        for  line in lines_depre_no_grouping:
-            if line.get("acc_code") in account_name.keys():
-                total_cell = xl_rowcol_to_cell(row_tag, tag_index+1)
-                sum_cell = xl_rowcol_to_cell(row_tag, tag_index-1)
-                sheet.write(row_tag, tag_index, "=%s-%s" %(total_cell, sum_cell), money_format)
-                tag_index += 1
-                sheet.write(row_tag, tag_index, line.get("depreciation", 0), money_format)
-                row_tag += 1
-                tag_index -= 1
+        for code,acc_name in account_name.items():
+            for  line in lines_depre_no_grouping:
+                if code == line.get("acc_code"):
+                    total_cell = xl_rowcol_to_cell(row_tag, tag_index+1)
+                    sum_cell = xl_rowcol_to_cell(row_tag, tag_index-1)
+                    sheet.write(row_tag, tag_index, "=%s-%s" %(total_cell, sum_cell), money_format)
+                    tag_index += 1
+                    sheet.write(row_tag, tag_index, line.get("depreciation", 0), money_format)
+                    row_tag += 1
+                    tag_index -= 1
         sheet.write(row_title, 0, "Total Expenses", bold)
         row_title += 1
         sheet.write(row_title, 0, "Net Profit", bold)
