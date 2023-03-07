@@ -44,7 +44,7 @@ class StockQuant(models.Model):
     @api.model
     def _quant_tasks(self):
         res = super(StockQuant, self)._quant_tasks()
-        date = fields.Datetime.today() - relativedelta(months=1)
+        date = fields.Datetime.today() - relativedelta(months=1,day=15)
         self._cr.execute("""
                             SELECT id 
                                 FROM stock_quant
