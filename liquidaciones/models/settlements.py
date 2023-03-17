@@ -12,7 +12,6 @@ _logger = logging.getLogger(__name__)
 class SettlementsSaleOrder(models.Model):
     _inherit = 'purchase.order'
     settlement_id = fields.Many2one('sale.settlements')
-    settlements_ids = fields.One2many('sale.settlements', 'order_id', 'Liquidaciones')
     settlements_status = fields.Selection([('draft', 'Borrador'), ('close', 'Cerrado')], default = 'draft')
     
     def settlements_wizard_function(self):
@@ -25,45 +24,6 @@ class SettlementsSaleOrder(models.Model):
             'name': 'Liquidaciones',
             'view_id': self.env.ref('liquidaciones.selection_settlements_wizard_form').id
         }
-        
-    price_type = fields.Selection([('open','Open price'),
-                                   ('close','Closed price')], 
-                                   String="Tipo de precio",
-                                   compute='_compute_settlements_fields')
-    commission_percentage = fields.Float(
-         tracking=True, string="Commission Percentage", compute="_compute_settlements_fields")
-    storage = fields.Boolean(
-         tracking=True, string="Storage", compute="_compute_settlements_fields")
-    fleet = fields.Boolean(
-         tracking=True, string="Fleet", compute="_compute_settlements_fields")
-    aduana = fields.Boolean(
-         tracking=True, string="Aduana", compute="_compute_settlements_fields")
-    maneuvers = fields.Boolean(
-        tracking=True, string="Maneuvers", compute="_compute_settlements_fields")
-    boxes = fields.Boolean(
-         tracking=True, string="Boxes", compute="_compute_settlements_fields")
-    in_out = fields.Boolean(
-         tracking=True, string="IN/OUT", compute="_compute_settlements_fields")
-    
-    @api.depends('settlements_ids')
-    def _compute_settlements_fields(self): 
-        for record in self:
-            settlement = self.env['sale.settlements'].search([('order_id', '=', record.id)], order='write_date desc', limit=1)
-            record.price_type = False 
-            record.commission_percentage = 0.0
-            record.fleet = False
-            record.boxes = False
-            record.in_out = False
-            if settlement:
-                record.price_type = settlement.price_type
-                record.commission_percentage = settlement.commission_percentage
-                record.fleet = True
-                record.boxes = True
-                record.in_out = True
-            record.storage = True if settlement.storage else False
-            record.aduana = True if settlement.aduana else False
-            record.maneuvers = True if settlement.maneuvers else False
-            
 
  
 class SettlementsInherit(models.Model):
@@ -249,6 +209,8 @@ class SettlementsInherit(models.Model):
     def _get_subtotal_total(self):
         subtotal = sum([ line.total for line in self.settlements_line_ids])
         self.total_subtotal = subtotal
+        if self.price_type == "close":
+            self.settlement = sum([line.amount for line in self.settlements_line_ids])
     
     @api.depends('freight_out', 'check_freight_out', 'freight_in', 'check_freight_in')
     def _get_freight_total(self):
@@ -275,72 +237,73 @@ class SettlementsInherit(models.Model):
             raise ValidationError(('Enter Value Between 0-100.'))
     
     def _compute_utility_percentage(self):
-        if self.price_type=="open":
+        if self.price_type == "open":
             self.utility = self.total - self.total_total
+            if self.utility > 0 and self.total > 0:
+                self.utility_percentage = (self.utility/self.total) * 100
         else:
-            self.utility = self.total - self.total_total
-        if self.utility > 0 and self.total > 0:
+            self.utility = self.total - (self.settlement + self.freight_in + self.aduana + self.maneuvers + self.adjustment + self.storage + self.freight_out)
+            _logger.info("^"*900)
+            _logger.info(self.utility)
+            _logger.info(self.total)
             self.utility_percentage = (self.utility/self.total) * 100
 
     def action_print_report(self):
         lines = []
-        
         freight_spoilage_total = 0
-        
-        box_emb_total  = 0 
-        box_rec_total  = 0 
-        amount_total   = 0
-        freight_total  = 0
-        spoilage_total = 0
-        total          = 0
-        
+        box_emb_total = 0
+        box_rec_total = 0
+        amount_total = 0
         for line in self.settlements_line_ids: 
+            _logger.info(line.product_id.read())
+            display_name = line.product_id.display_name.replace(
+                ")", "").split("(")
+            variant = len(display_name) > 1 and display_name[1]
             data_lines = {
-                'product'                : line.product_id.name, 
-                'product_uom'            : line.product_uom.name, 
-                'box_emb'                : line.box_emb, 
-                'box_rec'                : line.box_rec,
-                'price_unit'             : line.price_unit, 
-                'amount'                 : line.amount, #importe
-                'freight'                : line.freight, 
-                'spoilage'               : 0,
-                'stock_value'            : line.stock_value, 
-                #'freight_spoilage_total' : line.freight * -1, 
-                'total'                  : line.box_emb * line.stock_value,
+                'product': line.product_id.name,
+                'product_uom': variant,
+                'box_emb': line.box_emb,
+                'box_rec': line.box_rec,
+                'price_unit': line.price_unit,
+                'amount': line.amount,
+                'freight': line.freight,
+                'spoilage': line.commission,
+                'stock_value': line.stock_value,
+                'total': line.total
             }
             lines.append(data_lines)
             
             freight_spoilage_total += line.freight * -1
             
-            box_emb_total  += line.box_emb
-            box_rec_total  += line.box_rec
-            amount_total   += line.amount
-            freight_total  += line.freight
-            spoilage_total += 0
-            total          += ((line.freight * -1) + (line.box_emb * line.stock_value))
+            box_rec_total += line.box_rec
+            amount_total += line.amount
             
         data = {
-            'company'                : self.company,
-            'sales'                  : self.total, 
-            'freight_in'             : self.freight_in, 
-            'aduana'                 : self.aduana_total, 
-            'maneuvers'              : self.maneuvers_total, 
-            'adjustment'             : self.adjustment, 
-            'storage'                : self.storage, 
-            'freight_out'            : self.freight_out, 
-            'utility'                : self.utility,
-            'utility_percentage'     : self.utility_percentage, 
-            'date'                   : self.date,
-            'freight_spoilage_total' : freight_spoilage_total, 
-            'lines'                  : lines,
-            'box_emb_total'          : box_emb_total, 
-            'box_rec_total'          : box_rec_total, 
-            'amount_total'           : amount_total, 
-            'freight_total'          : freight_total, 
-            'spoilage_total'         : spoilage_total, 
-            'total'                  : total  
+            'company': self.company,
+            'sales': self.total,
+            'freight_in': self.freight_in,
+            'aduana': self.aduana_total,
+            'maneuvers': self.maneuvers_total,
+            'adjustment': self.adjustment,
+            'storage': self.storage,
+            'freight_out': self.freight_out,
+            'utility': self.utility,
+            'utility_percentage': self.utility_percentage,
+            'date': self.date,
+            'freight_spoilage_total': freight_spoilage_total,
+            'lines': lines,
+            'box_emb_total': box_emb_total,
+            'box_rec_total': box_rec_total,
+            'amount_total': amount_total,
+            'freight_total': self.freight_total,
+            'total': self.total_total,
+            'commission_percentage': self.commission_percentage,
+            'commission_total': self.commission,
+            'note': self.note,
+            'viaje': self.journey
         }
-        return self.env.ref('liquidaciones.xlsx_report').with_context(landscape=True).report_action(self, data=data)
+        return self.env.ref('liquidaciones.xlsx_report').with_context(
+            landscape=True).report_action(self, data=data)
 
 
 class SettlementsInheritLines(models.Model):
