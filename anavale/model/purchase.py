@@ -1,6 +1,7 @@
 from odoo import fields, models, api
 from odoo import tools
 import logging
+import re
 
 _logger = logging.getLogger(__name__)
 
@@ -26,6 +27,25 @@ SiNo = [
 
 class PurchaseOrder(models.Model):
     _inherit = 'purchase.order'
+    
+    lot = fields.Text(compute="_get_lot", store=True)
+    
+    @api.depends('order_line')
+    def _get_lot(self):
+        for order in self:
+            order.lot = ''
+            #purchase = self.env['purchase.order'].search([('invoice_ids', 'in', [order.id])])  
+            picking = self.env['stock.picking'].search([('purchase_id', '=', order.id), ('state', '=', 'done')], order='create_date desc', limit=1)
+            move = self.env['stock.move.line'].search([('picking_id', '=', picking.id)], limit=1)
+            reference = move.lot_id.name
+            if reference and picking.date_done: 
+                reference = reference.split('-')
+                if len(reference) > 1: 
+                    year = picking.date_done.strftime('%y')
+                    ref = reference[1]
+                    
+                    order.lot = "{}{}-{}".format(order.partner_id.lot_code_prefix, year, ref[:4]) 
+    
 
     tipo_precio = fields.Selection(Precios, string="Tipo de Precio")
 

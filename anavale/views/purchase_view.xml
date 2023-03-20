@@ -35,6 +35,28 @@
             </field>
         </record>
 
+        <record id="inherited_view_purchase_order_tree" model="ir.ui.view">
+            <field name="name">inherited.view.purchase.order.tree</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree" position="inside">
+                    <field name="lot" optional="show"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="inherited_view_purchase_order_filter" model="ir.ui.view">
+            <field name="name">inherited.view.purchase.order.filter</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.view_purchase_order_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="/search/field[@name='product_id']" position="after">
+                    <field name="lot"/>
+                </xpath>
+            </field>
+        </record>
+
         <record id="update_total_invoiced_action_server" model="ir.actions.server">
             <field name="name">Total billed Update</field>
             <field name="model_id" ref="model_purchase_order"/>
