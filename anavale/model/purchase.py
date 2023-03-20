@@ -43,6 +43,27 @@ class PurchaseOrder(models.Model):
 
     referencia = fields.Text('Referencia')
 
+    lot = fields.Text(compute="_get_lot", store=True)
+
+    @api.depends('order_line')
+    def _get_lot(self):
+        for order in self:
+            order.lot = ''
+            try:
+                #purchase = self.env['purchase.order'].search([('invoice_ids', 'in', [order.id])])  
+                picking = self.env['stock.picking'].search([('purchase_id', '=', order.id), ('state', '=', 'done')], order='create_date desc', limit=1)
+                move = self.env['stock.move.line'].search([('picking_id', '=', picking.id)], limit=1)
+                reference = move.lot_id.name
+                if reference and picking.date_done: 
+                    reference = reference.split('-')
+                    if len(reference) > 1: 
+                        year = picking.date_done.strftime('%y')
+                        ref = reference[1]
+
+                        order.lot = "{}{}-{}".format(order.partner_id.lot_code_prefix, year, ref[:4]) 
+            except:
+                order.lot = ''
+
     def _update_stock_valuation_layer(self, move, product_id, price_unit):
         for layer in move.stock_valuation_layer_ids:
             if layer.product_id == product_id:
