@@ -93,6 +93,9 @@ ON aml.account_id = account.id
 GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_query_not_tag(13, objects))
         self._cr.execute(query_op_income_no_grouping)
         lines_operating_income_no_grouping = self._cr.dictfetchall()
+        result_income_no_grouping = sum(
+            [line.get("op_income", 0)
+             for line in lines_operating_income_no_grouping])
         account_name = {item['acc_code']:item["acc_name"] for item in lines_operating_income}
         sheet.write(1, 0, "Income", bold)
         sheet.write(2, 0, "Gross Profit", bold)
@@ -171,6 +174,9 @@ ON aml.account_id = account.id
 GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_query_not_tag(17, objects))
         self._cr.execute(query_op_revenue_no_grouping)
         lines_op_revenue_no_grouping = self._cr.dictfetchall()
+        result_op_revenue_no_grouping = sum(
+            [line.get("op_revenue", 0)
+             for line in lines_op_revenue_no_grouping])
         account_name = {item['acc_code']:item["acc_name"] for item in lines_op_revenue}
         tag_index = 1
         row_tag = row_title
@@ -216,11 +222,7 @@ GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_q
             sum_cell = xl_rowcol_to_cell(row_tag, tag_index-1)
             sheet.write(row_tag, tag_index, "=%s-%s" % (total_cell, sum_cell), money_format)
             sheet.write(
-                row_tag, tag_index+1, sum(
-                    [line.get("op_revenue")
-                     for line in lines_op_revenue_no_grouping
-                     if line.get("acc_code") in account_name.keys()
-                     ]), money_format)
+                row_tag, tag_index+1, "=%f-%f" % (result_income_no_grouping, result_op_revenue_no_grouping), money_format)
         row_tag = 4
         sheet.write(row_title, 0, "Total Cost Revenue", bold)
         row_title += 1
@@ -255,6 +257,9 @@ ON aml.account_id = account.id
 GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_query_not_tag(14, objects))
         self._cr.execute(query_other_income_no_grouping)
         lines_other_income_no_grouping = self._cr.dictfetchall()
+        result_other_income_no_grouping = sum(
+            [line.get("other_income", 0)
+             for line in lines_other_income_no_grouping])
         account_name = {item['acc_code']:item["acc_name"] for item in lines_other_income}
         tag_index = 1
         row_tag = row_title
@@ -299,16 +304,15 @@ GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_q
             total_cell = xl_rowcol_to_cell(row_tag, tag_index+1)
             sum_cell = xl_rowcol_to_cell(row_tag, tag_index-1)
             sheet.write(row_tag, tag_index, "=%s-%s" % (total_cell, sum_cell), money_format)
-            sheet.write(
-                row_tag, tag_index+1, sum(
-                    [line.get("other_income")
-                     for line in lines_other_income_no_grouping
-                     if line.get("acc_code") in account_name.keys()
-                     ]), money_format)
+        sheet.write(
+            row_tag, tag_index+1,
+            "=(%f-%f)+%f" % (
+                result_income_no_grouping,
+                result_op_revenue_no_grouping,
+                result_other_income_no_grouping), money_format)
         row_tag = 4
         sheet.write(row_title, 0, "Total Income", bold)
         row_title += 1
-
 
         sheet.write(row_title, 0, "Expenses", bold)
         row_title += 1
@@ -342,6 +346,9 @@ ON aml.account_id = account.id
 GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_query_not_tag(15, objects))
         self._cr.execute(query_expense_no_grouping)
         lines_expense_no_grouping = self._cr.dictfetchall()
+        result_expense_no_grouping = sum(
+            [line.get("expense", 0)
+             for line in lines_expense_no_grouping])
         account_name = {item['acc_code']:item["acc_name"] for item in lines_expense}
         tag_index = 1
         row_tag = row_title
@@ -412,6 +419,9 @@ ON aml.account_id = account.id
 GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_query_not_tag(16, objects))
         self._cr.execute(query_depre_no_grouping)
         lines_depre_no_grouping = self._cr.dictfetchall()
+        result_depre_no_grouping = sum(
+            [line.get("depreciation", 0)
+             for line in lines_depre_no_grouping])
         account_name = {item['acc_code']:item["acc_name"] for item in lines_depre}
         tag_index = 1
         row_tag = row_title
@@ -477,6 +487,7 @@ GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_q
         sheet.write(row_title, 0, "Net Profit", bold)
         row_tag += 1
         tag_index = 1
+        list_to_write = []
         for tag in tag_ids:
             sheet.write(row_tag,tag_index, "=(%f-%f)+%f-%f-%f"%(
                 groupby_tag_income.get(tag, {}).get("total",0),
@@ -484,4 +495,26 @@ GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_q
                 groupby_tag_other_income.get(tag, {}).get("total",0),
                 groupby_tag_expense.get(tag, {}).get("total",0),
                 groupby_tag_depre.get(tag, {}).get("total",0) ), money_format_bold)
+            list_to_write.append(row_tag)
             tag_index += 1
+        for sumatory in list_to_write:
+            firts_cell = xl_rowcol_to_cell(sumatory, 1)
+            last_cell = xl_rowcol_to_cell(sumatory, tag_index-1)
+            cell_string = '=SUM(%s:%s)' % (firts_cell, last_cell)
+            sheet.write(sumatory, tag_index, cell_string, money_format)
+        total_cell = xl_rowcol_to_cell(row_tag, tag_index+2)
+        sum_cell = xl_rowcol_to_cell(row_tag, tag_index)
+        
+        
+        result_total = (
+            result_income_no_grouping - result_op_revenue_no_grouping) +\
+            result_other_income_no_grouping -\
+            result_expense_no_grouping - result_depre_no_grouping
+        sheet.write(
+            row_tag,
+            tag_index+1,
+            "=%s-%s" % (total_cell, sum_cell), money_format)
+        sheet.write(
+            row_tag,
+            tag_index+2,
+            "=%s" % (result_total), money_format)
