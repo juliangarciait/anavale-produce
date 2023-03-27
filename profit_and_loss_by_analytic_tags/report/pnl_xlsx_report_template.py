@@ -101,7 +101,6 @@ GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_q
         sheet.write(2, 0, "Gross Profit", bold)
         sheet.write(3, 0, "Operating Income", bold)
         row_title = row_tag = 4
-        
         for code, name in account_name.items():
             sheet.write(row_title, 0, "%s %s"%(code,name))
             row_title += 1
@@ -122,8 +121,11 @@ GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_q
                 sheet.write(row_tag, tag_index, line.get(code, 0), money_format)
                 list_to_write.append(row_tag)
                 row_tag += 1
+            sheet.write(row_tag,tag_index, "=%f"%(groupby_tag_income.get(tag, {}).get("total",0) ) , money_format_bold)
+            list_to_write.append(row_tag)
             row_tag = 4
             tag_index += 1
+        
         for sumatory in list_to_write:
             firts_cell = xl_rowcol_to_cell(sumatory, 1)
             last_cell = xl_rowcol_to_cell(sumatory, tag_index-1)
@@ -142,7 +144,14 @@ GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_q
                 sheet.write(row_tag, tag_index, line.get("op_income", 0), money_format)
                 row_tag += 1
                 tag_index -= 1
+        total_cell = xl_rowcol_to_cell(row_tag, tag_index+1)
+        sum_cell = xl_rowcol_to_cell(row_tag, tag_index-1)
+        sheet.write(row_tag, tag_index,  "=%s-%s" % (total_cell, sum_cell), money_format)
+        sheet.write(row_tag, tag_index+1, result_income_no_grouping, money_format)
         row_tag = 4
+        sheet.write(row_title, 0, "Total Operating Income", bold)
+        row_title += 1
+
         sheet.write(row_title, 0, "Operating Revenue", bold)
         row_title += 1
 
@@ -198,7 +207,7 @@ GROUP BY account.name,account.code ORDER BY account.code""" % (self.get_domain_q
                 sheet.write(row_tag, tag_index, line.get(code, 0), money_format)
                 list_to_write.append(row_tag)
                 row_tag += 1
-            sheet.write(row_tag,tag_index, "=%f-%f"%( groupby_tag_income.get(tag, {}).get("total",0) , groupby_tag_op_revenue.get(tag, {}).get("total",0) ) , money_format_bold)
+            sheet.write(row_tag,tag_index, "=%f"%(groupby_tag_op_revenue.get(tag, {}).get("total",0) ) , money_format_bold)
             list_to_write.append(row_tag)
             row_tag = row_origin
             tag_index += 1

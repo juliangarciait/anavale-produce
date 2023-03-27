@@ -64,6 +64,7 @@ class SaleSettlementsWizard(models.TransientModel):
         aduana_mex = []
         adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
         amountVar = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids and line.move_id.state == 'posted')
+        boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
         subAmount = {}
         for line in amountVar:
             salesSum = subAmount.get(line.product_id.id, 0)
@@ -78,6 +79,7 @@ class SaleSettlementsWizard(models.TransientModel):
         adjustmentSum = sum([line.price_subtotal for line in adjustment])
         aduana_usaSum = sum([line.price_subtotal for line in aduana_usa])
         aduana_mexSum = sum([line.price_subtotal for line in aduana_mex])
+        boxes_sum = sum([line.price_subtotal for line in boxes])
         aduana_total = aduana_mexSum + aduana_usaSum       
         quant_obj = self.env["stock.quant"] 
         location_id = self.env["stock.location"].search([('usage', '=', 'internal')])
@@ -137,7 +139,11 @@ class SaleSettlementsWizard(models.TransientModel):
                         'default_adjustment': adjustmentSum,
                         'default_order_id': purchase_rec.id,
                         'default_price_type': self.price_type,
-                        'lot_ids': lot_ids},
+                        'default_check_boxes': True,
+                        'default_boxes': boxes_sum,
+                        'lot_ids': lot_ids,
+                        'default_purchase_date': purchase_rec.date_approve
+                        },
                         
                         
             'views': [(self.env.ref(view_tree).id, 'tree'), (self.env.ref(view_form).id, 'form')],
