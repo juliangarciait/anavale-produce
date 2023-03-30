@@ -26,8 +26,8 @@ class XlsxReport(models.AbstractModel):
             domain += "account.user_type_id = 16"
         if type_account == 17:
             domain += "account.user_type_id = 17"
-        if obj_wizard.start_date and obj_wizard.end_date:
-            domain += " AND aml.date >= '%s' AND aml.date <= '%s'"%(obj_wizard.start_date, obj_wizard.end_date)
+        if obj_wizard.start_date_filter and obj_wizard.end_date_filter:
+            domain += " AND aml.date >= '%s' AND aml.date <= '%s'"%(obj_wizard.start_date_filter, obj_wizard.end_date_filter)
         domain += " AND am.state = 'posted'"
         return domain
 
