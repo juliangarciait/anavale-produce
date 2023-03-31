@@ -48,8 +48,8 @@ class XlsxReport(models.AbstractModel):
                 domain += " AND aat_acl.account_analytic_tag_id = %s"%(str(obj_wizard.tag_ids.id))
             else:
                 domain += " AND aat_acl.account_analytic_tag_id in %s"%(str(tuple(obj_wizard.tag_ids.ids)))
-        if obj_wizard.start_date and obj_wizard.end_date:
-            domain += " AND aml.date >= '%s' AND aml.date <= '%s'"%(obj_wizard.start_date, obj_wizard.end_date)
+        if obj_wizard.start_date_filter and obj_wizard.end_date_filter:
+            domain += " AND aml.date >= '%s' AND aml.date <= '%s'"%(obj_wizard.start_date_filter, obj_wizard.end_date_filter)
         domain += " AND am.state = 'posted'"
         return domain
     
