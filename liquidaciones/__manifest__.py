@@ -13,8 +13,14 @@
     'data': [
          'views/settlement_views.xml',
          'views/button_settlements_views.xml',
+         'views/res_partner_views.xml',
+         'views/purchase_order_views.xml',
+         
          'security/ir.model.access.csv',
+         'security/group.xml',
+         
          'wizard/selection_views.xml',
+         
          'reports/settlements_report_templates.xml',
          'reports/settlements_report_view.xml', 
          'reports/xlsx_report_template.xml'
