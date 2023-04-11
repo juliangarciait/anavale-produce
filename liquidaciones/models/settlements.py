@@ -179,7 +179,7 @@ class SettlementsInherit(models.Model):
     ajuste_precio=fields.Float(
          tracking=True, string="Ajuste de precio")
     note = fields.Char(tracking=True, string="Note")
-    journey = fields.Char( tracking=True, string="Journey")
+    journey = fields.Char( tracking=True, string="Lote")
     company = fields.Char( tracking=True, string="Company")
     user_res_partner = fields.Char( tracking=True, string="Comprador")
     box_emb_total = fields.Integer(
