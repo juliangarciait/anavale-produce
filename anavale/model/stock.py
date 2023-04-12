@@ -11,6 +11,26 @@ _logger = logging.getLogger(__name__)
 
 class Picking(models.Model):
     _inherit = "stock.picking"
+    
+    def print_labels_wizard(self): 
+        picking_ids = self.env['stock.picking'].search([('id', '=', self.env.context.get('active_ids', []))])
+        data = []
+        wizard = self.env['print.labels'].create({})
+        for line in picking_ids.move_line_ids_without_package: 
+            self.env['print.labels.line'].create({
+                'print_label_id'      : wizard.id,
+                'product_id'          : line.product_id.id, 
+                'lot_id'              : line.lot_id.id,
+                'qty_pallet_boxes'    : line.lot_id.packing,              
+            })
+        return {
+            'view_mode' : 'form', 
+            'type'      : 'ir.actions.act_window', 
+            'res_model' : 'print.labels',
+            'target'    : 'new', 
+            'view_id'   : self.env.ref('anavale.print_labels_wizard_view').id,
+            'res_id'    : wizard.id
+        }
 
     def _get_default_custom_state_delivery(self):
         _logger.info(self)
