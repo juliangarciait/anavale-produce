@@ -19,6 +19,8 @@ class ProfitNLossWizard(models.TransientModel):
     partner_id = fields.Many2one("res.partner")
     tag_domain_ids = fields.Many2many("account.analytic.tag", "tag_domain_rel")
     text_lot = fields.Char()
+    start_date_filter = fields.Date(default=fields.Date.context_today)
+    end_date_filter = fields.Date(default=fields.Date.context_today)
 
 
     @api.onchange("start_date", "end_date", "filter_by", "text_lot")
