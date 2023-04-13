@@ -8,4 +8,13 @@
         name="liquidaciones.xlsx_report"
         file="liquidaciones.xlsx_report"
     />
+
+    <report 
+        id="xlsx_utlity_report"
+        model="purchase.order"
+        string="Reporte de utilidad"
+        report_type="xlsx"
+        name="liquidaciones.xlsx_utility_report"
+        file="liquidaciones.xlsx_utility_report"
+    />
 </odoo>

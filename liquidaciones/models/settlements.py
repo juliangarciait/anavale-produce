@@ -13,6 +13,7 @@ class SettlementsSaleOrder(models.Model):
     _inherit = 'purchase.order'
     settlement_id = fields.Many2one('sale.settlements')
     settlements_status = fields.Selection([('draft', 'Borrador'), ('close', 'Cerrado')], default = 'draft')
+    settlement_ids = fields.One2many('sale.settlements', 'order_id')
     
     def settlements_wizard_function(self):
         return {
