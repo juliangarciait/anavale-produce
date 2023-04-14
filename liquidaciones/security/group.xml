@@ -2,9 +2,8 @@
 
 
 <odoo>
-    <record model="ir.rule" id="contract_modification_group">
+    <record model="res.groups" id="contract_modification_group">
         <field name="name">Modificación de contratos con agricultor</field>
-        <field name="model_id" ref="model_res_partner"/>
-        <field name="global" eval="True"/>
+        <field name="users" eval="[(4, ref('base.user_root'))]" />
     </record>
 </odoo>
