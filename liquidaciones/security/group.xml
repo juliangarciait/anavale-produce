@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<odoo>
+    <record model="ir.rule" id="contract_modification_group">
+        <field name="name">Modificación de contratos con agricultor</field>
+        <field name="model_id" ref="model_res_partner"/>
+        <field name="global" eval="True"/>
+    </record>
+</odoo>

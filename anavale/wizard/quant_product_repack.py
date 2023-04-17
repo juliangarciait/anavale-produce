@@ -3,6 +3,7 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
 import logging
+import re
 
 _logger = logging.getLogger(__name__)
 
@@ -60,7 +61,7 @@ class QuantProductRepackWizard(models.TransientModel):
             if not initial_name or not final_name:
                 raise UserError(
                     _('it is not possible to calculate the batch name because the product has no variant name'))
-            self.lot_dest_calculated = self.lot_id.name.replace(initial_name, final_name)
+            self.lot_dest_calculated = self.lot_id.name.replace(initial_name, final_name) + 'R'
 
     @api.onchange('lot_id')
     def _onchange_lot_id(self):
@@ -168,7 +169,7 @@ class QuantProductRepackWizard(models.TransientModel):
             'prod_lot_id': lot_ids[1].id,
             'product_id': self.product_dest_id.id,
             'location_id': self.location_id.id,
-            'product_qty': self.final_qty #+ lot_ids[1].product_qty #aumentar lo que originalmente tiene
+            'product_qty': lot_ids[1].product_qty + self.final_qty #aumentar lo que originalmente tiene
         }))]
         si.line_ids = False
         si.line_ids = list_line_ids

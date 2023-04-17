@@ -63,6 +63,8 @@
                                 <field name="journey" style="width: 5%" />
                                 <label for="company" string="Company:" />
                                 <field name="company" style="width: 20%" />
+                                <label for="purchase_date" string="Purchase date:" />
+                                <field name="purchase_date" style="width: 20%" />
                             </div>
                         </group>
                         <div attrs="{'invisible': [('price_type','=', 'close')]}">
@@ -103,6 +105,11 @@
                                 <div class="o_row">
                                     <field name="others"/>
                                     <field name="check_others" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                </div>
+                                <label for="boxes" />
+                                <div class="o_row">
+                                    <field name="boxes" attrs="{'readonly':[('check_boxes','=',False)]}" />
+                                    <field name="check_boxes" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 </div>
 
                                 <label for="user_res_partner" attrs="{'invisible': True}" />

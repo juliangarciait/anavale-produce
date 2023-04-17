@@ -108,6 +108,7 @@ class SettlementsInherit(models.Model):
     #         amount=amount+line.amount
     #     self.total_amount=amount
     
+    purchase_date = fields.Datetime()
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
     currency_id = fields.Many2one('res.currency', related='company_id.currency_id')
     settlements_sale_order_ids = fields.One2many(
@@ -168,16 +169,18 @@ class SettlementsInherit(models.Model):
                                    help="Please select a type of price.")
     status = fields.Selection([('draft','Borrador'),
                                    ('close','Cerrado')], required=True, default = 'draft')
-    check_maneuvers=fields.Boolean(tracking=True)
-    check_adjustment=fields.Boolean(tracking=True)
-    check_storage=fields.Boolean(tracking=True)
-    check_freight_out=fields.Boolean(tracking=True)
-    check_freight_in=fields.Boolean(tracking=True)
-    check_aduana=fields.Boolean(tracking=True)
+    check_maneuvers=fields.Boolean()
+    check_adjustment=fields.Boolean()
+    check_storage=fields.Boolean()
+    check_freight_out=fields.Boolean()
+    check_freight_in=fields.Boolean()
+    check_aduana=fields.Boolean()
+    boxes = fields.Float()
+    check_boxes = fields.Boolean()
     ajuste_precio=fields.Float(
          tracking=True, string="Ajuste de precio")
     note = fields.Char(tracking=True, string="Note")
-    journey = fields.Char( tracking=True, string="Journey")
+    journey = fields.Char( tracking=True, string="Lote")
     company = fields.Char( tracking=True, string="Company")
     user_res_partner = fields.Char( tracking=True, string="Comprador")
     box_emb_total = fields.Integer(
@@ -189,13 +192,14 @@ class SettlementsInherit(models.Model):
     others = fields.Float(tracking=True)
     check_others = fields.Boolean(tracking=True)
 
-    @api.onchange("storage", "check_storage", "maneuvers", "check_maneuvers", "adjustment", "check_adjustment", "ajuste_precio", "others", "check_others", "commission_percentage")
+    @api.onchange("storage", "check_storage", "maneuvers", "check_maneuvers", "adjustment", "check_adjustment", "ajuste_precio", "others", "check_others", "commission_percentage", "check_boxes", "boxes")
     def _update_lines(self):
         total_cost = unit_cost = 0
         total_cost += not self.check_storage and self.storage or 0
         total_cost += not self.check_maneuvers and self.maneuvers or 0
         total_cost += not self.check_adjustment and self.adjustment or 0
         total_cost += not self.check_others and self.others or 0
+        total_cost += not self.check_boxes and self.boxes or 0
         total_box = sum([line.box_rec for line in self.settlements_line_ids])
         unit_cost = total_cost/total_box
         if self.price_type == "open":
@@ -301,7 +305,8 @@ class SettlementsInherit(models.Model):
             'commission_percentage': self.commission_percentage,
             'commission_total': self.commission,
             'note': self.note,
-            'viaje': self.journey
+            'viaje': self.journey,
+            'boxes': self.boxes
         }
         return self.env.ref('liquidaciones.xlsx_report').with_context(
             landscape=True).report_action(self, data=data)
