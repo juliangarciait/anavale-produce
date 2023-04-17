@@ -111,9 +111,9 @@ class SettlementsInherit(models.Model):
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
     currency_id = fields.Many2one('res.currency', related='company_id.currency_id')
     settlements_sale_order_ids = fields.One2many(
-        'purchase.order', 'settlement_id', 'Lineas de Trabajo')
+        'purchase.order', 'settlement_id', 'Lineas de Trabajo', tracking=True)
     settlements_line_ids = fields.One2many(
-        'sale.settlements.lines', 'settlement_id', 'Lineas de Trabajo')
+        'sale.settlements.lines', 'settlement_id', 'Lineas de Trabajo', tracking=True)
     total = fields.Float(
          tracking=True, string="Sales")
     calculated_sales = fields.Float(
@@ -168,12 +168,12 @@ class SettlementsInherit(models.Model):
                                    help="Please select a type of price.")
     status = fields.Selection([('draft','Borrador'),
                                    ('close','Cerrado')], required=True, default = 'draft')
-    check_maneuvers=fields.Boolean()
-    check_adjustment=fields.Boolean()
-    check_storage=fields.Boolean()
-    check_freight_out=fields.Boolean()
-    check_freight_in=fields.Boolean()
-    check_aduana=fields.Boolean()
+    check_maneuvers=fields.Boolean(tracking=True)
+    check_adjustment=fields.Boolean(tracking=True)
+    check_storage=fields.Boolean(tracking=True)
+    check_freight_out=fields.Boolean(tracking=True)
+    check_freight_in=fields.Boolean(tracking=True)
+    check_aduana=fields.Boolean(tracking=True)
     ajuste_precio=fields.Float(
          tracking=True, string="Ajuste de precio")
     note = fields.Char(tracking=True, string="Note")
@@ -186,8 +186,8 @@ class SettlementsInherit(models.Model):
     # Costo del viaje, este lo escribe el usuario
     freight = fields.Float( tracking=True, string="Flete")
     order_id = fields.Many2one("purchase.order")
-    others = fields.Float()
-    check_others = fields.Boolean()
+    others = fields.Float(tracking=True)
+    check_others = fields.Boolean(tracking=True)
 
     @api.onchange("storage", "check_storage", "maneuvers", "check_maneuvers", "adjustment", "check_adjustment", "ajuste_precio", "others", "check_others", "commission_percentage")
     def _update_lines(self):
@@ -309,6 +309,21 @@ class SettlementsInherit(models.Model):
 
 class SettlementsInheritLines(models.Model):
     _name = 'sale.settlements.lines'
+    
+    def write(self, vals): 
+        if vals: 
+            message = self.get_message(vals)
+            self.settlement_id.message_post(body=message, subject="Lines change")
+        res = super(SettlementsInheritLines, self).write(vals)
+        return res
+    
+    def get_message(self, vals): 
+        message = '<ul>'
+        for val in vals: 
+            message += '<li>(%s) %s: %s -> %s</li>' % (self.product_id.name, self._fields[val].string, self[val], vals[val])
+        message += '</ul>'
+        
+        return message
 
     date = fields.Datetime(tracking=True, string="Fecha")
     product_id = fields.Many2one(
