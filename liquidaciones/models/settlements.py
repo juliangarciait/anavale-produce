@@ -239,7 +239,7 @@ class SettlementsInherit(models.Model):
         total_cost += not self.check_others and self.others or 0
         total_cost += not self.check_boxes and self.boxes or 0
         total_box = sum([line.box_rec for line in self.settlements_line_ids])
-        unit_cost = total_cost/total_box
+        unit_cost = (total_cost/total_box) if total_box != 0 else 0 
         if self.price_type == "open":
             for line in self.settlements_line_ids:
                 line.price_unit = line.price_unit_origin - unit_cost - self.ajuste_precio
