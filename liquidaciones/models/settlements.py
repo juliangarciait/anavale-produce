@@ -40,8 +40,8 @@ class SettlementsSaleOrder(models.Model):
         freight_out = move_line_ids.filtered(lambda line: line.account_id.id == 1394 and line.move_id.state == 'posted')
         maneuvers = move_line_ids.filtered(lambda line: line.account_id.id == 1390 and line.move_id.state == 'posted')
         storage = move_line_ids.filtered(lambda line: line.account_id.id == 1395 and line.move_id.state == 'posted')
-        aduana_usa = move_line_ids.filtered(lambda line: line.account_id.id in [1393,1392] and line.move_id.state == 'posted')
-        aduana_mex = []
+        aduana_usa = move_line_ids.filtered(lambda line: line.account_id.id == 1393 and line.move_id.state == 'posted')
+        aduana_mex = move_line_ids.filtered(lambda line: line.account_id.id == 1392 and line.mocw_is.state == 'posted')#[]1392
         adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
         amountVar = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids and line.move_id.state == 'posted')
         boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
@@ -107,7 +107,8 @@ class SettlementsSaleOrder(models.Model):
                         'default_check_storage': True,
                         'default_check_freight_out': True,
                         'default_check_freight_in': purchase_rec.Flete_entrada == "si" or False,
-                        'default_check_aduana': True,
+                        'default_check_aduana': purchase_rec.Aduana_US == 'si' or False,
+                        'default_check_aduana_mx': purchase_rec.Aduana_MX == 'si' or False,
                         'default_note': tag_name[0],
                         'default_journey': tag_name[1],
                         'default_company': str(purchase_rec.partner_id.name),
@@ -115,7 +116,8 @@ class SettlementsSaleOrder(models.Model):
                         'default_freight_out': freight_outSum,
                         'default_maneuvers': maneuversSum,
                         'default_storage': storageSum,
-                        'default_aduana': aduana_total,
+                        'default_aduana': aduana_usa,
+                        'default_aduana_mex': aduana_mex,
                         'default_adjustment': adjustmentSum,
                         'default_order_id': purchase_rec.id,
                         'default_price_type': self.tipo_precio == "variable" and "open" or "close",
@@ -174,6 +176,8 @@ class SettlementsInherit(models.Model):
     date = fields.Datetime(tracking=True, string="Fecha", store=True)
     aduana = fields.Float(
          tracking=True, string="Aduana")#, default=_get_aduana)
+    aduana_mex = fields.Float(
+         tracking=True, string="Aduana MX")
     maneuvers = fields.Float(
         tracking=True, string="Maneuvers")#, default=_get_maneuvers)
         #duplico el campo, pues es necesario maniobras su total y que no sea modificado, lo mismo para los otros dos campos duplicados
@@ -213,6 +217,7 @@ class SettlementsInherit(models.Model):
     check_freight_out=fields.Boolean()
     check_freight_in=fields.Boolean()
     check_aduana=fields.Boolean()
+    check_aduana_mx = fields.Boolean()
     boxes = fields.Float()
     check_boxes = fields.Boolean()
     ajuste_precio=fields.Float(
@@ -264,7 +269,13 @@ class SettlementsInherit(models.Model):
     
     @api.depends('aduana', 'check_aduana')
     def _get_aduana_total(self):
-        self.aduana_total = self.check_aduana and self.aduana or 0
+        self.aduana_total = 0 
+        if self.check_aduana: 
+            self.aduana_total = self.aduana
+        elif self.check_aduana_mx: 
+            self.aduana_total = self.aduana_mex
+        elif self.check_aduana and self.check_aduana_mx: 
+            self.aduana_total = self.aduana + self.aduana_mex
     
     def _get_total_total(self):
         cost = self.storage_total
