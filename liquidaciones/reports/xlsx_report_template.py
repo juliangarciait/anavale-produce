@@ -311,3 +311,137 @@ class XlsxReport(models.AbstractModel):
         sheet.write(16, 13, '', travels_middle_right)
         sheet.write(18, 13, '', travels_middle_right)
         sheet.write(19, 12, '', travels_bottom_left)
+        
+        
+class XlsxUtilityReport(models.AbstractModel): 
+    _name = 'report.liquidaciones.xlsx_utility_report'
+    _inherit = 'report.odoo_report_xlsx.abstract'
+    
+    def generate_xlsx_report(self, workbook, data, objects):
+        settlement_id = objects.settlement_ids[0]
+        _logger.info(objects.settlement_ids[0])
+        _logger.info('$'*100)
+        _logger.info(settlement_id)
+        workbook.set_properties({
+            'comments': 'Created with Python and XlsxWrite from Odoo 13.0'
+        })
+        sheet = workbook.add_worksheet(_('Plantilla'))
+        sheet.set_landscape()
+        sheet.fit_to_pages(1, 0)
+        sheet.set_zoom(100)
+        sheet.set_column(4, 0, 25)
+        sheet.set_column(4, 1, 25)
+        sheet.set_column(8, 9, 20)
+        sheet.set_column(4, 17, 30)
+        sheet.set_column(4, 18, 20)
+        
+        travels = workbook.add_format({
+            'font_color' : 'black',
+            'font_size'  : '14',  
+            'font_name'  : 'arial',
+            'align'      : 'left',
+            'bold'       : True
+        })
+        travels_title_top_left = workbook.add_format({
+            'font_color' : 'black', 
+            'font_size'  : '14', 
+            'font_name'  : 'arial', 
+            'align'      : 'left', 
+            'top'        : 2, 
+            'left'       : 2,
+            'bold'       : True
+        })
+        travels_middle_left = workbook.add_format({
+            'font_color' : 'black',
+            'font_size'  : '14', 
+            'font_name'  : 'arial', 
+            'align'      : 'left', 
+            'left'       : 2,
+            'bold'       : True
+        })
+        travels_bottom_left = workbook.add_format({
+            'font_color' : 'black',
+            'font_size'  : '14', 
+            'font_name'  : 'arial', 
+            'align'      : 'left', 
+            'left'       : 2,
+            'bottom'     : 2,
+            'bold'       : True
+        })
+        travels_middle_left_red = workbook.add_format({
+            'font_color' : 'white',
+            'font_size'  : '14', 
+            'font_name'  : 'arial', 
+            'align'      : 'left', 
+            'left'       : 2, 
+            'bg_color'   : 'red',
+            'bold'       : True
+        })
+        travels_title_top_right = workbook.add_format({
+            'font_color' : 'black', 
+            'font_size'  : '14', 
+            'font_name'  : 'arial', 
+            'align'      : 'right', 
+            'top'        : 2, 
+            'right'      : 2,
+            'bold'       : True
+        })
+        travels_middle_right = workbook.add_format({
+            'font_color' : 'black',
+            'font_size'  : '14', 
+            'font_name'  : 'arial', 
+            'align'      : 'right', 
+            'right'      : 2,
+            'bold'       : True
+        })
+        travels_middle_right_red = workbook.add_format({
+            'font_color' : 'white',
+            'font_size'  : '14', 
+            'font_name'  : 'arial', 
+            'align'      : 'right', 
+            'right'      : 2, 
+            'bg_color'   : 'red',
+            'bold'       : True
+        })
+        travels_bottom_right = workbook.add_format({
+            'font_color' : 'black',
+            'font_size'  : '14', 
+            'font_name'  : 'arial', 
+            'align'      : 'right', 
+            'right'      : 2,
+            'bottom'     : 2,
+            'bold'       : True
+        })
+        
+        sheet.write(4, 1, 'Viaje', travels)
+        sheet.write(5, 1, 'VENTAS', travels_title_top_left)
+        sheet.write(8, 1, 'LIQUIDACIONES', travels_middle_left)
+        sheet.write(9, 1, 'Freight In', travels_middle_left)
+        sheet.write(10, 1, 'Aduana', travels_middle_left)
+        sheet.write(11, 1, 'MANIOBRAS', travels_middle_left_red)
+        sheet.write(12, 1, 'AJUSTE', travels_middle_left_red)
+        sheet.write(13, 1, 'STORAGE', travels_middle_left_red)
+        sheet.write(14, 1, 'FREIGHT OUT', travels_middle_left_red)
+        sheet.write(17, 1, 'UTILIDAD', travels_middle_left)
+        sheet.write(5, 2, settlement_id.total, travels_title_top_right)
+        sheet.write(9, 2, settlement_id.freight_in, travels_middle_right)
+        sheet.write(10, 2, settlement_id.aduana_total, travels_middle_right)
+        sheet.write(11, 2, settlement_id.maneuvers_total, travels_middle_right_red)
+        sheet.write(12, 2, settlement_id.adjustment, travels_middle_right_red)
+        sheet.write(13, 2, settlement_id.storage, travels_middle_right_red)
+        sheet.write(14, 2, settlement_id.freight_out, travels_middle_right_red)
+        sheet.write(17, 2, settlement_id.utility, travels_middle_right)
+        sheet.write(19, 2, str(settlement_id.utility_percentage) + '%', travels_bottom_right)
+        
+        sheet.write(6, 1, '', travels_middle_left)
+        sheet.write(7, 1, '', travels_middle_left)
+        sheet.write(15, 1, '', travels_middle_left)
+        sheet.write(16, 1, '', travels_middle_left)
+        sheet.write(18, 1, '', travels_middle_left)
+        sheet.write(6, 2, '', travels_middle_right)
+        sheet.write(7, 2, '', travels_middle_right)
+        sheet.write(8, 2, '', travels_middle_right)
+        sheet.write(15, 2, '', travels_middle_right)
+        sheet.write(16, 2, '', travels_middle_right)
+        sheet.write(18, 2, '', travels_middle_right)
+        sheet.write(19, 1, '', travels_bottom_left)

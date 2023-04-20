@@ -13,6 +13,7 @@ class SettlementsSaleOrder(models.Model):
     _inherit = 'purchase.order'
     settlement_id = fields.Many2one('sale.settlements')
     settlements_status = fields.Selection([('draft', 'Borrador'), ('close', 'Cerrado')], default = 'draft')
+    settlement_ids = fields.One2many('sale.settlements', 'order_id')
     
     def settlements_wizard_function(self):
         return {
@@ -111,9 +112,9 @@ class SettlementsInherit(models.Model):
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
     currency_id = fields.Many2one('res.currency', related='company_id.currency_id')
     settlements_sale_order_ids = fields.One2many(
-        'purchase.order', 'settlement_id', 'Lineas de Trabajo')
+        'purchase.order', 'settlement_id', 'Lineas de Trabajo', tracking=True)
     settlements_line_ids = fields.One2many(
-        'sale.settlements.lines', 'settlement_id', 'Lineas de Trabajo')
+        'sale.settlements.lines', 'settlement_id', 'Lineas de Trabajo', tracking=True)
     total = fields.Float(
          tracking=True, string="Sales")
     calculated_sales = fields.Float(
@@ -188,8 +189,8 @@ class SettlementsInherit(models.Model):
     # Costo del viaje, este lo escribe el usuario
     freight = fields.Float( tracking=True, string="Flete")
     order_id = fields.Many2one("purchase.order")
-    others = fields.Float()
-    check_others = fields.Boolean()
+    others = fields.Float(tracking=True)
+    check_others = fields.Boolean(tracking=True)
 
     @api.onchange("storage", "check_storage", "maneuvers", "check_maneuvers", "adjustment", "check_adjustment", "ajuste_precio", "others", "check_others", "commission_percentage", "check_boxes", "boxes")
     def _update_lines(self):
@@ -313,6 +314,21 @@ class SettlementsInherit(models.Model):
 
 class SettlementsInheritLines(models.Model):
     _name = 'sale.settlements.lines'
+    
+    def write(self, vals): 
+        if vals: 
+            message = self.get_message(vals)
+            self.settlement_id.message_post(body=message, subject="Lines change")
+        res = super(SettlementsInheritLines, self).write(vals)
+        return res
+    
+    def get_message(self, vals): 
+        message = '<ul>'
+        for val in vals: 
+            message += '<li>(%s) %s: %s -> %s</li>' % (self.product_id.name, self._fields[val].string, self[val], vals[val])
+        message += '</ul>'
+        
+        return message
 
     date = fields.Datetime(tracking=True, string="Fecha")
     product_id = fields.Many2one(
