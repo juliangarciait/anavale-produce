@@ -40,8 +40,20 @@ class PurchaseOrder(models.Model):
     In_out = fields.Selection(SiNo, string='In and Out?')
 
     caja = fields.Selection(SiNo, string='caja?')
-
+    
     referencia = fields.Text('Referencia')
+    
+    @api.onchange('partner_id')
+    def onchange_partner(self): 
+        for record in self: 
+            record.tipo_precio = record.partner_id.price_type
+            record.porcentaje_comision = record.partner_id.commission_percentage
+            record.Flete_entrada = record.partner_id.freight_in
+            record.Aduana_MX = record.partner_id.mx_customs
+            record.Aduana_US = record.partner_id.us_customs
+            record.In_out = record.partner_id.in_and_out
+            record.caja = record.partner_id.box
+            record.referencia = record.partner_id.reference
 
     lot = fields.Text(compute="_get_lot", store=True)
 

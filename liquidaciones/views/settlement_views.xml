@@ -63,8 +63,6 @@
                                 <field name="journey" style="width: 5%" />
                                 <label for="company" string="Company:" />
                                 <field name="company" style="width: 20%" />
-                                <label for="purchase_date" string="Purchase date:" />
-                                <field name="purchase_date" style="width: 20%" />
                             </div>
                         </group>
                         <div attrs="{'invisible': [('price_type','=', 'close')]}">
@@ -106,11 +104,6 @@
                                     <field name="others"/>
                                     <field name="check_others" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 </div>
-                                <label for="boxes" />
-                                <div class="o_row">
-                                    <field name="boxes" attrs="{'readonly':[('check_boxes','=',False)]}" />
-                                    <field name="check_boxes" attrs="{'invisible': [('price_type','=', 'close')]}" />
-                                </div>
 
                                 <label for="user_res_partner" attrs="{'invisible': True}" />
                                 <div class="o_row" attrs="{'invisible': True}" style="margin-right:10px;">
@@ -150,6 +143,11 @@
                                 <div class="o_row">
                                     <field name="aduana" attrs="{'readonly':[('check_aduana','=',False)]}" />
                                     <field name="check_aduana" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                </div>
+                                <label for="aduana_mex"/>
+                                <div class="o_row">
+                                    <field name="aduana_mex" attrs="{'readonly':[('check_aduana_mx','=',False)]}"/>
+                                    <field name="check_aduana_mx" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 </div>
                                 <div class="oe_tittle">
                                     <h4>

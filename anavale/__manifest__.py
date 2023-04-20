@@ -11,7 +11,7 @@
     'sequence': 1,
     "email": 'mayte@eadminpro.com',
     "website":'http://eadminpro.com/',
-    'depends': ['sale_stock', 'percent_field', 'sale', 'stock','purchase'],
+    'depends': ['sale_stock', 'percent_field', 'sale', 'stock','purchase', 'liquidaciones'],
     'data': [
             'security/ir.model.access.csv',
             'views/sale_view.xml',

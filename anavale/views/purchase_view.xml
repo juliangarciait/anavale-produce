@@ -71,15 +71,19 @@
             <field name="model">purchase.order</field>
             <field name="inherit_id" ref="purchase_stock.purchase_order_view_form_inherit"/>
             <field name="arch" type="xml">
-                <xpath expr="//page[@name='purchase_delivery_invoice']/group/group/field[@name='incoterm_id']" position="after">
-                    <field name="tipo_precio" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
-                    <field name="porcentaje_comision" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
-                    <field name="Flete_entrada" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
-                    <field name="Aduana_MX" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
-                    <field name="Aduana_US" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
-                    <field name="In_out" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
-                    <field name="caja" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
-                    <field name="referencia" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
+                <xpath expr="//page[@name='purchase_delivery_invoice']" position="after">
+                    <page string="Tipo de Contrato" name="contract_type" groups="liquidaciones.contract_modification_group">
+                        <group>
+                            <field name="tipo_precio" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
+                            <field name="porcentaje_comision" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
+                            <field name="Flete_entrada" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
+                            <field name="Aduana_MX" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
+                            <field name="Aduana_US" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
+                            <field name="In_out" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
+                            <field name="caja" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
+                            <field name="referencia" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
+                        </group>
+                    </page>
                 </xpath>
             </field>
         </record>
