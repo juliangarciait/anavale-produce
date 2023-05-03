@@ -8,6 +8,14 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
+porcentajes = [
+    ('8', 8.0),
+    ('9', 9.0),
+    ('10', 10.0),
+    ('11', 11.0),
+    ('12', 12.0),
+
+]
 
 class SettlementsSaleOrder(models.Model):
     _inherit = 'purchase.order'
@@ -42,7 +50,7 @@ class SettlementsSaleOrder(models.Model):
         maneuvers = move_line_ids.filtered(lambda line: line.account_id.id == 1390 and line.move_id.state == 'posted')
         storage = move_line_ids.filtered(lambda line: line.account_id.id == 1395 and line.move_id.state == 'posted')
         aduana_usa = move_line_ids.filtered(lambda line: line.account_id.id == 1393 and line.move_id.state == 'posted')
-        aduana_mex = move_line_ids.filtered(lambda line: line.account_id.id == 1392 and line.move_is.state == 'posted')#[]1392
+        aduana_mex = move_line_ids.filtered(lambda line: line.account_id.id == 1392 and line.move_id.state == 'posted')#[]1392
         adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
         amountVar = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids and line.move_id.state == 'posted')
         boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
@@ -126,6 +134,7 @@ class SettlementsSaleOrder(models.Model):
                         'default_boxes': boxes_sum,
                         'lot_ids': lot_ids,
                         'default_purchase_date': purchase_rec.date_approve
+                        'default_commission_percentage': porcentajes.get(purchase_rec.porcentaje_comision)
                         },
             'views': [(self.env.ref(view_form).id, 'form')],
         }
