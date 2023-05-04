@@ -42,6 +42,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//tree" position="inside">
                     <field name="lot" optional="show"/>
+                    <field name="purchase_analytics" optional="show"/>
                 </xpath>
             </field>
         </record>
@@ -86,6 +87,14 @@
                     </page>
                 </xpath>
             </field>
+        </record>
+
+        <record id="calc_purchase_analytics_action_server" model="ir.actions.server">
+            <field name="name">Calc Purchase Account</field>
+            <field name="model_id" ref="model_purchase_order"/>
+            <field name="binding_model_id" ref="model_purchase_order"/>
+            <field name="state">code</field>
+            <field name="code">action = model.calc_purchase_analytics()</field>
         </record>
 
     </data>

@@ -42,6 +42,8 @@ class PurchaseOrder(models.Model):
     caja = fields.Selection(SiNo, string='caja?')
     
     referencia = fields.Text('Referencia')
+
+    purchase_analytics = fields.Integer('Purchase Contab')
     
     @api.onchange('partner_id')
     def onchange_partner(self): 
@@ -227,6 +229,40 @@ class PurchaseOrder(models.Model):
                 #purchase_lot1 = line.move_id.purchase_line_id
                 #purchase_lot1.write({'purchase_lot': lot.id})
 
+    def calc_purchase_analytics(self):
+        active_ids = self.env.context.get('active_ids', [])
+        purchases = self.search([('id', 'in', active_ids)])
+        for purchase_rec in purchases: 
+            po_product_ids = [line.product_id for line in purchase_rec.order_line]
+            fecha = purchase_rec.date_order
+            picking_ids = purchase_rec.picking_ids.filtered(lambda picking: picking.state == 'done') # Se obtinenen pickings de la orden de compra
+            lot_ids = self.env["stock.production.lot"]
+            for sml in picking_ids.move_line_ids:
+                lot_ids += sml.lot_id
+            analytic_tag_ids = self.env['account.analytic.tag']
+            for lot in lot_ids:
+                tag = lot.analytic_tag_ids.filtered(lambda tag: len(tag.name)>5)
+                if not tag in analytic_tag_ids:
+                    analytic_tag_ids += tag
+            move_line_ids= self.env['account.move.line']
+            tag_name = ''
+            move_line_ids = self.env['account.move.line'].search([('analytic_tag_ids', 'in', analytic_tag_ids.ids), ('move_id.state', '=', 'posted')])
+            for tag_id in analytic_tag_ids:
+                tag_name += tag_id.name + ' '
+            tag_name = tag_name.split("-")
+            if len(tag_name) < 2:
+                tag_name.append("")
+            purcha = move_line_ids.filtered(lambda line: line.account_id.id == 24 and line.move_id.state == 'posted')
+            spoilage = move_line_ids.filtered(lambda line: line.account_id.id == 1396 and line.move_id.state == 'posted')
+            inventory_variation = move_line_ids.filtered(lambda line: line.account_id.id == 1398 and line.move_id.state == 'posted')
+            purcha_Sum = sum([line.price_subtotal for line in purcha])
+            spoilage_Sum = sum([line.price_subtotal for line in spoilage])
+            inventory_variation_Sum = sum([line.price_subtotal for line in inventory_variation])
+            suma = purcha_Sum + spoilage_Sum + inventory_variation_Sum
+            purchase_rec.write({'purchase_analytics': abs(suma)})
+
+
+
 
 class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
@@ -251,7 +287,9 @@ class PurchaseReport(models.Model):
     _inherit = "purchase.report"
 
     total_invoiced = fields.Float('Total Billed', readonly=False, )
+
     purchase_lot = fields.Many2one('stock.production.lot', 'Lote', readonly=True)
+
 
     def _select(self):
         return super(PurchaseReport, self)._select() + ", sum(l.total_invoiced) as total_invoiced, l.purchase_lot as purchase_lot"
