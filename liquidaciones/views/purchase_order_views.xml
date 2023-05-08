@@ -8,7 +8,19 @@
         <field name="inherit_id" ref="purchase.purchase_order_form"/>
         <field name="arch" type="xml">
             <xpath expr="//form/sheet/group/group/field[@name='date_approve']" position="before">
-                <field name="trouble_status"/>
+                <field name="trouble_status" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="inherited_purchase_order_form_group" model="ir.ui.view">
+        <field name="name">inherited.purchase.order.form.group</field>
+        <field name="model">purchase.order</field>
+        <field name="groups_id" eval="[(4, ref('liquidaciones.contract_modification_group'))]"/>
+        <field name="inherit_id" ref="liquidaciones.inherited_purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='trouble_status']" position="replace">
+                <field name="trouble_status" readonly="0"/>
             </xpath>
         </field>
     </record>
