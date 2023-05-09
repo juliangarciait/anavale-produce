@@ -175,7 +175,7 @@ class XlsxReport(models.AbstractModel):
         light_box_currency.num_format = currency_id.symbol + '#,##0.00'
         lang = self.env.user.lang
         lang_id = self.env['res.lang'].search([('code', '=', lang)])[0]
-        datestring = fields.Date.from_string(str(data.get('date'),)).strftime(lang_id.date_format)
+        datestring = data.get('date') and fields.Date.from_string(str(data.get('date'),)).strftime(lang_id.date_format)
         i = 9
         sheet.write(4, 0, 'NOTA', report_format_gray)
         sheet.write(4, 1, 'VIAJE', report_format_gray)
@@ -208,19 +208,19 @@ class XlsxReport(models.AbstractModel):
         sheet.write(7, 8, '', light_header_bottom)
         sheet.write(
             7, 9,
-            "%d %%" % data.get("commission_percentage"),
+            "%d %%" % data.get("commission_percentage", 0.0),
             light_header_bottom)
         sheet.write(7, 10, 'Total', light_header_bottom)
 
         sheet.write(9, 0, datestring, light_box)
-        for line in data.get('lines'):
+        for line in data.get('lines', []):
             i += 1
             sheet.write(i, 0, '', light_box)
-            sheet.write(i, 1, line.get('product'), light_box)
-            sheet.write(i, 2, line.get('product_uom'), light_box)
-            sheet.write(i, 3, line.get('box_rec'), light_box)
-            sheet.write(i, 4, line.get('price_unit'), light_box_currency)
-            sheet.write(i, 5, line.get('amount'), light_box_currency)
+            sheet.write(i, 1, line.get('product', ''), light_box)
+            sheet.write(i, 2, line.get('product_uom', ''), light_box)
+            sheet.write(i, 3, line.get('box_rec', 0), light_box)
+            sheet.write(i, 4, line.get('price_unit', 0.0), light_box_currency)
+            sheet.write(i, 5, line.get('amount', 0.0), light_box_currency)
             sheet.write(i, 6, "", light_box_currency)
             sheet.write(i, 7, "", light_box_currency)
             sheet.write(i, 8, "", light_box_currency)

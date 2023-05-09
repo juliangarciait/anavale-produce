@@ -42,7 +42,7 @@ class SettlementsSaleOrder(models.Model):
         maneuvers = move_line_ids.filtered(lambda line: line.account_id.id == 1390 and line.move_id.state == 'posted')
         storage = move_line_ids.filtered(lambda line: line.account_id.id == 1395 and line.move_id.state == 'posted')
         aduana_usa = move_line_ids.filtered(lambda line: line.account_id.id == 1393 and line.move_id.state == 'posted')
-        aduana_mex = move_line_ids.filtered(lambda line: line.account_id.id == 1392 and line.mocw_is.state == 'posted')#[]1392
+        aduana_mex = move_line_ids.filtered(lambda line: line.account_id.id == 1392 and line.move_id.state == 'posted')#[]1392
         adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
         amountVar = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids and line.move_id.state == 'posted')
         boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
@@ -117,8 +117,8 @@ class SettlementsSaleOrder(models.Model):
                         'default_freight_out': freight_outSum,
                         'default_maneuvers': maneuversSum,
                         'default_storage': storageSum,
-                        'default_aduana': aduana_usa,
-                        'default_aduana_mex': aduana_mex,
+                        'default_aduana': aduana_usaSum,
+                        'default_aduana_mex': aduana_mexSum,
                         'default_adjustment': adjustmentSum,
                         'default_order_id': purchase_rec.id,
                         'default_price_type': self.tipo_precio == "variable" and "open" or "close",
@@ -298,7 +298,7 @@ class SettlementsInherit(models.Model):
                 self.utility_percentage = (self.utility/self.total) * 100
         else:
             self.utility = self.total - (self.settlement + self.freight_in + self.aduana + self.maneuvers + self.adjustment + self.storage + self.freight_out)
-            self.utility_percentage = (self.utility/self.total) * 100
+            self.utility_percentage = self.total != 0 and ((self.utility/self.total) * 100) or 0.0
 
     def action_print_report(self):
         lines = []
