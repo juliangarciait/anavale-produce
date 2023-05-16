@@ -119,7 +119,7 @@
                                 <field name="calculated_sales" invisible="1" readonly="1" />
                                 <label for="commission_percentage" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 <div class="o_row" attrs="{'invisible': [('price_type','=', 'close')]}">
-                                    <field name="commission_percentage" />
+                                    <field name="commission_percentage" readonly="1"/>
                                     <span>%%</span>
                                 </div>
                                 <label for="commission" attrs="{'invisible': [('price_type','=', 'close')]}"/>
@@ -390,7 +390,7 @@
                                 <field name="calculated_sales" invisible="1" readonly="1" />
                                 <label for="commission_percentage" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 <div class="o_row" attrs="{'invisible': [('price_type','=', 'close')]}">
-                                    <field name="commission_percentage" />
+                                    <field name="commission_percentage" readonly="1"/>
                                     <span>%%</span>
                                 </div>
                                 <label for="commission" attrs="{'invisible': [('price_type','=', 'close')]}"/>
@@ -561,6 +561,30 @@
                     <field name="message_ids" widget="mail_thread"/>
                 </div>
             </form>
+        </field>
+    </record>
+
+    <record id="view_settlements_inherited" model="ir.ui.view">
+        <field name="name">Liquidaciones grupo</field>
+        <field name="model">sale.settlements</field>
+        <field name="inherit_id" ref="liquidaciones.view_settlements"/>
+        <field name="groups_id" eval="[(4, ref('liquidaciones.contract_modification_group'))]"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/sheet/div/group/group/div/field[@name='commission_percentage']" position="replace">
+                <field name="commission_percentage" readonly="0"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_settlements_no_create_inherited" model="ir.ui.view">
+        <field name="name">Liquidaciones grupo</field>
+        <field name="model">sale.settlements</field>
+        <field name="inherit_id" ref="liquidaciones.view_settlements_no_create"/>
+        <field name="groups_id" eval="[(4, ref('liquidaciones.contract_modification_group'))]"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/sheet/div/div/group/div/field[@name='commission_percentage']" position="replace">
+                <field name="commission_percentage" readonly="0"/>
+            </xpath>
         </field>
     </record>
 </odoo>

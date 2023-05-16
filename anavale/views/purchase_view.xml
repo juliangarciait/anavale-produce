@@ -73,16 +73,39 @@
             <field name="inherit_id" ref="purchase_stock.purchase_order_view_form_inherit"/>
             <field name="arch" type="xml">
                 <xpath expr="//page[@name='purchase_delivery_invoice']" position="after">
-                    <page string="Tipo de Contrato" name="contract_type" groups="liquidaciones.contract_modification_group">
+                    <page string="Tipo de Contrato" name="contract_type">
                         <group>
-                            <field name="tipo_precio" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
-                            <field name="porcentaje_comision" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
-                            <field name="Flete_entrada" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
-                            <field name="Aduana_MX" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
-                            <field name="Aduana_US" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
-                            <field name="In_out" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
-                            <field name="caja" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
-                            <field name="referencia" attrs="{'required': [('date_order','>','2023-03-01')]}"/>
+                            <field name="tipo_precio" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="1"/>
+                            <field name="porcentaje_comision" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="1"/>
+                            <field name="Flete_entrada" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="1"/>
+                            <field name="Aduana_MX" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="1"/>
+                            <field name="Aduana_US" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="1"/>
+                            <field name="In_out" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="1"/>
+                            <field name="caja" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="1"/>
+                            <field name="referencia" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="1"/>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="purchase_order_form_inherit_relative_anavale_group" model="ir.ui.view">
+            <field name="name">purchase.order.form.inherit.anavele.relative.data.group</field>
+            <field name="model">purchase.order</field>
+            <field name="groups_id" eval="[(4, ref('liquidaciones.contract_modification_group'))]"/>
+            <field name="inherit_id" ref="anavale.purchase_order_form_inherit_relative_anavale"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='contract_type']" position="replace">
+                    <page string="Tipo de Contrato" name="contract_type">
+                        <group>
+                            <field name="tipo_precio" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="0"/>
+                            <field name="porcentaje_comision" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="0"/>
+                            <field name="Flete_entrada" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="0"/>
+                            <field name="Aduana_MX" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="0"/>
+                            <field name="Aduana_US" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="0"/>
+                            <field name="In_out" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="0"/>
+                            <field name="caja" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="0"/>
+                            <field name="referencia" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="0"/>
                         </group>
                     </page>
                 </xpath>

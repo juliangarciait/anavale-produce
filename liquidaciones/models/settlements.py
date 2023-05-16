@@ -8,6 +8,14 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
+porcentajes = [
+    ('8', 8.0),
+    ('9', 9.0),
+    ('10', 10.0),
+    ('11', 11.0),
+    ('12', 12.0),
+
+]
 
 class SettlementsSaleOrder(models.Model):
     _inherit = 'purchase.order'
@@ -125,7 +133,8 @@ class SettlementsSaleOrder(models.Model):
                         'default_check_boxes': purchase_rec.caja == "si" or False,
                         'default_boxes': boxes_sum,
                         'lot_ids': lot_ids,
-                        'default_purchase_date': purchase_rec.date_approve
+                        'default_purchase_date': purchase_rec.date_approve,
+                        'default_commission_percentage': porcentajes.get(purchase_rec.porcentaje_comision)
                         },
             'views': [(self.env.ref(view_form).id, 'form')],
         }
@@ -268,15 +277,12 @@ class SettlementsInherit(models.Model):
         freight_total += self.check_freight_in and self.freight_in or 0
         self.freight_total = freight_total
     
-    @api.depends('aduana', 'check_aduana')
+    @api.depends('aduana', 'check_aduana', 'aduana_mex', 'check_aduana_mx')
     def _get_aduana_total(self):
-        self.aduana_total = 0 
-        if self.check_aduana: 
-            self.aduana_total = self.aduana
-        elif self.check_aduana_mx: 
-            self.aduana_total = self.aduana_mex
-        elif self.check_aduana and self.check_aduana_mx: 
-            self.aduana_total = self.aduana + self.aduana_mex
+        aduana_total = 0 
+        aduana_total += self.check_aduana and self.aduana or 0 
+        aduana_total += self.check_aduana_mx and self.aduana_mex or 0
+        self.aduana_total = aduana_total
     
     def _get_total_total(self):
         cost = self.storage_total
