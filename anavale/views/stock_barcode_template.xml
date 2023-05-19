@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="assets_backend" inherit_id="web.assets_backend" name="Stock Barcode Anavale Assets">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/anavale/static/src/js/abstract_client_action.js"></script>
+        </xpath>
+    </template>
+
+</odoo>
