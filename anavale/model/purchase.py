@@ -127,13 +127,25 @@ class PurchaseOrder(models.Model):
             result.append(child_lot.id)
         return result
 
+    def _get_list_product_ids(self, lot_id): 
+        result = [lot_id.product_id.id]
+        for child_product_id in lot_id.child_lot_ids:
+            result.append(child_product_id.product_id.id)
+        _logger.info(result)
+        return result
+
     def _update_account_move_from_sale(self, move_sale, product_id, price_unit):
         domain = [('lot_id', 'in', tuple(self._get_list_lot_ids(move_sale.lot_id))),
-                  ('product_id', '=', move_sale.product_id.id)]
+                  ('product_id', 'in', tuple(self._get_list_product_ids(move_sale.lot_id)))]
         lines = self.env['sale.order.line'].search(domain)
-        
+        _logger.info(move_sale.product_id)
+        _logger.info(domain)
+        _logger.info(lines)
+        _logger.info(product_id)
+        _logger.info('#')
         for line in lines:
             # Update Purchase Move
+            _logger.info(lines.move_ids)
             for move in line.move_ids:
                 _logger.info("Move Update SALE")
                 self._update_account_move(move, product_id, price_unit)
@@ -146,19 +158,28 @@ class PurchaseOrder(models.Model):
     def _update_account_move(self, stock_move, product_id, price_unit):
         tag_ids = stock_move.lot_id.analytic_tag_ids
         sol_id = stock_move.sale_line_id
+        _logger.info(stock_move.lot_id)
+        _logger.info(sol_id)
+        _logger.info(price_unit)
         for rec in self.env['account.move'].search([('stock_move_id', '=', stock_move.id)]):
+            _logger.info(rec.state)
+            _logger.info('#'*100)
             if rec.state == 'posted':
                 rec.button_draft()
                 prepare_ids = []  # (1, ID, { values })
-                line_ids = rec.invoice_line_ids
+                line_ids = rec.invoice_line_ids       
+                _logger.info(line_ids)                                                                     
                 if sol_id:
                     line_ids = rec.invoice_line_ids.filtered(lambda line: line.analytic_tag_ids in tag_ids)
                 for line_ac in line_ids:
+                    _logger.info(line_ac.product_id)
                     if line_ac.product_id == product_id:
+                        _logger.info(line_ac.credit)
                         if line_ac.credit != 0:
                             prepare_ids.append((1, line_ac.id, {'credit': price_unit * abs(line_ac.quantity)}))
                         else:
                             prepare_ids.append((1, line_ac.id, {'debit': price_unit * abs(line_ac.quantity)}))
+                _logger.info(prepare_ids)
                 if prepare_ids:
                     rec.sudo().invoice_line_ids = prepare_ids
                 rec.action_post()
@@ -194,7 +215,7 @@ class PurchaseOrder(models.Model):
                         self._update_stock_valuation_by_lot(move, line.product_id, line.price_unit)
                         self._update_stock_valuation_layer(move, line.product_id, line.price_unit)
                         for move_sale in move.move_line_nosuggest_ids:
-                            
+                            _logger.info(move_sale.lot_id)
                             if move_sale.lot_id:
                                 self._update_account_move_from_sale(move_sale, line.product_id, line.price_unit)
 
