@@ -63,7 +63,7 @@ class Picking(models.Model):
             picking['group_tracking_lot'] = self.env.user.has_group('stock.group_tracking_lot')
             picking['group_production_lot'] = self.env.user.has_group('stock.group_production_lot')
             picking['group_uom'] = self.env.user.has_group('uom.group_uom')
-            picking['use_create_lots'] = self.env['stock.picking.type'].browse(picking['picking_type_id'][0]).use_create_lots
+            picking['use_create_lots'] = False #self.env['stock.picking.type'].browse(picking['picking_type_id'][0]).use_create_lots
             picking['use_existing_lots'] = self.env['stock.picking.type'].browse(picking['picking_type_id'][0]).use_existing_lots
             picking['show_entire_packs'] = self.env['stock.picking.type'].browse(picking['picking_type_id'][0]).show_entire_packs
             picking['actionReportDeliverySlipId'] = self.env.ref('stock.action_report_delivery').id
