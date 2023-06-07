@@ -126,35 +126,80 @@ class PurchaseOrder(models.Model):
         for child_lot in lot_id.child_lot_ids:
             result.append(child_lot.id)
         return result
+    
+    @staticmethod
+    def _get_list_variant_ids(template_id):
+        result = []
+        result = template_id.product_variant_ids.ids
+            
+        return result
 
     def _update_account_move_from_sale(self, move_sale, product_id, price_unit):
+
         domain = [('lot_id', 'in', tuple(self._get_list_lot_ids(move_sale.lot_id))),
-                  ('product_id', '=', move_sale.product_id.id)]
+                  ('product_id', 'in', self._get_list_variant_ids(product_id.product_tmpl_id))]
         lines = self.env['sale.order.line'].search(domain)
+        _logger.info("$"*900)
+        _logger.info(domain)
+        _logger.info(lines.read())
         
         for line in lines:
             # Update Purchase Move
             for move in line.move_ids:
                 _logger.info("Move Update SALE")
                 self._update_account_move(move, product_id, price_unit)
+                self.update_invoice_valuation(move, product_id, price_unit)
                 self._update_stock_valuation_layer(move, product_id, price_unit)
             # Update Invoice Lines
-            for ivl in line.invoice_lines:
-                if ivl.move_id:
-                    self._update_work_flow_invoice(ivl.move_id)
+            # for ivl in line.invoice_lines:
+            #     if ivl.move_id:
+            #         self._update_work_flow_invoice(ivl.move_id)
+
+    def update_invoice_valuation(self, move, product_id, price_unit):
+        _logger.info("&"*900)
+        product_ids = self._get_list_variant_ids(product_id.product_tmpl_id)
+        order_id = move.sale_line_id and move.sale_line_id.order_id
+        accounts = product_id.product_tmpl_id.get_product_accounts()
+        _logger.info(accounts)
+        domain = [("product_id", "in", product_ids), ("account_id", "in", [accounts.get("expense").id, accounts.get("stock_output").id])]
+        if order_id:
+            domain.append(("move_id.invoice_origin", "=", order_id.name))
+        move_ids = self.env["account.move.line"].search(domain)
+        for line in move_ids:
+            sql_str = ""
+            if line.credit != 0:
+                sql_str = "UPDATE account_move_line set credit=%d where id=%s" % (price_unit * abs(line.quantity), line.id)
+            else:
+                sql_str = "UPDATE account_move_line set debit=%d where id=%s" % (price_unit * abs(line.quantity), line.id)
+            if sql_str:
+                _logger.info(sql_str)
+                self.env.cr.execute(sql_str)
+
+
 
     def _update_account_move(self, stock_move, product_id, price_unit):
-        tag_ids = stock_move.lot_id.analytic_tag_ids
+        product_ids = self._get_list_variant_ids(product_id.product_tmpl_id)
+        lot_ids = self.env["stock.production.lot"].browse(self._get_list_lot_ids(stock_move.lot_id))
+        tag_ids = self.env["account.analytic.tag"]
+        for lot in lot_ids:
+            tag_ids += lot.analytic_tag_ids
         sol_id = stock_move.sale_line_id
+
         for rec in self.env['account.move'].search([('stock_move_id', '=', stock_move.id)]):
             if rec.state == 'posted':
                 rec.button_draft()
                 prepare_ids = []  # (1, ID, { values })
-                line_ids = rec.invoice_line_ids
+                line_ids = rec.line_ids
                 if sol_id:
+                    _logger.info("_"*900)
+                    _logger.info(tag_ids)
+                    for line in rec.line_ids:
+                        _logger.info("%"*900)
+                        _logger.info(line.analytic_tag_ids)
                     line_ids = rec.invoice_line_ids.filtered(lambda line: line.analytic_tag_ids in tag_ids)
+                    
                 for line_ac in line_ids:
-                    if line_ac.product_id == product_id:
+                    if line_ac.product_id.id in product_ids:
                         if line_ac.credit != 0:
                             prepare_ids.append((1, line_ac.id, {'credit': price_unit * abs(line_ac.quantity)}))
                         else:
