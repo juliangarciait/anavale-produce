@@ -34,7 +34,6 @@ class Picking(models.Model):
                 'result_package_id',
                 'dummy_id',
             ])
-
             # Prefetch data
             product_ids = tuple(set([move_line_id['product_id'][0] for move_line_id in picking['move_line_ids']]))
             tracking_and_barcode_per_product_id = {}
@@ -72,6 +71,14 @@ class Picking(models.Model):
             if self.env.company.nomenclature_id:
                 picking['nomenclature_id'] = [self.env.company.nomenclature_id.id]
             picking["TEST"] = "Puedo mandar datos aqui"
+            
+            picking_id = self.search([('id', '=', picking['id'])])
+            _logger.info(picking_id)
+            lot_ids = []
+            if not picking_id.purchase_id: 
+                for line in picking_id.sale_id.order_line: 
+                    lot_ids.append(line.lot_id.id)
+            picking['lot_ids'] = lot_ids
         return pickings
     
     def print_labels_wizard(self): 
