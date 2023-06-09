@@ -299,7 +299,7 @@ class SettlementsInherit(models.Model):
     def _compute_utility_percentage(self):
         utility_percentage = 0
         if self.price_type == "open":
-            self.utility = self.total - self.total_total
+            self.utility = self.total_total
             if self.utility > 0 and self.total > 0:
                 utility_percentage = (self.utility/self.total) * 100
         else:
