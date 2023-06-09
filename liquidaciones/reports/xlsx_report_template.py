@@ -143,7 +143,8 @@ class XlsxReport(models.AbstractModel):
             'align'      : 'right', 
             'top'        : 2, 
             'right'      : 2,
-            'bold'       : True
+            'bold'       : True,
+            'num_format': '[]#,##0.00'
         })
         travels_middle_right = workbook.add_format({
             'font_color' : 'black',
@@ -175,7 +176,7 @@ class XlsxReport(models.AbstractModel):
         light_box_currency.num_format = currency_id.symbol + '#,##0.00'
         lang = self.env.user.lang
         lang_id = self.env['res.lang'].search([('code', '=', lang)])[0]
-        datestring = data.get('date') and fields.Date.from_string(str(data.get('date'),)).strftime(lang_id.date_format)
+        datestring = fields.Date.from_string(str(data.get('date'),)).strftime(lang_id.date_format)
         i = 9
         sheet.write(4, 0, 'NOTA', report_format_gray)
         sheet.write(4, 1, 'VIAJE', report_format_gray)
@@ -208,19 +209,19 @@ class XlsxReport(models.AbstractModel):
         sheet.write(7, 8, '', light_header_bottom)
         sheet.write(
             7, 9,
-            "%d %%" % data.get("commission_percentage", 0.0),
+            "%d %%" % data.get("commission_percentage"),
             light_header_bottom)
         sheet.write(7, 10, 'Total', light_header_bottom)
 
         sheet.write(9, 0, datestring, light_box)
-        for line in data.get('lines', []):
+        for line in data.get('lines'):
             i += 1
             sheet.write(i, 0, '', light_box)
-            sheet.write(i, 1, line.get('product', ''), light_box)
-            sheet.write(i, 2, line.get('product_uom', ''), light_box)
-            sheet.write(i, 3, line.get('box_rec', 0), light_box)
-            sheet.write(i, 4, line.get('price_unit', 0.0), light_box_currency)
-            sheet.write(i, 5, line.get('amount', 0.0), light_box_currency)
+            sheet.write(i, 1, line.get('product'), light_box)
+            sheet.write(i, 2, line.get('product_uom'), light_box)
+            sheet.write(i, 3, line.get('box_rec'), light_box)
+            sheet.write(i, 4, line.get('price_unit'), light_box_currency)
+            sheet.write(i, 5, line.get('amount'), light_box_currency)
             sheet.write(i, 6, "", light_box_currency)
             sheet.write(i, 7, "", light_box_currency)
             sheet.write(i, 8, "", light_box_currency)
@@ -318,10 +319,6 @@ class XlsxUtilityReport(models.AbstractModel):
     _inherit = 'report.odoo_report_xlsx.abstract'
     
     def generate_xlsx_report(self, workbook, data, objects):
-        settlement_id = objects.settlement_ids[0]
-        _logger.info(objects.settlement_ids[0])
-        _logger.info('$'*100)
-        _logger.info(settlement_id)
         workbook.set_properties({
             'comments': 'Created with Python and XlsxWrite from Odoo 13.0'
         })
@@ -340,6 +337,13 @@ class XlsxUtilityReport(models.AbstractModel):
             'font_size'  : '14',  
             'font_name'  : 'arial',
             'align'      : 'left',
+            'bold'       : True
+        })
+        name = workbook.add_format({
+            'font_color' : 'black',
+            'font_size'  : '14',  
+            'font_name'  : 'arial',
+            'align'      : 'right',
             'bold'       : True
         })
         travels_title_top_left = workbook.add_format({
@@ -384,7 +388,8 @@ class XlsxUtilityReport(models.AbstractModel):
             'align'      : 'right', 
             'top'        : 2, 
             'right'      : 2,
-            'bold'       : True
+            'bold'       : True,
+            'num_format': '#,##0.00'
         })
         travels_middle_right = workbook.add_format({
             'font_color' : 'black',
@@ -392,7 +397,8 @@ class XlsxUtilityReport(models.AbstractModel):
             'font_name'  : 'arial', 
             'align'      : 'right', 
             'right'      : 2,
-            'bold'       : True
+            'bold'       : True,
+            'num_format': '#,##0.00'
         })
         travels_middle_right_red = workbook.add_format({
             'font_color' : 'white',
@@ -401,7 +407,8 @@ class XlsxUtilityReport(models.AbstractModel):
             'align'      : 'right', 
             'right'      : 2, 
             'bg_color'   : 'red',
-            'bold'       : True
+            'bold'       : True,
+            'num_format': '#,##0.00'
         })
         travels_bottom_right = workbook.add_format({
             'font_color' : 'black',
@@ -410,38 +417,105 @@ class XlsxUtilityReport(models.AbstractModel):
             'align'      : 'right', 
             'right'      : 2,
             'bottom'     : 2,
-            'bold'       : True
+            'bold'       : True,
+            'num_format': '#,##0.00'
         })
         
-        sheet.write(4, 1, 'Viaje', travels)
-        sheet.write(5, 1, 'VENTAS', travels_title_top_left)
-        sheet.write(8, 1, 'LIQUIDACIONES', travels_middle_left)
-        sheet.write(9, 1, 'Freight In', travels_middle_left)
-        sheet.write(10, 1, 'Aduana', travels_middle_left)
-        sheet.write(11, 1, 'MANIOBRAS', travels_middle_left_red)
-        sheet.write(12, 1, 'AJUSTE', travels_middle_left_red)
-        sheet.write(13, 1, 'STORAGE', travels_middle_left_red)
-        sheet.write(14, 1, 'FREIGHT OUT', travels_middle_left_red)
-        sheet.write(17, 1, 'UTILIDAD', travels_middle_left)
-        sheet.write(5, 2, settlement_id.total, travels_title_top_right)
-        sheet.write(9, 2, settlement_id.freight_in, travels_middle_right)
-        sheet.write(10, 2, settlement_id.aduana_total, travels_middle_right)
-        sheet.write(11, 2, settlement_id.maneuvers_total, travels_middle_right_red)
-        sheet.write(12, 2, settlement_id.adjustment, travels_middle_right_red)
-        sheet.write(13, 2, settlement_id.storage, travels_middle_right_red)
-        sheet.write(14, 2, settlement_id.freight_out, travels_middle_right_red)
-        sheet.write(17, 2, settlement_id.utility, travels_middle_right)
-        sheet.write(19, 2, str(settlement_id.utility_percentage) + '%', travels_bottom_right)
+        i = 4
         
-        sheet.write(6, 1, '', travels_middle_left)
-        sheet.write(7, 1, '', travels_middle_left)
-        sheet.write(15, 1, '', travels_middle_left)
-        sheet.write(16, 1, '', travels_middle_left)
-        sheet.write(18, 1, '', travels_middle_left)
-        sheet.write(6, 2, '', travels_middle_right)
-        sheet.write(7, 2, '', travels_middle_right)
-        sheet.write(8, 2, '', travels_middle_right)
-        sheet.write(15, 2, '', travels_middle_right)
-        sheet.write(16, 2, '', travels_middle_right)
-        sheet.write(18, 2, '', travels_middle_right)
-        sheet.write(19, 1, '', travels_bottom_left)
+        total_total = 0 
+        total_freight_in = 0 
+        total_aduana_total = 0 
+        total_maneuvers_total = 0
+        total_adjustment = 0 
+        total_storage = 0 
+        total_freight_out = 0
+        total_utility = 0
+        total_utility_percentage = 0 #total del utility percentage (computado)
+        
+        for po in objects: 
+            if po.settlement_ids:
+                settlement_id = po.settlement_ids[0]
+                _logger.info(":"*900)
+                _logger.info(settlement_id.read())
+                sheet.write(i, 1, 'Viaje', travels)
+                sheet.write(i + 1, 1, 'VENTAS', travels_title_top_left)
+                sheet.write(i + 4, 1, 'LIQUIDACIONES', travels_middle_left)
+                sheet.write(i + 5, 1, 'Freight In', travels_middle_left)
+                sheet.write(i + 6, 1, 'Aduana', travels_middle_left)
+                sheet.write(i + 7, 1, 'MANIOBRAS', travels_middle_left_red)
+                sheet.write(i + 8, 1, 'AJUSTE', travels_middle_left_red)
+                sheet.write(i + 9, 1, 'STORAGE', travels_middle_left_red)
+                sheet.write(i + 10, 1, 'FREIGHT OUT', travels_middle_left_red)
+                sheet.write(i + 13, 1, 'UTILIDAD', travels_middle_left)
+                sheet.write(i, 2, po.name, name)
+                sheet.write(i + 1, 2, settlement_id.total, travels_title_top_right)
+                sheet.write(i + 5, 2, settlement_id.freight_in, travels_middle_right)
+                sheet.write(i + 6, 2, settlement_id.aduana_total, travels_middle_right)
+                sheet.write(i + 7, 2, settlement_id.maneuvers_total, travels_middle_right_red)
+                sheet.write(i + 8, 2, settlement_id.adjustment, travels_middle_right_red)
+                sheet.write(i + 9, 2, settlement_id.storage, travels_middle_right_red)
+                sheet.write(i + 10, 2, settlement_id.freight_out, travels_middle_right_red)
+                sheet.write(i + 13, 2, settlement_id.utility, travels_middle_right)
+                sheet.write(i + 15, 2, str("{:.2%}".format(settlement_id.utility_percentage)), travels_bottom_right)
+                
+                sheet.write(i + 2, 1, '', travels_middle_left)
+                sheet.write(i + 3, 1, '', travels_middle_left)
+                sheet.write(i + 11, 1, '', travels_middle_left)
+                sheet.write(i + 12, 1, '', travels_middle_left)
+                sheet.write(i + 14, 1, '', travels_middle_left)
+                sheet.write(i + 2, 2, '', travels_middle_right)
+                sheet.write(i + 3, 2, '', travels_middle_right)
+                sheet.write(i + 4, 2, '', travels_middle_right)
+                sheet.write(i + 11, 2, '', travels_middle_right)
+                sheet.write(i + 12, 2, '', travels_middle_right)
+                sheet.write(i + 14, 2, '', travels_middle_right)
+                sheet.write(i + 15, 1, '', travels_bottom_left)
+                
+                i += 17
+                
+                total_total += settlement_id.total
+                total_freight_in += settlement_id.freight_in
+                total_aduana_total += settlement_id.aduana_total
+                total_maneuvers_total += settlement_id.maneuvers_total
+                total_adjustment += settlement_id.adjustment
+                total_storage += settlement_id.storage
+                total_freight_out += settlement_id.freight_out
+                total_utility += settlement_id.utility
+                total_utility_percentage = 0
+        
+        i += 1    
+        sheet.write(i, 1, 'TOTALES', travels)
+        sheet.write(i + 1, 1, 'VENTAS', travels_title_top_left)
+        sheet.write(i + 4, 1, 'LIQUIDACIONES', travels_middle_left)
+        sheet.write(i + 5, 1, 'Freight In', travels_middle_left)
+        sheet.write(i + 6, 1, 'Aduana', travels_middle_left)
+        sheet.write(i + 7, 1, 'MANIOBRAS', travels_middle_left_red)
+        sheet.write(i + 8, 1, 'AJUSTE', travels_middle_left_red)
+        sheet.write(i + 9, 1, 'STORAGE', travels_middle_left_red)
+        sheet.write(i + 10, 1, 'FREIGHT OUT', travels_middle_left_red)
+        sheet.write(i + 13, 1, 'UTILIDAD', travels_middle_left)
+        sheet.write(i + 1, 2, total_total, travels_title_top_right)
+        sheet.write(i + 5, 2, total_freight_in, travels_middle_right)
+        sheet.write(i + 6, 2, total_aduana_total, travels_middle_right)
+        sheet.write(i + 7, 2, total_maneuvers_total, travels_middle_right_red)
+        sheet.write(i + 8, 2, total_adjustment, travels_middle_right_red)
+        sheet.write(i + 9, 2, total_storage, travels_middle_right_red)
+        sheet.write(i + 10, 2, total_freight_out, travels_middle_right_red)
+        sheet.write(i + 13, 2, total_utility, travels_middle_right)
+        sheet.write(i + 15, 2, str(total_utility_percentage) + '%', travels_bottom_right) #AQUI EL UTILITY PERCENTAGE
+        
+        sheet.write(i + 2, 1, '', travels_middle_left)
+        sheet.write(i + 3, 1, '', travels_middle_left)
+        sheet.write(i + 11, 1, '', travels_middle_left)
+        sheet.write(i + 12, 1, '', travels_middle_left)
+        sheet.write(i + 14, 1, '', travels_middle_left)
+        sheet.write(i + 2, 2, '', travels_middle_right)
+        sheet.write(i + 3, 2, '', travels_middle_right)
+        sheet.write(i + 4, 2, '', travels_middle_right)
+        sheet.write(i + 11, 2, '', travels_middle_right)
+        sheet.write(i + 12, 2, '', travels_middle_right)
+        sheet.write(i + 14, 2, '', travels_middle_right)
+        sheet.write(i + 15, 1, '', travels_bottom_left)
+        
+        
