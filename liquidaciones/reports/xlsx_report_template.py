@@ -143,7 +143,8 @@ class XlsxReport(models.AbstractModel):
             'align'      : 'right', 
             'top'        : 2, 
             'right'      : 2,
-            'bold'       : True
+            'bold'       : True,
+            'num_format': '[]#,##0.00'
         })
         travels_middle_right = workbook.add_format({
             'font_color' : 'black',
@@ -175,7 +176,7 @@ class XlsxReport(models.AbstractModel):
         light_box_currency.num_format = currency_id.symbol + '#,##0.00'
         lang = self.env.user.lang
         lang_id = self.env['res.lang'].search([('code', '=', lang)])[0]
-        datestring = data.get('date') and fields.Date.from_string(str(data.get('date'),)).strftime(lang_id.date_format)
+        datestring = fields.Date.from_string(str(data.get('date'),)).strftime(lang_id.date_format)
         i = 9
         sheet.write(4, 0, 'NOTA', report_format_gray)
         sheet.write(4, 1, 'VIAJE', report_format_gray)
@@ -208,19 +209,19 @@ class XlsxReport(models.AbstractModel):
         sheet.write(7, 8, '', light_header_bottom)
         sheet.write(
             7, 9,
-            "%d %%" % data.get("commission_percentage", 0.0),
+            "%d %%" % data.get("commission_percentage"),
             light_header_bottom)
         sheet.write(7, 10, 'Total', light_header_bottom)
 
         sheet.write(9, 0, datestring, light_box)
-        for line in data.get('lines', []):
+        for line in data.get('lines'):
             i += 1
             sheet.write(i, 0, '', light_box)
-            sheet.write(i, 1, line.get('product', ''), light_box)
-            sheet.write(i, 2, line.get('product_uom', ''), light_box)
-            sheet.write(i, 3, line.get('box_rec', 0), light_box)
-            sheet.write(i, 4, line.get('price_unit', 0.0), light_box_currency)
-            sheet.write(i, 5, line.get('amount', 0.0), light_box_currency)
+            sheet.write(i, 1, line.get('product'), light_box)
+            sheet.write(i, 2, line.get('product_uom'), light_box)
+            sheet.write(i, 3, line.get('box_rec'), light_box)
+            sheet.write(i, 4, line.get('price_unit'), light_box_currency)
+            sheet.write(i, 5, line.get('amount'), light_box_currency)
             sheet.write(i, 6, "", light_box_currency)
             sheet.write(i, 7, "", light_box_currency)
             sheet.write(i, 8, "", light_box_currency)
@@ -387,7 +388,8 @@ class XlsxUtilityReport(models.AbstractModel):
             'align'      : 'right', 
             'top'        : 2, 
             'right'      : 2,
-            'bold'       : True
+            'bold'       : True,
+            'num_format': '#,##0.00'
         })
         travels_middle_right = workbook.add_format({
             'font_color' : 'black',
@@ -395,7 +397,8 @@ class XlsxUtilityReport(models.AbstractModel):
             'font_name'  : 'arial', 
             'align'      : 'right', 
             'right'      : 2,
-            'bold'       : True
+            'bold'       : True,
+            'num_format': '#,##0.00'
         })
         travels_middle_right_red = workbook.add_format({
             'font_color' : 'white',
@@ -404,7 +407,8 @@ class XlsxUtilityReport(models.AbstractModel):
             'align'      : 'right', 
             'right'      : 2, 
             'bg_color'   : 'red',
-            'bold'       : True
+            'bold'       : True,
+            'num_format': '#,##0.00'
         })
         travels_bottom_right = workbook.add_format({
             'font_color' : 'black',
@@ -413,7 +417,8 @@ class XlsxUtilityReport(models.AbstractModel):
             'align'      : 'right', 
             'right'      : 2,
             'bottom'     : 2,
-            'bold'       : True
+            'bold'       : True,
+            'num_format': '#,##0.00'
         })
         
         i = 4
@@ -450,8 +455,7 @@ class XlsxUtilityReport(models.AbstractModel):
                 sheet.write(i + 9, 2, settlement_id.storage, travels_middle_right_red)
                 sheet.write(i + 10, 2, settlement_id.freight_out, travels_middle_right_red)
                 sheet.write(i + 13, 2, settlement_id.utility, travels_middle_right)
-                #sheet.write(i + 15, 2, str(settlement_id.utility_percentage) + '%', travels_bottom_right)
-                
+                sheet.write(i + 15, 2, str("{:.2%}".format(settlement_id.utility_percentage)), travels_bottom_right)
                 sheet.write(i + 2, 1, '', travels_middle_left)
                 sheet.write(i + 3, 1, '', travels_middle_left)
                 sheet.write(i + 11, 1, '', travels_middle_left)
@@ -510,5 +514,4 @@ class XlsxUtilityReport(models.AbstractModel):
         sheet.write(i + 12, 2, '', travels_middle_right)
         sheet.write(i + 14, 2, '', travels_middle_right)
         sheet.write(i + 15, 1, '', travels_bottom_left)
-        
         

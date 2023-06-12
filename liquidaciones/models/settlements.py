@@ -8,14 +8,13 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
-porcentajes = [
-    ('8', 8.0),
-    ('9', 9.0),
-    ('10', 10.0),
-    ('11', 11.0),
-    ('12', 12.0),
-
-]
+porcentajes = {
+    '8': 8.0,
+    '9': 9.0,
+    '10': 10.0,
+    '11': 11.0,
+    '12': 12.0,
+}
 
 class SettlementsSaleOrder(models.Model):
     _inherit = 'purchase.order'
@@ -298,13 +297,16 @@ class SettlementsInherit(models.Model):
             raise ValidationError(('Enter Value Between 0-100.'))
     
     def _compute_utility_percentage(self):
+        utility_percentage = 0
         if self.price_type == "open":
-            self.utility = self.total - self.total_total
+            self.utility = self.total_total
             if self.utility > 0 and self.total > 0:
-                self.utility_percentage = (self.utility/self.total) * 100
+                utility_percentage = (self.utility/self.total) * 100
         else:
             self.utility = self.total - (self.settlement + self.freight_in + self.aduana + self.maneuvers + self.adjustment + self.storage + self.freight_out)
-            self.utility_percentage = self.total != 0 and ((self.utility/self.total) * 100) or 0.0
+            if self.utility > 0 and self.total > 0:
+                utility_percentage = self.total != 0 and ((self.utility/self.total) * 100) or 0.0
+        self.utility_percentage = utility_percentage
 
     def action_print_report(self):
         lines = []
