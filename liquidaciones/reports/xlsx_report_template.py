@@ -436,8 +436,6 @@ class XlsxUtilityReport(models.AbstractModel):
         for po in objects: 
             if po.settlement_ids:
                 settlement_id = po.settlement_ids[0]
-                _logger.info(":"*900)
-                _logger.info(settlement_id.read())
                 sheet.write(i, 1, 'Viaje', travels)
                 sheet.write(i + 1, 1, 'VENTAS', travels_title_top_left)
                 sheet.write(i + 4, 1, 'LIQUIDACIONES', travels_middle_left)
@@ -458,7 +456,6 @@ class XlsxUtilityReport(models.AbstractModel):
                 sheet.write(i + 10, 2, settlement_id.freight_out, travels_middle_right_red)
                 sheet.write(i + 13, 2, settlement_id.utility, travels_middle_right)
                 sheet.write(i + 15, 2, str("{:.2%}".format(settlement_id.utility_percentage)), travels_bottom_right)
-                
                 sheet.write(i + 2, 1, '', travels_middle_left)
                 sheet.write(i + 3, 1, '', travels_middle_left)
                 sheet.write(i + 11, 1, '', travels_middle_left)
@@ -517,5 +514,4 @@ class XlsxUtilityReport(models.AbstractModel):
         sheet.write(i + 12, 2, '', travels_middle_right)
         sheet.write(i + 14, 2, '', travels_middle_right)
         sheet.write(i + 15, 1, '', travels_bottom_left)
-        
         
