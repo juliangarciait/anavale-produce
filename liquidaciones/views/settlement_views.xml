@@ -182,9 +182,11 @@
                             <field name="current_stock" />
                             <field name="stock_value" string="Stock value"/>
                             <field name="price_unit_origin" string="P.U. original" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"/>
+                            <field name="price_unit_origin_rel" string="P.U. original" invisible="1"/>
                             <field name="amount" />
                             <field name="price_unit" attrs="{'readonly': [('parent.price_type','=', 'close')]}"/>
                             <field name="commission" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"/>
+                            <field name="commission_rel" invisible="1" readonly="0"/>
                             <field name="total" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"/>
                         </tree>
                     </field>
@@ -445,11 +447,12 @@
                             <field name="box_emb" />
                             <field name="box_rec" />
                             <field name="price_unit_origin" string="P.U. original" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"/>
+                            <field name="price_unit_origin_rel" string="P.U. original" invisible="1"/>
                             <field name="amount" />
                             <field name="price_unit" attrs="{'readonly': [('parent.price_type','=', 'close')]}"/>
-                            <field name="commission" invisible="1" readonly="1"/>
+                            <field name="commission"  readonly="1"/>
                             <field name="total" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"/>
-                            <field name="commission_rel" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"/>
+                            <field name="commission_rel" invisible="1" readonly="0"/>
                         </tree>
                     </field>
                     <!--  /////////////////////////////////////////////////// -->
