@@ -104,6 +104,11 @@
                                     <field name="others"/>
                                     <field name="check_others" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 </div>
+                                <label for="boxes" string="Caja"/>
+                                <div class="o_row">
+                                    <field name="boxes"/>
+                                    <field name="check_boxes" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                </div>
 
                                 <label for="user_res_partner" attrs="{'invisible': True}" />
                                 <div class="o_row" attrs="{'invisible': True}" style="margin-right:10px;">

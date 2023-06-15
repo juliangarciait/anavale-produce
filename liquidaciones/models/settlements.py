@@ -266,10 +266,16 @@ class SettlementsInherit(models.Model):
         unit_cost = (total_cost/total_box) if total_box != 0 else 0
         if self.price_type == "open":
             for line in self.settlements_line_ids:
-                line.price_unit = line.price_unit_origin_rel - unit_cost - self.ajuste_precio
-                line.amount = line.price_unit * line.box_rec
-                line.commission_rel = line.amount * (self.commission_percentage/100)
-                line.commission = line.amount * (self.commission_percentage/100)
+                if line.price_unit_origin_rel > 0:
+                    line.price_unit = line.price_unit_origin_rel - unit_cost - self.ajuste_precio
+                    line.amount = line.price_unit * line.box_rec
+                    line.commission_rel = line.amount * (self.commission_percentage/100)
+                    line.commission = line.amount * (self.commission_percentage/100)
+                else:
+                    line.price_unit = 0
+                    line.amount = 0
+                    line.commission_rel = 0
+                    line.commission = 0
         self.storage_total = self.check_storage and self.storage or 0
         self.maneuvers_total = self.check_maneuvers and self.maneuvers or 0
         self.adjustment_total = self.check_adjustment and self.adjustment or 0
