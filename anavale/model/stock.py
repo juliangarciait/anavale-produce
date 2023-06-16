@@ -203,7 +203,7 @@ class Picking(models.Model):
                         purchase_lot1.write({'purchase_lot': lot.id})
                 
                 if lot and not lot.analytic_tag_ids:
-                    lot.analytic_tag_ids = tax_tag_lot_ids
+                    raise UserError("The lot with number %s don't have analytic tags" % (lot.name))
                
         so_id = self.sale_id
 
