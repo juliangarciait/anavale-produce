@@ -79,7 +79,7 @@ class SettlementsSaleOrder(models.Model):
                 subtotal = subAmount.get(line.product_id.id, False)
                 var_price_unit_hidden = line.qty_received and subtotal/line.qty_received or 0
                 new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
-                            "product_uom": line.product_uom.id, "price_unit": var_price_unit_hidden, "price_unit_origin": var_price_unit_hidden,
+                            "product_uom": line.product_uom.id, "price_unit": var_price_unit_hidden, "price_unit_origin_rel": var_price_unit_hidden,
                             "box_emb":line.product_qty, "box_rec": line.qty_received,
                             "amount": float(var_price_unit_hidden * line.qty_received),
                             "current_stock": stock}))
@@ -90,7 +90,7 @@ class SettlementsSaleOrder(models.Model):
                 quants = quant_obj.search([('product_id', '=', line.product_id.id), ('lot_id', 'in', lot_ids.ids), ('location_id', 'in', location_id.ids)])
                 stock = sum([q.quantity for q in quants])
                 new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
-                            "product_uom": line.product_uom.id, "price_unit": line.price_unit, "price_unit_origin": line.price_unit,
+                            "product_uom": line.product_uom.id, "price_unit": line.price_unit, "price_unit_origin_rel": line.price_unit,
                             "box_emb": line.product_qty, "box_rec": line.qty_received,
                             "amount": float(line.qty_received * line.price_unit),
                             "current_stock": stock}))
@@ -244,26 +244,45 @@ class SettlementsInherit(models.Model):
     others = fields.Float(tracking=True)
     check_others = fields.Boolean(tracking=True)
 
-    @api.onchange("storage", "check_storage", "maneuvers", "check_maneuvers", "adjustment", "check_adjustment", "ajuste_precio", "others", "check_others", "commission_percentage", "check_boxes", "boxes")
+    @api.onchange(
+            "storage", "check_storage", "maneuvers", "check_maneuvers",
+            "adjustment", "check_adjustment", "ajuste_precio", "others",
+            "check_others", "commission_percentage", "check_boxes", "boxes",
+            "freight_out", "check_freight_out", "freight_in", "check_freight_in",
+            "total", "aduana", "check_aduana", "aduana_mex", "check_aduana_mx")
     def _update_lines(self):
+        _logger.info("Entra a update_lines")
         total_cost = unit_cost = 0
         total_cost += not self.check_storage and self.storage or 0
         total_cost += not self.check_maneuvers and self.maneuvers or 0
         total_cost += not self.check_adjustment and self.adjustment or 0
         total_cost += not self.check_others and self.others or 0
         total_cost += not self.check_boxes and self.boxes or 0
+        total_cost += not self.check_freight_out and self.freight_out or 0
+        total_cost += not self.check_freight_in and self.freight_in or 0
+        total_cost += not self.check_aduana and self.aduana or 0
+        total_cost += not self.check_aduana_mx and self.aduana_mex or 0
         total_box = sum([line.box_rec for line in self.settlements_line_ids])
-        unit_cost = (total_cost/total_box) if total_box != 0 else 0 
+        unit_cost = (total_cost/total_box) if total_box != 0 else 0
         if self.price_type == "open":
             for line in self.settlements_line_ids:
-                line.price_unit = line.price_unit_origin - unit_cost - self.ajuste_precio
-                line.commission = line.amount * (self.commission_percentage/100)
+                if line.price_unit_origin_rel > 0:
+                    line.price_unit = line.price_unit_origin_rel - unit_cost - self.ajuste_precio
+                    line.amount = line.price_unit * line.box_rec
+                    line.commission_rel = line.amount * (self.commission_percentage/100)
+                    line.commission = line.amount * (self.commission_percentage/100)
+                else:
+                    line.price_unit = 0
+                    line.amount = 0
+                    line.commission_rel = 0
+                    line.commission = 0
         self.storage_total = self.check_storage and self.storage or 0
         self.maneuvers_total = self.check_maneuvers and self.maneuvers or 0
         self.adjustment_total = self.check_adjustment and self.adjustment or 0
 
     @api.depends('settlements_line_ids')
     def _get_subtotal_total(self):
+        _logger.info("Entra a _get_subtotal_total")
         subtotal = sum([ line.total for line in self.settlements_line_ids])
         self.total_subtotal = subtotal
         if self.price_type == "close":
@@ -399,8 +418,9 @@ class SettlementsInheritLines(models.Model):
         tracking=True, string="Precio Unitario")
     price_unit_origin = fields.Float(
         tracking=True, string="Precio Unitario")
+    price_unit_origin_rel = fields.Float(related="price_unit_origin", readonly=False)
     amount = fields.Float(tracking=True,
-                          string="Importe", compute = "_get_amount") 
+                          string="Importe") 
     freight = fields.Float(tracking=True,
                           string="Freight") 
     aduanas = fields.Float(tracking=True,
@@ -409,7 +429,7 @@ class SettlementsInheritLines(models.Model):
         tracking=True, string="Comission")
     total = fields.Float(string="Total", tracking=True, compute = "_get_amount")
     commission_rel = fields.Float(
-        tracking=True, string="Comission", related="commission")
+        tracking=True, string="Comission", related="commission",readonly=False)
     settlement_id = fields.Many2one('sale.settlements')
     stock_value = fields.Float(compute="_calculate_value")
 
@@ -422,5 +442,4 @@ class SettlementsInheritLines(models.Model):
     @api.depends('price_unit', 'box_rec', 'commission')
     def _get_amount(self):
         for line in self:
-            line.amount = line.price_unit * line.box_rec
             line.total = (line.price_unit * line.box_rec) - line.commission
