@@ -203,7 +203,7 @@ class Picking(models.Model):
                         purchase_lot1.write({'purchase_lot': lot.id})
                 
                 if lot and not lot.analytic_tag_ids:
-                    lot.analytic_tag_ids = tax_tag_lot_ids
+                    raise UserError("The lot with number %s don't have analytic tags" % (lot.name))
                
         so_id = self.sale_id
 
@@ -580,14 +580,14 @@ class Picking(models.Model):
                             next_number)
         account_tag_lot = self.env['account.analytic.tag'].search([('name', '=', tag_lot)], limit=1)
         if not account_tag_lot:
-            account_tag_lot = self.env['account.analytic.tag'].create({'name': tag_lot})
+            account_tag_lot = self.env['account.analytic.tag'].sudo().create({'name': tag_lot})
 
         # Tag Product
         if not product_id.product_tmpl_id.account_tag_id:
             tag_product = product_id.product_tmpl_id.lot_code_prefix
             product_tag_lot = self.env['account.analytic.tag'].search([('name', '=', tag_product)], limit=1)
             if not product_tag_lot:
-                product_tag_lot = self.env['account.analytic.tag'].create({'name': tag_product})
+                product_tag_lot = self.env['account.analytic.tag'].sudo().create({'name': tag_product})
         else:
             product_tag_lot = product_id.product_tmpl_id.account_tag_id
 
@@ -595,9 +595,9 @@ class Picking(models.Model):
         tag_supplier = picking_id.partner_id.lot_code_prefix
         supplier_tag_lot = self.env['account.analytic.tag'].search([('name', '=', tag_supplier)], limit=1)
         if not supplier_tag_lot:
-            supplier_tag_lot = self.env['account.analytic.tag'].create({'name': tag_supplier})
+            supplier_tag_lot = self.env['account.analytic.tag'].sudo().create({'name': tag_supplier})
 
-        return [(4, account_tag_lot.id), (4, product_tag_lot.id), (4, supplier_tag_lot.id)]
+        return [(6, 0, [account_tag_lot.id, product_tag_lot.id, supplier_tag_lot.id])]
 
     def get_next_lot_name(self, product_id, picking_id, next_number):
         """ Method called by button "Create Lot Numbers", it automatically
