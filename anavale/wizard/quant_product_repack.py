@@ -67,7 +67,7 @@ class QuantProductRepackWizard(models.TransientModel):
     def _onchange_lot_id(self):
         if self.lot_id and self.lot_dest_id:
             self._update_quantities(initial=self.lot_id.product_qty + self.lot_dest_id.product_qty,
-                                    main=self.lot_id.product_qty,
+                                    main=self.lot_id.product_qty-self.lot_dest_id.product_qty,
                                     final=self.lot_dest_id.product_qty)
             self._update_lot_name()
             return
@@ -101,7 +101,7 @@ class QuantProductRepackWizard(models.TransientModel):
 
     @api.onchange('final_qty', 'scrap_qty')
     def _onchange_final_qty(self):
-        self.main_qty = self.initial_qty - self.final_qty - self.scrap_qty
+        self.main_qty = self.initial_qty - self.lot_dest_id.product_qty - self.final_qty - self.scrap_qty
         self._check_valid_quantity()
 
     def _get_sum_qty(self):
