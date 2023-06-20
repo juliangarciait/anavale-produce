@@ -168,9 +168,9 @@ class PurchaseOrder(models.Model):
         for line in move_ids:
             sql_str = ""
             if line.credit != 0:
-                sql_str = "UPDATE account_move_line set credit=%d, balance=%d where id=%s" % (price_unit * abs(line.quantity), (price_unit * abs(line.quantity)) * -1, line.id)
+                sql_str = "UPDATE account_move_line set credit=%f, balance=%f where id=%s" % (price_unit * abs(line.quantity), (price_unit * abs(line.quantity)) * -1, line.id)
             else:
-                sql_str = "UPDATE account_move_line set debit=%d, balance=%d where id=%s" % (price_unit * abs(line.quantity), price_unit * abs(line.quantity), line.id)
+                sql_str = "UPDATE account_move_line set debit=%f, balance=%f where id=%s" % (price_unit * abs(line.quantity), price_unit * abs(line.quantity), line.id)
             if sql_str:
                 _logger.info(sql_str)
                 self.env.cr.execute(sql_str)
