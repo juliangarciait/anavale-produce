@@ -77,11 +77,11 @@ class SettlementsSaleOrder(models.Model):
                 quants = quant_obj.search([('product_id', '=', line.product_id.id), ('lot_id', 'in', lot_ids.ids), ('location_id', 'in', location_id.ids)])
                 stock = sum([q.quantity for q in quants])
                 subtotal = subAmount.get(line.product_id.id, False)
-                var_price_unit_hidden = line.qty_received and subtotal/line.qty_received or 0
+                var_price_unit_hidden = line.qty_received and subtotal/(line.qty_received-stock) or 0
                 new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
-                            "product_uom": line.product_uom.id, "price_unit": var_price_unit_hidden, "price_unit_origin_rel": var_price_unit_hidden,
-                            "box_emb":line.product_qty, "box_rec": line.qty_received,
-                            "amount": float(var_price_unit_hidden * line.qty_received),
+                            "product_uom": line.product_uom.id, "price_unit": var_price_unit_hidden, "price_unit_origin_rel": var_price_unit_hidden, "price_unit_origin": var_price_unit_hidden,
+                            "box_emb":line.product_qty, "box_rec": line.qty_received, "box_sale": line.qty_received-stock,
+                            "amount": float(subtotal), "amount_calc": float(subtotal),
                             "current_stock": stock}))
                 product_line.append(line.product_id.id)
         else:
@@ -91,8 +91,8 @@ class SettlementsSaleOrder(models.Model):
                 stock = sum([q.quantity for q in quants])
                 new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
                             "product_uom": line.product_uom.id, "price_unit": line.price_unit, "price_unit_origin_rel": line.price_unit,
-                            "box_emb": line.product_qty, "box_rec": line.qty_received,
-                            "amount": float(line.qty_received * line.price_unit),
+                            "box_emb": line.product_qty, "box_rec": line.qty_received, "box_sale": line.qty_received-stock,
+                            "amount": float(line.qty_received * line.price_unit), "amount_calc": float(line.qty_received * line.price_unit),
                             "current_stock": stock}))
                 product_line.append(line.product_id.id)
                 
@@ -262,15 +262,20 @@ class SettlementsInherit(models.Model):
         total_cost += not self.check_freight_in and self.freight_in or 0
         total_cost += not self.check_aduana and self.aduana or 0
         total_cost += not self.check_aduana_mx and self.aduana_mex or 0
-        total_box = sum([line.box_rec for line in self.settlements_line_ids])
+        total_box = sum([line.box_rec for line in self.settlements_line_ids if (line.amount + line.stock_value) > 0])
+        #total_box = sum([line.box_rec for line in self.settlements_line_ids])
+        #saber si alguna linea no tiene amount 0 para no cargarle nada
+
         unit_cost = (total_cost/total_box) if total_box != 0 else 0
         if self.price_type == "open":
             for line in self.settlements_line_ids:
-                if line.price_unit_origin_rel > 0:
-                    line.price_unit = line.price_unit_origin_rel - unit_cost - self.ajuste_precio
-                    line.amount = line.price_unit * line.box_rec
-                    line.commission_rel = line.amount * (self.commission_percentage/100)
-                    line.commission = line.amount * (self.commission_percentage/100)
+                if line.price_unit_origin_rel > 0 and line.amount_calc >0:
+                    #line.price_unit = line.price_unit_origin_rel - unit_cost - self.ajuste_precio
+                    ##line.amount = line.price_unit * line.box_rec
+                    #line.commission_rel = line.amount * (self.commission_percentage/100)
+                    #line.commission = line.amount * (self.commission_percentage/100)
+                    line.deducciones = unit_cost * line.box_rec
+                    
                 else:
                     line.price_unit = 0
                     line.amount = 0
@@ -280,7 +285,7 @@ class SettlementsInherit(models.Model):
         self.maneuvers_total = self.check_maneuvers and self.maneuvers or 0
         self.adjustment_total = self.check_adjustment and self.adjustment or 0
 
-    @api.depends('settlements_line_ids')
+    #@api.depends('settlements_line_ids')
     def _get_subtotal_total(self):
         _logger.info("Entra a _get_subtotal_total")
         subtotal = sum([ line.total for line in self.settlements_line_ids])
@@ -414,15 +419,21 @@ class SettlementsInheritLines(models.Model):
     # Este lo escribe el usuario
     box_rec = fields.Integer(tracking=True, string="Cajas Rec.")
     current_stock = fields.Float(tracking=True, string="Stock")
+    box_sale = fields.Integer(tracking=True, string="Cajas Vendidas")
+    current_stock_price = fields.Float(tracking=True, string="StockPrice")
     price_unit = fields.Float(
-        tracking=True, string="Precio Unitario")
+        tracking=True, string="PrecioFinal")
     price_unit_origin = fields.Float(
-        tracking=True, string="Precio Unitario")
+        tracking=True, string="PrecioFinal1")
     price_unit_origin_rel = fields.Float(related="price_unit_origin", readonly=False)
     amount = fields.Float(tracking=True,
-                          string="Importe") 
+                          string="ImporteOrig") 
+    amount_calc = fields.Float(tracking=True,
+                          string="ImporteCalc", compute = "_get_amount_calc") 
     freight = fields.Float(tracking=True,
-                          string="Freight") 
+                          string="Freight")
+    deducciones  = fields.Float(tracking=True,
+                          string="Deducciones")
     aduanas = fields.Float(tracking=True,
                           string="Aduanas") 
     commission = fields.Float(
@@ -433,13 +444,33 @@ class SettlementsInheritLines(models.Model):
     settlement_id = fields.Many2one('sale.settlements')
     stock_value = fields.Float(compute="_calculate_value")
 
+    @api.depends('current_stock_price')
     def _calculate_value(self):
         for line in self:
             stock_val = 0
-            stock_val = line.current_stock * line.price_unit
+            stock_val = line.current_stock * line.current_stock_price
             line.stock_value = stock_val
 
-    @api.depends('price_unit', 'box_rec', 'commission')
+    @api.depends('deducciones', 'stock_value',  'amount')
+    def _get_amount_calc(self):
+        for line in self:
+            line.amount_calc =line.amount -line.deducciones + line.stock_value
+            line.price_unit = (line.amount_calc / line.box_rec)
+            line._get_commision()
+
+
+
+    @api.depends('commission')
     def _get_amount(self):
         for line in self:
-            line.total = (line.price_unit * line.box_rec) - line.commission
+                line.total =line.amount_calc - line.commission
+
+    @api.depends('amount_calc')
+    def _get_commision(self):
+        for line in self:
+            line.commission =line.amount_calc * (line.settlement_id.commission_percentage/100)
+
+    @api.depends('amount', 'amount_calc')
+    def _get_price_original(self):
+        for line in self:
+            line.price_unit = (line.amount_calc / line.box_rec)

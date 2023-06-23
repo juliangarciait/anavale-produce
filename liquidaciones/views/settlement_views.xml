@@ -67,7 +67,7 @@
                         </group>
                         <div attrs="{'invisible': [('price_type','=', 'close')]}">
                         <group>
-                            <group string="Viaje">
+                            <group string="Viaje1">
                                 <field name="check_maneuvers" attrs="{'invisible': True}" />
                                 <field name="price_type" attrs="{'invisible': True}" />
                                 <field name="check_adjustment" attrs="{'invisible': True}" />
@@ -80,7 +80,7 @@
                                 <field name="box_emb_total" attrs="{'invisible': True}" />
                                 <field name="box_rec_total" attrs="{'invisible': True}" />
                                 <field name="total_amount" force_save="1"  attrs="{'invisible': True}"/>
-                                <field name="total" />
+                                <field name="total" readonly="1"/>
                                 <field name="settlement" attrs="{'invisible': [('price_type','=', 'open')]}" string="Purchases"/>
                                 <label for="storage" />
                                 <div class="o_row">
@@ -121,7 +121,7 @@
                                 </div>
                             </group>
                             <group>
-                                <field name="calculated_sales" invisible="1" readonly="1" />
+                                <field name="calculated_sales" invisible="1" readonly="1"  />
                                 <label for="commission_percentage" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 <div class="o_row" attrs="{'invisible': [('price_type','=', 'close')]}">
                                     <field name="commission_percentage" readonly="1"/>
@@ -182,13 +182,18 @@
                     <!-- Tabla de productos -->
                     <field name="settlements_line_ids" mode="tree,kanban">
                         <tree editable="bottom" string="Lineas de Liquidaciones">
-                            <field name="product_id" />
-                            <field name="box_rec" />
-                            <field name="current_stock" />
-                            <field name="stock_value" string="Stock value"/>
+                            <field name="product_id" readonly="1" />
+                            <field name="box_rec" readonly="1" />
+                            <field name="box_sale" readonly="1" />
+                            <field name="current_stock" readonly="1" />
+                            <field name="amount" readonly="1" />
                             <field name="price_unit_origin" string="P.U. original" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"/>
                             <field name="price_unit_origin_rel" string="P.U. original" invisible="1"/>
-                            <field name="amount" />
+                            
+                            <field name="current_stock_price" string="StockPrice"/>
+                            <field name="stock_value" string="Stock value" readonly="1"/>
+                            <field name="amount_calc" readonly="1" />
+                            <field name="deducciones" readonly="1" invisible="1" />
                             <field name="price_unit" attrs="{'readonly': [('parent.price_type','=', 'close')]}"/>
                             <field name="commission" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"/>
                             <field name="commission_rel" invisible="1" readonly="0"/>
@@ -218,7 +223,7 @@
                                 <div class="oe_tittle">
                                     <h2>
                                         <span>
-                                      Viaje
+                                      Viaje2
                                     </span>
                                     </h2>
                                 </div>
@@ -343,7 +348,7 @@
                                 <div class="oe_tittle">
                                     <h2>
                                         <span>
-                                      Viaje
+                                      Viaje3
                                     </span>
                                     </h2>
                                 </div>
@@ -480,7 +485,7 @@
                                 <div class="oe_tittle">
                                     <h2>
                                         <span>
-                                      Viaje
+                                      Viaje4
                                     </span>
                                     </h2>
                                 </div>
