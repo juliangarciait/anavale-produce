@@ -40,7 +40,7 @@ class QuantProductRepackWizard(models.TransientModel):
     def _update_quantities(self, initial=0.0, main=0.0, final=0.0, scrap=0.0):
         self.initial_qty = initial
         self.main_qty = main
-        self.final_qty = final
+        #self.final_qty = final
         self.scrap_qty = scrap
 
     def _update_lot_name(self):
@@ -66,8 +66,8 @@ class QuantProductRepackWizard(models.TransientModel):
     @api.onchange('lot_id')
     def _onchange_lot_id(self):
         if self.lot_id and self.lot_dest_id:
-            self._update_quantities(initial=self.lot_id.product_qty + self.lot_dest_id.product_qty,
-                                    main=self.lot_id.product_qty-self.lot_dest_id.product_qty,
+            self._update_quantities(initial=self.lot_id.product_qty,
+                                    main=self.lot_id.product_qty,
                                     final=self.lot_dest_id.product_qty)
             self._update_lot_name()
             return
@@ -101,7 +101,7 @@ class QuantProductRepackWizard(models.TransientModel):
 
     @api.onchange('final_qty', 'scrap_qty')
     def _onchange_final_qty(self):
-        self.main_qty = self.initial_qty - self.lot_dest_id.product_qty - self.final_qty - self.scrap_qty
+        self.main_qty = self.initial_qty - self.final_qty - self.scrap_qty
         self._check_valid_quantity()
 
     def _get_sum_qty(self):
@@ -163,7 +163,7 @@ class QuantProductRepackWizard(models.TransientModel):
             'prod_lot_id': lot_ids[0].id,
             'product_id': self.product_id.id,
             'location_id': self.location_id.id,
-            'product_qty': self.main_qty
+            'product_qty': self.main_qty + self.scrap_qty
         })), ((0, 0, {
             'company_id': self.location_id.company_id.id,
             'prod_lot_id': lot_ids[1].id,
@@ -177,3 +177,21 @@ class QuantProductRepackWizard(models.TransientModel):
         lot_ids[0].type_lot = 'product_repack'
         lot_ids[1].type_lot = 'product_repack'
         si.sudo().action_validate()
+        self._update_scrap_qty()
+
+
+    
+    def _update_scrap_qty(self):
+        StockScrap = self.env['stock.scrap']
+        if self.scrap_qty > 0:
+            # Create Scrap
+            ss = StockScrap.sudo().create({
+                'product_id': self.product_id.id,
+                'scrap_qty': self.scrap_qty,
+                'lot_id': self.lot_id.id,
+                'location_id': self.location_id.id,
+                'product_uom_id': self.product_id.uom_id.id,
+                'origin': 'WZRPACK{}'.format(self.lot_id.id)
+            })
+
+            ss.sudo().action_validate()

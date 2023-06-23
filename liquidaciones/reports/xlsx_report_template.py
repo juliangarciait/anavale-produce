@@ -5,9 +5,12 @@ from odoo import models, api, _, fields
 from odoo.exceptions import UserError
 from odoo.tools import float_repr, float_round
 from datetime import datetime
+import string
 
 import logging 
 _logger = logging.getLogger(__name__)
+
+num2alpha = dict(zip(range(1, 27), string.ascii_lowercase))
 
 
 class XlsxReport(models.AbstractModel): 
@@ -94,6 +97,26 @@ class XlsxReport(models.AbstractModel):
             'right'      : 1,
             'left'       : 1,
             'align'      : 'center',
+        })
+        light_box_currency1 = workbook.add_format({
+            'font_size'  : '14', 
+            'font_name'  : 'arial',
+            'bottom'     : 1,
+            'top'        : 1, 
+            'right'      : 1,
+            'left'       : 1,
+            'align'      : 'center',
+            'num_format' : '0.00'
+        })
+        light_box_currency_percent = workbook.add_format({
+            'font_size'  : '14', 
+            'font_name'  : 'arial',
+            'bottom'     : 1,
+            'top'        : 1, 
+            'right'      : 1,
+            'left'       : 1,
+            'align'      : 'center',
+            'num_format' : '0.00%'
         })
         travels = workbook.add_format({
             'font_color' : 'black',
@@ -221,12 +244,13 @@ class XlsxReport(models.AbstractModel):
             sheet.write(i, 2, line.get('product_uom', ''), light_box)
             sheet.write(i, 3, line.get('box_rec', 0), light_box)
             sheet.write(i, 4, line.get('price_unit', 0.0), light_box_currency)
-            sheet.write(i, 5, line.get('amount', 0.0), light_box_currency)
+            sheet.write(i, 5, "=d%d*e%d" % (i+1,i+1),light_box_currency)
             sheet.write(i, 6, "", light_box_currency)
             sheet.write(i, 7, "", light_box_currency)
             sheet.write(i, 8, "", light_box_currency)
-            sheet.write(i, 9, line.get('spoilage'), light_box_currency)
-            sheet.write(i, 10, line.get('total'), light_box_currency)
+            #sheet.write(i, 9, line.get('spoilage'), light_box_currency)
+            sheet.write(i, 9, "=f%d*J8" % (i+1),light_box_currency)
+            sheet.write(i, 10, "=f%d-j%d" % (i+1,i+1), light_box_currency)
     
         for j in range(19 - i):
             if i < 19:
@@ -246,14 +270,19 @@ class XlsxReport(models.AbstractModel):
         sheet.write(19, 0, '', light_box)
         sheet.write(19, 1, '', light_box)
         sheet.write(19, 2, '', light_box)
-        sheet.write(19, 3, data.get('box_rec_total'), light_box)
+        #sheet.write(19, 3, data.get('box_rec_total'), light_box)
+        sheet.write(19, 3, '=SUM(D9:d19)', light_box)
         sheet.write(19, 4, '', light_box)
-        sheet.write(19, 5, data.get('amount_total'), light_box_currency)
+        #sheet.write(19, 5, data.get('amount_total'), light_box_currency)
+        sheet.write(19, 5, '=SUM(f9:f19)', light_box_currency)
         sheet.write(19, 6, data.get('freight_in'), light_box_currency)
         sheet.write(19, 7, data.get('aduana'), light_box_currency)
-        sheet.write(19, 8, "", light_box_currency)
-        sheet.write(19, 9, data.get('commission_total'), light_box_currency)
-        sheet.write(19, 10, data.get('total'), light_box_currency)
+        sheet.write(19, 8, data.get('storage')+data.get('maneuvers'), light_box_currency1)   
+        #sheet.write(19, 9, data.get('commission_total'), light_box_currency)
+        sheet.write(19, 9, '=SUM(j9:j19)', light_box_currency)
+        #sheet.write(19, 10, data.get('total'), light_box_currency)
+        sheet.write(19, 10, '=SUM(k9:k19)', light_box_currency)
+        sheet.write(8, 10, '=-SUM(g20:i20)', light_box_currency)  #suma de gastos en total
 
 
         sheet.merge_range(5, 2, 5, 10, data.get('company'), report_format_title)
@@ -270,14 +299,18 @@ class XlsxReport(models.AbstractModel):
         sheet.write(14, 12, 'FREIGHT OUT', travels_middle_left_red)
         sheet.write(17, 12, 'UTILIDAD', travels_middle_left)
         sheet.write(5, 13, data.get('sales'), travels_title_top_right)
+        sheet.write(8, 13, '=k20', light_box_currency)
         sheet.write(9, 13, data.get('freight_in'), travels_middle_right)
         sheet.write(10, 13, data.get('aduana'), travels_middle_right)
         sheet.write(11, 13, data.get('maneuvers'), travels_middle_right_red)
         sheet.write(12, 13, data.get('adjustment'), travels_middle_right_red)
         sheet.write(13, 13, data.get('storage'), travels_middle_right_red)
         sheet.write(14, 13, data.get('freight_out'), travels_middle_right_red)
-        sheet.write(17, 13, data.get('utility'), travels_middle_right)
-        sheet.write(19, 13, str(data.get('utility_percentage')) + '%', travels_bottom_right)
+        #sheet.write(17, 13, data.get('utility'), travels_middle_right)
+        sheet.write(17, 13, '=N6-(SUM(N9:N16))', travels_middle_right)
+        #sheet.write(19, 13, str(data.get('utility_percentage')) + '%', travels_bottom_right)
+        cell_format1 = workbook.add_format()
+        sheet.write(19, 13, '=N18/(N6)', light_box_currency_percent)
 
         sheet.write(8, 0, '', light_box)
         sheet.write(8, 1, '', light_box)
@@ -289,7 +322,7 @@ class XlsxReport(models.AbstractModel):
         sheet.write(8, 7, '', light_box)
         sheet.write(8, 8, '', light_box)
         sheet.write(8, 9, '', light_box)
-        sheet.write(8, 10, '', light_box)
+        #sheet.write(8, 10, '', light_box)
         sheet.write(9, 1, '', light_box)
         sheet.write(9, 2, '', light_box)
         sheet.write(9, 3, '', light_box)
@@ -307,7 +340,7 @@ class XlsxReport(models.AbstractModel):
         sheet.write(18, 12, '', travels_middle_left)
         sheet.write(6, 13, '', travels_middle_right)
         sheet.write(7, 13, '', travels_middle_right)
-        sheet.write(8, 13, '', travels_middle_right)
+        #sheet.write(8, 13, '', travels_middle_right)
         sheet.write(15, 13, '', travels_middle_right)
         sheet.write(16, 13, '', travels_middle_right)
         sheet.write(18, 13, '', travels_middle_right)

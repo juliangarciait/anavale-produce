@@ -18,7 +18,7 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th> <strong>Note: </strong><span t-field="property.note"/></th>
+                                    <th> <strong>Note11: </strong><span t-field="property.note"/></th>
                                     <th> <strong>Journey: </strong><span t-field="property.journey"/></th>
                                     <th> <strong>Company: </strong><span t-field="property.company"/></th>
                                 </tr>
