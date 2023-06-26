@@ -382,7 +382,7 @@ class SettlementsInherit(models.Model):
                 'box_emb': line.box_emb,
                 'box_rec': line.box_rec,
                 'price_unit': line.price_unit,
-                'amount': line.amount,
+                'amount': line.amount_calc,
                 'freight': line.freight,
                 'spoilage': line.commission,
                 'stock_value': line.stock_value,

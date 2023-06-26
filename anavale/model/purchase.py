@@ -43,7 +43,7 @@ class PurchaseOrder(models.Model):
     
     referencia = fields.Text('Referencia')
 
-    purchase_analytics = fields.Integer('Purchase Contab')
+    purchase_analytics = fields.Float('Purchase Contab')
     
     @api.onchange('partner_id')
     def onchange_partner(self): 
@@ -305,6 +305,7 @@ class PurchaseOrder(models.Model):
             inventory_variation_Sum = sum([line.price_subtotal for line in inventory_variation])
             suma = purcha_Sum + spoilage_Sum + inventory_variation_Sum
             purchase_rec.write({'purchase_analytics': abs(suma)})
+            purchase_rec.purchase_analytics = abs(suma)
 
 
 
