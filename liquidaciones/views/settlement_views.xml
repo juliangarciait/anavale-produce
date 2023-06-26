@@ -67,7 +67,7 @@
                         </group>
                         <div attrs="{'invisible': [('price_type','=', 'close')]}">
                         <group>
-                            <group string="Viaje1">
+                            <group string="Viaje">
                                 <field name="check_maneuvers" attrs="{'invisible': True}" />
                                 <field name="price_type" attrs="{'invisible': True}" />
                                 <field name="check_adjustment" attrs="{'invisible': True}" />
@@ -80,7 +80,7 @@
                                 <field name="box_emb_total" attrs="{'invisible': True}" />
                                 <field name="box_rec_total" attrs="{'invisible': True}" />
                                 <field name="total_amount" force_save="1"  attrs="{'invisible': True}"/>
-                                <field name="total" readonly="1"/>
+                                <field name="total" readonly="1"  force_save="1"/>
                                 <field name="settlement" attrs="{'invisible': [('price_type','=', 'open')]}" string="Purchases"/>
                                 <label for="storage" />
                                 <div class="o_row">
@@ -121,37 +121,44 @@
                                 </div>
                             </group>
                             <group>
-                                <field name="calculated_sales" invisible="1" readonly="1"  />
+                                <field name="ventas_update" invisible="1" readonly="1"  force_save="1"  /> 
+                                <field name="freight_update" invisible="1" readonly="1"  force_save="1"  /> 
+                                <field name="adjustment_update" invisible="1" readonly="1"  force_save="1"  /> 
+                                <field name="maneuvers_update" invisible="1" readonly="1"  force_save="1"  /> 
+                                <field name="freight_out_update" invisible="1" readonly="1"  force_save="1"  /> 
+                                <field name="aduana_update" invisible="1" readonly="1"  force_save="1"  /> 
+                                <field name="storage_update" invisible="1" readonly="1"  force_save="1"  /> 
+                                <field name="calculated_sales" invisible="1" readonly="1"  force_save="1"  />
                                 <label for="commission_percentage" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 <div class="o_row" attrs="{'invisible': [('price_type','=', 'close')]}">
-                                    <field name="commission_percentage" readonly="1"/>
+                                    <field name="commission_percentage" readonly="1"  force_save="1"/>
                                     <span>%%</span>
                                 </div>
-                                <label for="commission" attrs="{'invisible': [('price_type','=', 'close')]}"/>
+                                <label for="commission" attrs="{'invisible': [('price_type','=', 'close')]}"  force_save="1"/>
                                 <div class="o_row" attrs="{'invisible': [('price_type','=', 'close')]}">
                                     <field name="commission" force_save="1"/>
                                 </div>
 
                                 <label for="freight_out" />
                                 <div class="o_row">
-                                    <field name="freight_out" attrs="{'readonly':[('check_freight_out','=',False)]}" />
-                                    <field name="check_freight_out" attrs="{'invisible': [('price_type','=', 'close')]}" />
+                                    <field name="freight_out"  force_save="1"/>
+                                    <field name="check_freight_out"  force_save="1" />
                                 </div>
 
                                 <label for="freight_in" />
                                 <div class="o_row">
-                                    <field name="freight_in" attrs="{'readonly':[('check_freight_in','=',False)]}" />
+                                    <field name="freight_in"  force_save="1"/>
                                     <field name="check_freight_in" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 </div>
 
                                 <label for="aduana" />
                                 <div class="o_row">
-                                    <field name="aduana" attrs="{'readonly':[('check_aduana','=',False)]}" />
+                                    <field name="aduana"  force_save="1"/>
                                     <field name="check_aduana" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 </div>
                                 <label for="aduana_mex"/>
                                 <div class="o_row">
-                                    <field name="aduana_mex" attrs="{'readonly':[('check_aduana_mx','=',False)]}"/>
+                                    <field name="aduana_mex"  force_save="1"/>
                                     <field name="check_aduana_mx" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 </div>
                                 <div class="oe_tittle">
@@ -182,34 +189,35 @@
                     <!-- Tabla de productos -->
                     <field name="settlements_line_ids" mode="tree,kanban">
                         <tree editable="bottom" string="Lineas de Liquidaciones">
-                            <field name="product_id" readonly="1" />
-                            <field name="box_rec" readonly="1" />
-                            <field name="box_sale" readonly="1" />
-                            <field name="current_stock" readonly="1" />
-                            <field name="amount" readonly="1" />
-                            <field name="price_unit_origin" string="P.U. original" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"/>
+                            <field name="product_id"  readonly="1" force_save="1" />
+                            <field name="box_rec"  readonly="1" force_save="1"  />
+                            <field name="box_sale"  readonly="1" force_save="1" />
+                            <field name="current_stock" readonly="1" force_save="1"/>
+                            <field name="amount"  readonly="1" force_save="1"/>
+                            <field name="price_unit_origin" string="P.U. original" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"  readonly="1" force_save="1"/>
                             <field name="price_unit_origin_rel" string="P.U. original" invisible="1"/>
                             
                             <field name="current_stock_price" string="StockPrice"/>
-                            <field name="stock_value" string="Stock value" readonly="1"/>
-                            <field name="amount_calc" readonly="1" />
-                            <field name="deducciones" readonly="1" invisible="1" />
-                            <field name="price_unit" attrs="{'readonly': [('parent.price_type','=', 'close')]}"/>
-                            <field name="commission" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"/>
+                            <field name="stock_value" string="Stock value" readonly="1" force_save="1"/>
+                            <field name="amount_calc"  readonly="1" force_save="1" />
+                            <field name="price_unit" string="P.U. final" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"  readonly="1" force_save="1"/>
+                            <field name="deducciones" invisible="1" />
+                            <field name="commission" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"  force_save="1"/>
                             <field name="commission_rel" invisible="1" readonly="0"/>
-                            <field name="total" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"/>
+                            <field name="total" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"  readonly="1" force_save="1"/>
                         </tree>
                     </field>
                     <!--  /////////////////////////////////////////////////// -->
                     <div class="oe_right" attrs="{'invisible': [('price_type','=', 'close')]}">
                             <group>
-                                <field name="storage_total"/>
-                                <field name="adjustment_total"/>
-                                <field name="maneuvers_total"/>
-                                <field name="freight_total"/>
-                                <field name="aduana_total"/>
-                                <field name="total_subtotal" />
-                                <label for="total_total" />
+                                <field name="Liquidacion"  readonly="1" force_save="1"/>
+                                <field name="storage_total"  readonly="1" force_save="1"/>
+                                <field name="adjustment_total"  readonly="1" force_save="1"/>
+                                <field name="maneuvers_total"  readonly="1" force_save="1"/>
+                                <field name="freight_total"  readonly="1" force_save="1"/>
+                                <field name="aduana_total"  readonly="1" force_save="1"/>
+                                <field name="total_subtotal"   readonly="1" force_save="1"/>
+                                <label for="total_total"   readonly="1" force_save="1"/>
                                 <div class="oe_tittle">
                                     <field name="total_total"  />
                                 </div>
@@ -252,25 +260,25 @@
 
                                 <label for="maneuvers" />
                                 <div class="o_row">
-                                    <field name="maneuvers" attrs="{'readonly':[('check_maneuvers','=',False)]}" />
+                                    <field name="maneuvers" attrs="{'readonly':[('check_maneuvers','=',False)]}"  force_save="1"/>
                                     <field name="check_maneuvers" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 </div>
 
                                 <label for="adjustment" />
                                 <div class="o_row">
-                                    <field name="adjustment" attrs="{'readonly':[('check_adjustment','=',False)]}" />
+                                    <field name="adjustment" attrs="{'readonly':[('check_adjustment','=',False)]}" force_save="1"/>
                                     <field name="check_adjustment" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 </div>
 
                                 <label for="storage" />
                                 <div class="o_row">
-                                    <field name="storage" attrs="{'readonly':[('check_storage','=',False)]}" />
+                                    <field name="storage" attrs="{'readonly':[('check_storage','=',False)]}" force_save="1"/>
                                     <field name="check_storage" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 </div>
 
                                 <label for="freight_out" />
                                 <div class="o_row">
-                                    <field name="freight_out" attrs="{'readonly':[('check_freight_out','=',False)]}" />
+                                    <field name="freight_out" attrs="{'readonly':[('check_freight_out','=',False)]}" force_save="1" />
                                     <field name="check_freight_out" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 </div>
 

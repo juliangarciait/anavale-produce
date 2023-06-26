@@ -4,6 +4,7 @@ from email.policy import default
 from tokenize import String
 from odoo import models, fields, api
 from openerp.exceptions import ValidationError
+from odoo.exceptions import UserError
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -37,112 +38,131 @@ class SettlementsSaleOrder(models.Model):
                 analytic_tag_ids += tag
         move_line_ids= self.env['account.move.line']
         tag_name = ''
-        move_line_ids = self.env['account.move.line'].search([('analytic_tag_ids', 'in', analytic_tag_ids.ids), ('move_id.state', '=', 'posted')])
-        for tag_id in analytic_tag_ids:
-            tag_name += tag_id.name + ' '
-        tag_name = tag_name.split("-")
-        if len(tag_name) < 2:
-            tag_name.append("")
-        sales = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids and line.move_id.state == 'posted')
-        freight_in = move_line_ids.filtered(lambda line: line.account_id.id == 1387 and line.move_id.state == 'posted')
-        freight_out = move_line_ids.filtered(lambda line: line.account_id.id == 1394 and line.move_id.state == 'posted')
-        maneuvers = move_line_ids.filtered(lambda line: line.account_id.id == 1390 and line.move_id.state == 'posted')
-        storage = move_line_ids.filtered(lambda line: line.account_id.id == 1395 and line.move_id.state == 'posted')
-        aduana_usa = move_line_ids.filtered(lambda line: line.account_id.id == 1393 and line.move_id.state == 'posted')
-        aduana_mex = move_line_ids.filtered(lambda line: line.account_id.id == 1392 and line.move_id.state == 'posted')#[]1392
-        adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
-        amountVar = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids and line.move_id.state == 'posted')
-        boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
-        subAmount = {}
-        for line in amountVar:
-            salesSum = subAmount.get(line.product_id.id, 0)
-            salesSum += line.price_subtotal
-            subAmount[line.product_id.id] = salesSum
-        product_line = []
-        new_lines = []
-        freight_inSum = sum([line.price_subtotal for line in freight_in])
-        freight_outSum = sum([line.price_subtotal for line in freight_out])
-        maneuversSum = sum([line.price_subtotal for line in maneuvers])
-        storageSum = sum([line.price_subtotal for line in storage])
-        adjustmentSum = sum([line.price_subtotal for line in adjustment])
-        aduana_usaSum = sum([line.price_subtotal for line in aduana_usa])
-        aduana_mexSum = sum([line.price_subtotal for line in aduana_mex])
-        boxes_sum = sum([line.price_subtotal for line in boxes])
-        aduana_total = aduana_mexSum + aduana_usaSum       
-        quant_obj = self.env["stock.quant"] 
-        location_id = self.env["stock.location"].search([('usage', '=', 'internal')])
-        if self.tipo_precio == 'variable':
-            for line in purchase_rec.order_line: #3
-                stock = 0
-                quants = quant_obj.search([('product_id', '=', line.product_id.id), ('lot_id', 'in', lot_ids.ids), ('location_id', 'in', location_id.ids)])
-                stock = sum([q.quantity for q in quants])
-                subtotal = subAmount.get(line.product_id.id, False)
-                var_price_unit_hidden = line.qty_received and subtotal/(line.qty_received-stock) or 0
-                new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
-                            "product_uom": line.product_uom.id, "price_unit": var_price_unit_hidden, "price_unit_origin_rel": var_price_unit_hidden, "price_unit_origin": var_price_unit_hidden,
-                            "box_emb":line.product_qty, "box_rec": line.qty_received, "box_sale": line.qty_received-stock,
-                            "amount": float(subtotal), "amount_calc": float(subtotal),
-                            "current_stock": stock}))
-                product_line.append(line.product_id.id)
-        else:
-            for line in purchase_rec.order_line: #3
-                stock = 0
-                quants = quant_obj.search([('product_id', '=', line.product_id.id), ('lot_id', 'in', lot_ids.ids), ('location_id', 'in', location_id.ids)])
-                stock = sum([q.quantity for q in quants])
-                new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
-                            "product_uom": line.product_uom.id, "price_unit": line.price_unit, "price_unit_origin_rel": line.price_unit,
-                            "box_emb": line.product_qty, "box_rec": line.qty_received, "box_sale": line.qty_received-stock,
-                            "amount": float(line.qty_received * line.price_unit), "amount_calc": float(line.qty_received * line.price_unit),
-                            "current_stock": stock}))
-                product_line.append(line.product_id.id)
-                
-        closed_price = self.env['sale.settlements'].search([('order_id', 'in', purchase_rec.ids), ('status', '=', 'close')])
-        view_tree = closed_price and 'liquidaciones.view_settlements_tree_no_create' or 'liquidaciones.view_settlements_tree'
-        view_form = closed_price and 'liquidaciones.view_settlements_no_create' or 'liquidaciones.view_settlements'
-        action_data = {
-            'res_model': 'sale.settlements',
-            'type': 'ir.actions.act_window',
-            'view_type': 'form',
-            'view_mode': 'form',
-            'name': 'Liquidaciones',
-            'domain': [('order_id', '=', purchase_rec.id)],
-            'context': {'default_settlements_line_ids': new_lines,
-                        'default_user_res_partner': purchase_rec.user_id and purchase_rec.user_id.partner_id.name or '',
-                        'default_date': fecha,
-                        'default_total': sum([sale.price_subtotal for sale in sales]),
-                        'default_check_maneuvers': True,
-                        'default_check_adjustment': True,
-                        'default_check_storage': True,
-                        'default_check_freight_out': True,
-                        'default_check_freight_in': purchase_rec.Flete_entrada == "si" or False,
-                        'default_check_aduana': purchase_rec.Aduana_US == 'si' or False,
-                        'default_check_aduana_mx': purchase_rec.Aduana_MX == 'si' or False,
-                        'default_note': tag_name[0],
-                        'default_journey': tag_name[1],
-                        'default_company': str(purchase_rec.partner_id.name),
-                        'default_freight_in': freight_inSum,
-                        'default_freight_out': freight_outSum,
-                        'default_maneuvers': maneuversSum,
-                        'default_storage': storageSum,
-                        'default_aduana': aduana_usaSum,
-                        'default_aduana_mex': aduana_mexSum,
-                        'default_adjustment': adjustmentSum,
-                        'default_order_id': purchase_rec.id,
-                        'default_price_type': self.tipo_precio == "variable" and "open" or "close",
-                        'default_check_boxes': purchase_rec.caja == "si" or False,
-                        'default_boxes': boxes_sum,
-                        'lot_ids': lot_ids,
-                        'default_purchase_date': purchase_rec.date_approve,
-                        'default_commission_percentage': porcentajes.get(purchase_rec.porcentaje_comision)
-                        },
-            'views': [(self.env.ref(view_form).id, 'form')],
-        }
-        exists_st = self.env['sale.settlements'].search([('order_id', 'in', purchase_rec.ids)])
-        if len(exists_st) > 1:
-            exists_st = exists_st[0]
-        if len(exists_st) >= 1:
-            action_data.update({"context": {}, "res_id": exists_st.id})
-        return action_data
+        #comprobacion de que no haya ventas pendientes de facturar
+        sale_lines = self.env['sale.order.line'].search([('lot_id', 'in', lot_ids.ids),('invoice_status', '=', 'to invoice')])
+        if len(sale_lines) > 0:
+            raise UserError('Hay ventas pendientes de facturar para estos lotes!')
+        else:                                                    
+            move_line_ids = self.env['account.move.line'].search([('analytic_tag_ids', 'in', analytic_tag_ids.ids), ('move_id.state', '=', 'posted')])
+            for tag_id in analytic_tag_ids:
+                tag_name += tag_id.name + ' '
+            tag_name = tag_name.split("-")
+            if len(tag_name) < 2:
+                tag_name.append("")
+            sales = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids and line.move_id.state == 'posted')
+            freight_in = move_line_ids.filtered(lambda line: line.account_id.id == 1387 and line.move_id.state == 'posted')
+            freight_out = move_line_ids.filtered(lambda line: line.account_id.id == 1394 and line.move_id.state == 'posted')
+            maneuvers = move_line_ids.filtered(lambda line: line.account_id.id == 1390 and line.move_id.state == 'posted')
+            storage = move_line_ids.filtered(lambda line: line.account_id.id == 1395 and line.move_id.state == 'posted')
+            aduana_usa = move_line_ids.filtered(lambda line: line.account_id.id == 1393 and line.move_id.state == 'posted')
+            aduana_mex = move_line_ids.filtered(lambda line: line.account_id.id == 1392 and line.move_id.state == 'posted')#[]1392
+            adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
+            amountVar = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids and line.move_id.state == 'posted')
+            boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
+            subAmount = {}
+            for line in amountVar:
+                salesSum = subAmount.get(line.product_id.id, 0)
+                salesSum += line.price_subtotal
+                subAmount[line.product_id.id] = salesSum
+            product_line = []
+            new_lines = []
+            freight_inSum = sum([line.price_subtotal for line in freight_in])
+            freight_outSum = sum([line.price_subtotal for line in freight_out])
+            maneuversSum = sum([line.price_subtotal for line in maneuvers])
+            storageSum = sum([line.price_subtotal for line in storage])
+            adjustmentSum = sum([line.price_subtotal for line in adjustment])
+            aduana_usaSum = sum([line.price_subtotal for line in aduana_usa])
+            aduana_mexSum = sum([line.price_subtotal for line in aduana_mex])
+            boxes_sum = sum([line.price_subtotal for line in boxes])
+            aduana_total = aduana_mexSum + aduana_usaSum       
+            quant_obj = self.env["stock.quant"] 
+            location_id = self.env["stock.location"].search([('usage', '=', 'internal')])
+            ventas_update = 0
+            if self.tipo_precio == 'variable':
+                for line in purchase_rec.order_line: #3
+                    stock = 0
+                    quants = quant_obj.search([('product_id', '=', line.product_id.id), ('lot_id', 'in', lot_ids.ids), ('location_id', 'in', location_id.ids)])
+                    stock = sum([q.quantity for q in quants])
+                    subtotal = subAmount.get(line.product_id.id, False)
+                    ventas_update += subtotal
+                    var_price_unit_hidden = line.qty_received and subtotal/(line.qty_received-stock) or 0
+                    new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
+                                "product_uom": line.product_uom.id, "price_unit": var_price_unit_hidden, "price_unit_origin_rel": var_price_unit_hidden, "price_unit_origin": var_price_unit_hidden,
+                                "box_emb":line.product_qty, "box_rec": line.qty_received, "box_sale": line.qty_received-stock,
+                                "amount": float(subtotal), "amount_calc": float(subtotal),
+                                "current_stock": stock}))
+                    product_line.append(line.product_id.id)
+            else:
+                for line in purchase_rec.order_line: #3
+                    stock = 0
+                    quants = quant_obj.search([('product_id', '=', line.product_id.id), ('lot_id', 'in', lot_ids.ids), ('location_id', 'in', location_id.ids)])
+                    stock = sum([q.quantity for q in quants])
+                    new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
+                                "product_uom": line.product_uom.id, "price_unit": line.price_unit, "price_unit_origin_rel": line.price_unit,
+                                "box_emb": line.product_qty, "box_rec": line.qty_received, "box_sale": line.qty_received-stock,
+                                "amount": float(line.qty_received * line.price_unit), "amount_calc": float(line.qty_received * line.price_unit),
+                                "current_stock": stock}))
+                    product_line.append(line.product_id.id)
+                    
+            closed_price = self.env['sale.settlements'].search([('order_id', 'in', purchase_rec.ids), ('status', '=', 'close')])
+            view_tree = closed_price and 'liquidaciones.view_settlements_tree_no_create' or 'liquidaciones.view_settlements_tree'
+            view_form = closed_price and 'liquidaciones.view_settlements_no_create' or 'liquidaciones.view_settlements'
+            action_data = {
+                            'res_model': 'sale.settlements',
+                            'type': 'ir.actions.act_window',
+                            'view_type': 'form',
+                            'view_mode': 'form',
+                            'name': 'Liquidaciones',
+                            'domain': [('order_id', '=', purchase_rec.id)],
+                            'context': {'default_settlements_line_ids': new_lines,
+                                        'default_user_res_partner': purchase_rec.user_id and purchase_rec.user_id.partner_id.name or '',
+                                        'default_date': fecha,
+                                        'default_total': sum([sale.price_subtotal for sale in sales]),
+                                        'default_check_maneuvers': True,
+                                        'default_check_adjustment': True,
+                                        'default_check_storage': True,
+                                        'default_check_freight_out': True,
+                                        'default_check_freight_in': purchase_rec.Flete_entrada == "si" or False,
+                                        'default_check_aduana': purchase_rec.Aduana_US == 'si' or False,
+                                        'default_check_aduana_mx': purchase_rec.Aduana_MX == 'si' or False,
+                                        'default_note': tag_name[0],
+                                        'default_journey': tag_name[1],
+                                        'default_company': str(purchase_rec.partner_id.name),
+                                        'default_freight_in': freight_inSum,
+                                        'default_freight_out': freight_outSum,
+                                        'default_maneuvers': maneuversSum,
+                                        'default_storage': storageSum,
+                                        'default_aduana': aduana_usaSum,
+                                        'default_aduana_mex': aduana_mexSum,
+                                        'default_adjustment': adjustmentSum,
+                                        'default_order_id': purchase_rec.id,
+                                        'default_price_type': self.tipo_precio == "variable" and "open" or "close",
+                                        'default_check_boxes': purchase_rec.caja == "si" or False,
+                                        'default_boxes': boxes_sum,
+                                        'lot_ids': lot_ids,
+                                        'default_purchase_date': purchase_rec.date_approve,
+                                        'default_commission_percentage': porcentajes.get(purchase_rec.porcentaje_comision),
+                                        'default_ventas_update':ventas_update,  
+                                        'default_freight_update':freight_inSum, 
+                                        'default_aduana_update': aduana_total,
+                                        'default_storage_update': storageSum,
+                                        'default_maneuvers_update': maneuversSum,
+                                        'default_freight_out_update': freight_outSum,            
+                                        },
+                'views': [(self.env.ref(view_form).id, 'form')],
+            }
+            exists_st = self.env['sale.settlements'].search([('order_id', 'in', purchase_rec.ids)])
+            if len(exists_st) > 1:
+                exists_st = exists_st[0]
+            if len(exists_st) >= 1:
+                exists_st.ventas_update = ventas_update
+                exists_st.freight_update = freight_inSum
+                exists_st.aduana_update = aduana_total
+                exists_st.storage_update = storageSum
+                exists_st.maneuvers_update = maneuversSum
+                exists_st.freight_out_update = freight_outSum
+                action_data.update({"context": {'default_ventas_update':float(subtotal)}, "res_id": exists_st.id})
+            return action_data
 
  
 class SettlementsInherit(models.Model):
@@ -173,13 +193,13 @@ class SettlementsInherit(models.Model):
     commission_percentage = fields.Float(
          tracking=True, string="Commission Percentage")
     commission = fields.Float(
-         tracking=True, string="Commission", compute="_get_commission")
+         tracking=True, string="Commission")
     recommended_price = fields.Float(
          tracking=True, string="Precio Recomendado")#, default=_get_recommended_price)
     utility = fields.Float(
-         tracking=True, string="Utility", compute="_compute_utility_percentage")
+         tracking=True, string="Utility")
     utility_percentage = fields.Float(
-         tracking=True, string="", compute="_compute_utility_percentage")
+         tracking=True, string="")
     freight_in  = fields.Float(
          tracking=True, string="Freight In")#, default=_get_freight_in)
     date = fields.Datetime(tracking=True, string="Fecha", store=True)
@@ -197,17 +217,17 @@ class SettlementsInherit(models.Model):
     freight_out = fields.Float(
          tracking=True, string="Freight Out")
     freight_total = fields.Float(
-         tracking=True, string="Freight", compute="_get_freight_total")
+         tracking=True, string="Freight")#, compute="_get_freight_total")
     aduana_total = fields.Float(
-         tracking=True, string="Aduana", compute="_get_aduana_total")
+         tracking=True, string="Aduana")#, compute="_get_aduana_total")
     res_total = fields.Float(
          tracking=True, string="Aduana")
     total_total = fields.Float(
-         tracking=True, string="Total", compute="_get_total_total")
+         tracking=True, string="Total")#, compute="_get_total_total")
     total_amount = fields.Float(
          tracking=True, string="Total")
     total_subtotal = fields.Float(
-         tracking=True, string="SubTotal", compute="_get_subtotal_total")
+         tracking=True, string="SubTotal")#, compute="_get_subtotal_total")
     storage_total = fields.Float(
          tracking=True, string="Storage", )
     adjustment_total = fields.Float(
@@ -243,6 +263,19 @@ class SettlementsInherit(models.Model):
     order_id = fields.Many2one("purchase.order")
     others = fields.Float(tracking=True)
     check_others = fields.Boolean(tracking=True)
+    total_update = fields.Float( string="Venta Actualizada")
+    storage_update = fields.Float( string="Storage Actualizada")
+    aduana_update = fields.Float(string="Aduana Actualizada")#, default=_get_aduana)
+    aduana_mex_update = fields.Float(string="AduanaMX Actualizada")
+    maneuvers_update = fields.Float(string="Maneuvers Actualizada")#, default=_get_maneuvers)
+    adjustment_update = fields.Float(string="Adjustment Actualizado")
+    freight_out_update = fields.Float(string="Freight Out Actualizado")
+    freight_update = fields.Float( string="Flete Actualizado")
+    Liquidacion = fields.Float( string="Flete Actualizado")
+    ventas_update = fields.Float(string="Ventas Actualizado")
+
+
+
 
     @api.onchange(
             "storage", "check_storage", "maneuvers", "check_maneuvers",
@@ -275,6 +308,7 @@ class SettlementsInherit(models.Model):
                     #line.commission_rel = line.amount * (self.commission_percentage/100)
                     #line.commission = line.amount * (self.commission_percentage/100)
                     line.deducciones = unit_cost * line.box_rec
+                    line._get_amount_calc()
                     
                 else:
                     line.price_unit = 0
@@ -293,14 +327,14 @@ class SettlementsInherit(models.Model):
         if self.price_type == "close":
             self.settlement = sum([line.amount for line in self.settlements_line_ids])
     
-    @api.depends('freight_out', 'check_freight_out', 'freight_in', 'check_freight_in')
+    @api.onchange('freight_out', 'check_freight_out', 'freight_in', 'check_freight_in')
     def _get_freight_total(self):
         freight_total = 0
         freight_total += self.check_freight_out and self.freight_out or 0
         freight_total += self.check_freight_in and self.freight_in or 0
         self.freight_total = freight_total
     
-    @api.depends('aduana', 'check_aduana', 'aduana_mex', 'check_aduana_mx')
+    @api.onchange('aduana', 'check_aduana', 'aduana_mex', 'check_aduana_mx')
     def _get_aduana_total(self):
         aduana_total = 0 
         aduana_total += self.check_aduana and self.aduana or 0 
@@ -360,6 +394,17 @@ class SettlementsInherit(models.Model):
             
             box_rec_total += line.box_rec
             amount_total += line.amount
+        storage_liquidacion = 0
+        flete_liquidacion = 0
+        aduana_liquidacion = 0
+        if self.check_storage == True:
+            storage_liquidacion = self.storage
+        if self.check_freight_in == True:
+            flete_liquidacion = self.freight_in
+        if self.check_aduana == True:
+            aduana_liquidacion = self.aduana_total
+
+        
             
         data = {
             'company': self.company,
@@ -368,7 +413,7 @@ class SettlementsInherit(models.Model):
             'aduana': self.aduana_total,
             'maneuvers': self.maneuvers_total,
             'adjustment': self.adjustment,
-            'storage': self.storage,
+            'storage': storage_liquidacion,
             'freight_out': self.freight_out,
             'utility': self.utility,
             'utility_percentage': self.utility_percentage,
@@ -384,7 +429,15 @@ class SettlementsInherit(models.Model):
             'commission_total': self.commission,
             'note': self.note,
             'viaje': self.journey,
-            'boxes': self.boxes
+            'boxes': self.boxes,
+            'ventas_update':self.ventas_update,
+            'freight_update': self.freight_update,
+            'adjustment_update': self.adjustment_update,
+            'aduana_update': self.aduana_update,
+            'storage_update': self.storage_update,
+            'maneuvers_update':self.maneuvers_update,
+            'freight_out_update':self.freight_out_update
+
         }
         return self.env.ref('liquidaciones.xlsx_report').with_context(
             landscape=True).report_action(self, data=data)
@@ -393,24 +446,24 @@ class SettlementsInherit(models.Model):
 class SettlementsInheritLines(models.Model):
     _name = 'sale.settlements.lines'
     
-    def write(self, vals): 
-        if vals: 
-            message = self.get_message(vals)
-            self.settlement_id.message_post(body=message, subject="Lines change")
-        res = super(SettlementsInheritLines, self).write(vals)
-        return res
+    # def write(self, vals): 
+    #     #if vals: 
+    #      #   message = self.get_message(vals)
+    #      #   self.settlement_id.message_post(body=message, subject="Lines change")
+    #     #res = super(SettlementsInheritLines, self).write(vals)
+    #     #return res
     
-    def get_message(self, vals): 
-        message = '<ul>'
-        for val in vals: 
-            message += '<li>(%s) %s: %s -> %s</li>' % (self.product_id.name, self._fields[val].string, self[val], vals[val])
-        message += '</ul>'
+    # def get_message(self, vals): 
+    #     message = '<ul>'
+    #     for val in vals: 
+    #         message += '<li>(%s) %s: %s -> %s</li>' % (self.product_id.name, self._fields[val].string, self[val], vals[val])
+    #     message += '</ul>'
         
-        return message
+    #     return message
 
     date = fields.Datetime(tracking=True, string="Fecha")
     product_id = fields.Many2one(
-        'product.product',  tracking=True, string="Producto")
+        'product.product',  tracking=True, string="Producto",store= True)
     product_uom = fields.Many2one(
         'uom.uom',  tracking=True, string="Medida")
     # Este lo escribe el usuario
@@ -426,10 +479,11 @@ class SettlementsInheritLines(models.Model):
     price_unit_origin = fields.Float(
         tracking=True, string="PrecioFinal1")
     price_unit_origin_rel = fields.Float(related="price_unit_origin", readonly=False)
+    price_unit_final = fields.Float(tracking=True, string="PrecioFinalCalc") 
     amount = fields.Float(tracking=True,
                           string="ImporteOrig") 
     amount_calc = fields.Float(tracking=True,
-                          string="ImporteCalc", compute = "_get_amount_calc") 
+                          string="ImporteCalc") 
     freight = fields.Float(tracking=True,
                           string="Freight")
     deducciones  = fields.Float(tracking=True,
@@ -438,39 +492,42 @@ class SettlementsInheritLines(models.Model):
                           string="Aduanas") 
     commission = fields.Float(
         tracking=True, string="Comission")
-    total = fields.Float(string="Total", tracking=True, compute = "_get_amount")
+    total = fields.Float(string="Total", tracking=True)
     commission_rel = fields.Float(
         tracking=True, string="Comission", related="commission",readonly=False)
     settlement_id = fields.Many2one('sale.settlements')
-    stock_value = fields.Float(compute="_calculate_value")
+    stock_value = fields.Float()
 
-    @api.depends('current_stock_price')
+    @api.onchange('current_stock_price')
     def _calculate_value(self):
         for line in self:
             stock_val = 0
             stock_val = line.current_stock * line.current_stock_price
             line.stock_value = stock_val
 
-    @api.depends('deducciones', 'stock_value',  'amount')
+    @api.onchange('deducciones', 'stock_value',  'amount')
+    #@api.depends('deducciones', 'stock_value',  'amount')
     def _get_amount_calc(self):
         for line in self:
             line.amount_calc =line.amount -line.deducciones + line.stock_value
             line.price_unit = (line.amount_calc / line.box_rec)
             line._get_commision()
+            line._get_amount()
 
 
 
-    @api.depends('commission')
+
+    @api.onchange('commission')
     def _get_amount(self):
         for line in self:
                 line.total =line.amount_calc - line.commission
 
-    @api.depends('amount_calc')
+    @api.onchange('amount_calc')
     def _get_commision(self):
         for line in self:
             line.commission =line.amount_calc * (line.settlement_id.commission_percentage/100)
 
-    @api.depends('amount', 'amount_calc')
+    @api.onchange('amount', 'amount_calc')
     def _get_price_original(self):
         for line in self:
             line.price_unit = (line.amount_calc / line.box_rec)
