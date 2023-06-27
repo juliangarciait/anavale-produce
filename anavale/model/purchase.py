@@ -57,7 +57,7 @@ class PurchaseOrder(models.Model):
             record.caja = record.partner_id.box
             record.referencia = record.partner_id.reference
 
-    lot = fields.Text(compute="_get_lot", store=True)
+    lot = fields.Text(compute="_get_lot")
 
     @api.depends('order_line')
     def _get_lot(self):
