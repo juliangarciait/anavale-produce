@@ -304,9 +304,9 @@ class PurchaseOrder(models.Model):
             spoilage = move_line_ids.filtered(lambda line: line.account_id.id == 1396 and line.move_id.state == 'posted')
             inventory_variation = move_line_ids.filtered(lambda line: line.account_id.id == 1398 and line.move_id.state == 'posted')
             purcha_Sum = sum([line.price_subtotal for line in purcha])
-            spoilage_Sum = sum([line.price_subtotal for line in spoilage])
-            inventory_variation_Sum = sum([line.price_subtotal for line in inventory_variation])
-            suma = purcha_Sum + spoilage_Sum + inventory_variation_Sum
+            spoilage_Sum = sum([line.balance for line in spoilage])
+            inventory_variation_Sum = sum([line.balance for line in inventory_variation])
+            suma = purcha_Sum - spoilage_Sum - inventory_variation_Sum
             purchase_rec.write({'purchase_analytics': abs(suma)})
             purchase_rec.purchase_analytics = abs(suma)
 
