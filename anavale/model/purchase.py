@@ -167,10 +167,13 @@ class PurchaseOrder(models.Model):
         move_ids = self.env["account.move.line"].search(domain)
         for line in move_ids:
             sql_str = ""
+            total = price_unit * line.quantity
             if line.credit != 0:
-                sql_str = "UPDATE account_move_line set credit=%f, balance=%f where id=%s" % (price_unit * abs(line.quantity), (price_unit * abs(line.quantity)) * -1, line.id)
+                sql_str = "UPDATE account_move_line set credit=%f,balance=%f,price_subtotal=%f,price_total=%f,price_unit=%f where id=%s" % (
+                    price_unit * abs(line.quantity), abs(total) * -1, total, total, price_unit, line.id)
             else:
-                sql_str = "UPDATE account_move_line set debit=%f, balance=%f where id=%s" % (price_unit * abs(line.quantity), price_unit * abs(line.quantity), line.id)
+                sql_str = "UPDATE account_move_line set debit=%f, balance=%f,price_subtotal=%f,price_total=%f,price_unit=%f where id=%s" % (
+                    price_unit * abs(line.quantity), abs(total), total, total, price_unit, line.id)
             if sql_str:
                 _logger.info(sql_str)
                 self.env.cr.execute(sql_str)
