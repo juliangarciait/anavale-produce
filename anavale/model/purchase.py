@@ -306,7 +306,7 @@ class PurchaseOrder(models.Model):
             purcha_Sum = sum([line.price_subtotal for line in purcha])
             spoilage_Sum = sum([line.balance for line in spoilage])
             inventory_variation_Sum = sum([line.balance for line in inventory_variation])
-            suma = purcha_Sum - spoilage_Sum - inventory_variation_Sum
+            suma = purcha_Sum + spoilage_Sum + inventory_variation_Sum
             purchase_rec.write({'purchase_analytics': abs(suma)})
             purchase_rec.purchase_analytics = abs(suma)
 
