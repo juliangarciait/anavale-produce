@@ -161,7 +161,7 @@ class PurchaseOrder(models.Model):
         order_id = move.sale_line_id and move.sale_line_id.order_id
         accounts = product_id.product_tmpl_id.get_product_accounts()
         _logger.info(accounts)
-        domain = [("product_id", "in", product_ids), ("account_id", "in", [accounts.get("expense").id, accounts.get("stock_output").id])]
+        domain = [("product_id", "=", product_id.id), ("account_id", "in", [accounts.get("expense").id, accounts.get("stock_output").id])]
         if order_id:
             domain.append(("move_id.invoice_origin", "=", order_id.name))
         move_ids = self.env["account.move.line"].search(domain)
