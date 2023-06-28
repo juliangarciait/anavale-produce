@@ -1,5 +1,6 @@
 from odoo import fields, models, api
 from odoo import tools
+from odoo.exceptions import ValidationError
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -148,14 +149,14 @@ class PurchaseOrder(models.Model):
             for move in line.move_ids:
                 _logger.info("Move Update SALE")
                 self._update_account_move(move, product_id, price_unit)
-                self.update_invoice_valuation(move, product_id, price_unit)
+                self.update_invoice_valuation(move, product_id, price_unit, move_sale.lot_id)
                 self._update_stock_valuation_layer(move, product_id, price_unit)
             # Update Invoice Lines
             # for ivl in line.invoice_lines:
             #     if ivl.move_id:
             #         self._update_work_flow_invoice(ivl.move_id)
 
-    def update_invoice_valuation(self, move, product_id, price_unit):
+    def update_invoice_valuation(self, move, product_id, price_unit, lot_id):
         _logger.info("&"*900)
         product_ids = self._get_list_variant_ids(product_id.product_tmpl_id)
         order_id = move.sale_line_id and move.sale_line_id.order_id
@@ -165,18 +166,41 @@ class PurchaseOrder(models.Model):
         if order_id:
             domain.append(("move_id.invoice_origin", "=", order_id.name))
         move_ids = self.env["account.move.line"].search(domain)
-        for line in move_ids:
-            sql_str = ""
-            total = price_unit * line.quantity
-            if line.credit != 0:
-                sql_str = "UPDATE account_move_line set credit=%f,balance=%f,price_subtotal=%f,price_total=%f,price_unit=%f where id=%s" % (
-                    price_unit * abs(line.quantity), abs(total) * -1, total, total, price_unit, line.id)
-            else:
-                sql_str = "UPDATE account_move_line set debit=%f, balance=%f,price_subtotal=%f,price_total=%f,price_unit=%f where id=%s" % (
-                    price_unit * abs(line.quantity), abs(total), total, total, price_unit, line.id)
-            if sql_str:
-                _logger.info(sql_str)
-                self.env.cr.execute(sql_str)
+        tag = lot_id.analytic_tag_ids.ids
+        if len(tag) == 0:
+            raise ValidationError('lote {} no tiene tags'.format(str(lot_id.name)))
+        tag.sort()
+        tag = tag[-1]
+        
+        for x in range(len(move_ids)):
+            if move_ids[x].account_id.id == 24:
+                if tag in move_ids[x].analytic_tag_ids.ids:
+                    sql_str = ""
+                    total = price_unit * move_ids[x].quantity
+                    for acc in move_ids[x-1:x+1]:
+                        if acc.credit != 0:
+                            sql_str = "UPDATE account_move_line set credit=%f,balance=%f,price_subtotal=%f,price_total=%f,price_unit=%f where id=%s" % (
+                            price_unit * abs(acc.quantity), abs(total) * -1, total, total, price_unit, acc.id)
+                        else:
+                            sql_str = "UPDATE account_move_line set debit=%f, balance=%f,price_subtotal=%f,price_total=%f,price_unit=%f where id=%s" % (
+                            price_unit * abs(acc.quantity), abs(total), total, total, price_unit, acc.id)
+                        if sql_str:
+                            _logger.info(sql_str)
+                            self.env.cr.execute(sql_str)
+
+
+        # for line in move_ids:
+        #     sql_str = ""
+        #     total = price_unit * line.quantity
+        #     if line.credit != 0:
+        #         sql_str = "UPDATE account_move_line set credit=%f,balance=%f,price_subtotal=%f,price_total=%f,price_unit=%f where id=%s" % (
+        #             price_unit * abs(line.quantity), abs(total) * -1, total, total, price_unit, line.id)
+        #     else:
+        #         sql_str = "UPDATE account_move_line set debit=%f, balance=%f,price_subtotal=%f,price_total=%f,price_unit=%f where id=%s" % (
+        #             price_unit * abs(line.quantity), abs(total), total, total, price_unit, line.id)
+        #     if sql_str:
+        #         _logger.info(sql_str)
+        #         self.env.cr.execute(sql_str)
 
 
 
@@ -245,6 +269,7 @@ class PurchaseOrder(models.Model):
                             
                             if move_sale.lot_id:
                                 self._update_account_move_from_sale(move_sale, line.product_id, line.price_unit)
+            record.calc_purchase_analytics()
 
     def write(self, vals):
         res = super(PurchaseOrder, self).write(vals)
