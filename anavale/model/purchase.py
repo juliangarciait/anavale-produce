@@ -271,6 +271,13 @@ class PurchaseOrder(models.Model):
                                 self._update_account_move_from_sale(move_sale, line.product_id, line.price_unit)
             record.calc_purchase_analytics()
 
+    @api.model
+    def create(self, vals):
+        purchaseperson = self.env['res.partner'].search([('id', '=', vals.get('partner_id'))], limit=1).purchaseperson_id.id
+        if purchaseperson:
+            vals['user_id'] = purchaseperson
+        return super(PurchaseOrder, self).create(vals)
+
     def write(self, vals):
         res = super(PurchaseOrder, self).write(vals)
         if 'order_line' in vals:
@@ -343,6 +350,13 @@ class PurchaseOrderLine(models.Model):
 
     total_invoiced = fields.Float(compute='_compute_total_invoiced', string="Billed Total", store=True)
     purchase_lot = fields.Many2one('stock.production.lot', 'Lote')
+
+    @api.model
+    def create(self, vals):
+        if vals['price_unit'] == 0:
+            raise ValidationError('el precio no puede ser 0')
+        return super(PurchaseOrderLine, self).create(vals)
+
 
     @api.depends('invoice_lines.price_unit', 'invoice_lines.quantity')
     def _compute_total_invoiced(self):
