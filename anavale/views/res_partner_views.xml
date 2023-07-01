@@ -19,8 +19,10 @@
                             attrs="{'invisible': [('sequence_id', '=', False)]}"/>
                     
                 </group>
-            </xpath>            
-            
+            </xpath>   
+            <xpath expr="//field[@name='property_supplier_payment_term_id']" position="before">
+                    <field name="purchaseperson_id" />         
+            </xpath>  
         </field>
     </record>
 

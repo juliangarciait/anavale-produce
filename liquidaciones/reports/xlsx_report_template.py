@@ -514,6 +514,8 @@ class XlsxUtilityReport(models.AbstractModel):
         currency_id = self.env.user.company_id.currency_id
         light_box_currency.num_format = currency_id.symbol + '#,##0.00'
         i = 4
+        sumador = i
+        inicio_i = 0
         total_total = 0
         total_freight_in = 0
         total_aduana_total = 0
@@ -528,6 +530,38 @@ class XlsxUtilityReport(models.AbstractModel):
         for po in objects:
             exists_st = self.env['sale.settlements'].search([('order_id', '=', po.id)], limit=1)
             if exists_st:
+                #codigo para determinar datos actualizables
+                po_product_ids = [line.product_id for line in po.order_line]
+                fecha = po.date_order
+                picking_ids = po.picking_ids.filtered(lambda picking: picking.state == 'done') # Se obtinenen pickings de la orden de compra
+                lot_ids = self.env["stock.production.lot"]
+                for sml in picking_ids.move_line_ids:
+                    lot_ids += sml.lot_id
+                analytic_tag_ids = self.env['account.analytic.tag']
+                for lot in lot_ids:
+                    tag = lot.analytic_tag_ids.filtered(lambda tag: len(tag.name)>5)
+                    if not tag in analytic_tag_ids:
+                        analytic_tag_ids += tag
+                move_line_ids = self.env['account.move.line'].search([('analytic_tag_ids', 'in', analytic_tag_ids.ids), ('move_id.state', '=', 'posted')])
+                sales_lines = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids and line.move_id.state == 'posted')
+                freight_in = move_line_ids.filtered(lambda line: line.account_id.id == 1387 and line.move_id.state == 'posted')
+                freight_out = move_line_ids.filtered(lambda line: line.account_id.id == 1394 and line.move_id.state == 'posted')
+                maneuvers = move_line_ids.filtered(lambda line: line.account_id.id == 1390 and line.move_id.state == 'posted')
+                storage = move_line_ids.filtered(lambda line: line.account_id.id == 1395 and line.move_id.state == 'posted')
+                aduana_usa = move_line_ids.filtered(lambda line: line.account_id.id == 1393 and line.move_id.state == 'posted')
+                aduana_mex = move_line_ids.filtered(lambda line: line.account_id.id == 1392 and line.move_id.state == 'posted')#[]1392
+                adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
+                boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
+                sale_update = sum([sale.price_subtotal for sale in sales_lines])
+                freight_in_update = sum([accline.price_subtotal for accline in freight_in])
+                freight_out_update = sum([accline.price_subtotal for accline in freight_out])
+                maneuvers_update = sum([accline.price_subtotal for accline in maneuvers])
+                storage_update = sum([accline.price_subtotal for accline in storage])
+                aduana_usa_update = sum([accline.price_subtotal for accline in aduana_usa])
+                aduana_mex_update = sum([accline.price_subtotal for accline in aduana_mex])
+                boxes_update = sum([accline.price_subtotal for accline in boxes])
+                adjustment_update = sum([accline.price_subtotal for accline in adjustment])
+                #termina datos actualizables
                 settlement_id = exists_st
                 lang = self.env.user.lang
                 lang_id = self.env['res.lang'].search([('code', '=', lang)])
@@ -580,7 +614,7 @@ class XlsxUtilityReport(models.AbstractModel):
                 sheet.write(i + 10, 12, 'FREIGHT OUT', travels_middle_left_red)
                 sheet.write(i + 13, 12, 'UTILIDAD', travels_middle_left)
                 sheet.write(i, 13, po.name, name)
-                sheet.write(i + 1, 13, settlement_id.total, travels_title_top_right)
+                sheet.write(i + 1, 13, sale_update, travels_title_top_right)
                 sheet.write(i + 5, 13, settlement_id.freight_in, travels_middle_right)
                 sheet.write(i + 6, 13, settlement_id.aduana_total, travels_middle_right)
                 sheet.write(i + 7, 13, settlement_id.maneuvers_total, travels_middle_right_red)
@@ -596,12 +630,17 @@ class XlsxUtilityReport(models.AbstractModel):
                 sheet.write(i + 14, 12, '', travels_middle_left)
                 sheet.write(i + 2, 13, '', travels_middle_right)
                 sheet.write(i + 3, 13, '', travels_middle_right)
-                sheet.write(i + 4, 13, '', travels_middle_right)
+                sheet.write(i + 4, 13, settlement_id.settlement, travels_middle_right)
                 sheet.write(i + 11, 13, '', travels_middle_right)
                 sheet.write(i + 12, 13, '', travels_middle_right)
                 sheet.write(i + 14, 13, '', travels_middle_right)
                 sheet.write(i + 15, 12, '', travels_bottom_left)
+                liquidacion_ubicacion = i + 4
                 i += 5
+                j = i - 1
+                inicio_i = i
+                final_i = i
+                sheet.write(i - 1, 10, (-settlement_id.freight_total-settlement_id.aduana_total-settlement_id.storage), light_box_currency)
                 for line in settlement_id.settlements_line_ids:
                     display_name = line.product_id.display_name.replace(
                         ")", "").split("(")
@@ -612,39 +651,43 @@ class XlsxUtilityReport(models.AbstractModel):
                     sheet.write(i, 2, variant, light_box)
                     sheet.write(i, 3, line.box_rec, light_box)
                     sheet.write(i, 4, line.price_unit, light_box_currency)
-                    sheet.write(i, 5, line.amount, light_box_currency)
+                    sheet.write(i, 5, "=d{}*e{}".format(str(i+1), str(i+1)), light_box_currency)
                     sheet.write(i, 6, "", light_box_currency)
                     sheet.write(i, 7, "", light_box_currency)
                     sheet.write(i, 8, "", light_box_currency)
-                    sheet.write(i, 9, line.commission, light_box_currency)
-                    sheet.write(i, 10, line.total, light_box_currency)
-                for j in range(19 - i):
-                    if i < 19:
-                        i += 1
-                        sheet.write(i, 0, '', light_box)
-                        sheet.write(i, 1, '', light_box)
-                        sheet.write(i, 2, '', light_box)
-                        sheet.write(i, 3, '', light_box)
-                        sheet.write(i, 4, '', light_box)
-                        sheet.write(i, 5, '', light_box)
-                        sheet.write(i, 6, '', light_box)
-                        sheet.write(i, 7, '', light_box)
-                        sheet.write(i, 8, '', light_box)
-                        sheet.write(i, 9, '', light_box)
-                        sheet.write(i, 10, '', light_box)
+                    sheet.write(i, 9, "=f{}*j{}".format(str(i+1), str(j)), light_box_currency)
+                    sheet.write(i, 10, "=f{}-j{}".format(str(i+1), str(i+1)), light_box_currency)
+                    final_i = i
+                for jj in range(9-(final_i - inicio_i)):
+                    i += 1
+                    sheet.write(i, 0, '', light_box)
+                    sheet.write(i, 1, '', light_box)
+                    sheet.write(i, 2, '', light_box)
+                    sheet.write(i, 3, '', light_box)
+                    sheet.write(i, 4, '', light_box)
+                    sheet.write(i, 5, '', light_box)
+                    sheet.write(i, 6, '', light_box)
+                    sheet.write(i, 7, '', light_box)
+                    sheet.write(i, 8, '', light_box)
+                    sheet.write(i, 9, '', light_box)
+                    sheet.write(i, 10, '', light_box)
+                    sumador = sumador +3
+                
                 
                 sheet.write(i+1, 0, '', light_box)
                 sheet.write(i+1, 1, '', light_box)
                 sheet.write(i+1, 2, '', light_box)
                 sheet.write(i+1, 3, "", light_box)
                 sheet.write(i+1, 4, '', light_box)
-                sheet.write(i+1, 5, settlement_id.total, light_box_currency)
+                sheet.write(i+1, 5, "=sum(f{}:f{})".format(str(inicio_i+1), str(i+1)), light_box_currency)
                 sheet.write(i+1, 6, settlement_id.freight_total, light_box_currency)
                 sheet.write(i+1, 7, settlement_id.aduana_total, light_box_currency)
-                sheet.write(i+1, 8, "", light_box_currency)
-                sheet.write(i+1, 9, settlement_id.commission, light_box_currency)
-                sheet.write(i+1, 10, settlement_id.total_subtotal, light_box_currency)
-                
+                sheet.write(i+1, 8, settlement_id.storage, light_box_currency)
+                sheet.write(i+1, 9, "=sum(j{}:j{})".format(str(inicio_i+1), str(i+1)), light_box_currency)
+                sheet.write(i+1, 10, "=sum(k{}:k{})".format(str(inicio_i), str(i+1)), light_box_currency)
+                sheet.write(liquidacion_ubicacion, 13, "=k{}".format(str(i+2)), travels_middle_right)
+                sheet.write(liquidacion_ubicacion+9, 13, "=n{}-sum(n{}:n{})".format(str(liquidacion_ubicacion-2),str(liquidacion_ubicacion),str(liquidacion_ubicacion+9)), travels_middle_right)
+                sheet.write(liquidacion_ubicacion+11, 13, "=(n{}/n{})".format(str(liquidacion_ubicacion+10),str(liquidacion_ubicacion-2)), travels_middle_right)
                 i += 7
 
                 total_total += settlement_id.total
@@ -657,6 +700,7 @@ class XlsxUtilityReport(models.AbstractModel):
                 total_utility += settlement_id.utility
                 total_utility_percentage = float_round(settlement_id.utility_percentage, precision_digits=2)
                 utility_per_qty += 1
+                sumador = sumador + 15
             else:
                 sheet.write(i, 12, 'Viaje', travels)
                 sheet.write(i, 13, po.name, name)
@@ -687,6 +731,7 @@ class XlsxUtilityReport(models.AbstractModel):
                 sheet.write(i+1, 8, '', light_header_bottom)
                 sheet.write(i+2, 0, 'Sin liquidación', report_format)
                 i += 3
+                
         
         i += 1
         sheet.write(i, 1, 'TOTALES', travels)
@@ -721,3 +766,5 @@ class XlsxUtilityReport(models.AbstractModel):
         sheet.write(i + 12, 2, '', travels_middle_right)
         sheet.write(i + 14, 2, '', travels_middle_right)
         sheet.write(i + 15, 1, '', travels_bottom_left)
+
+        

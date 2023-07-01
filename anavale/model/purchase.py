@@ -1,5 +1,6 @@
 from odoo import fields, models, api
 from odoo import tools
+from odoo.exceptions import ValidationError
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -144,13 +145,12 @@ class PurchaseOrder(models.Model):
             for move in line.move_ids:
                 _logger.info("Move Update SALE")
                 self._update_account_move(move, product_id, price_unit)
-                self.update_invoice_valuation(move, product_id, price_unit)
+                self.update_invoice_valuation(move, product_id, price_unit, move_sale.lot_id)
                 self._update_stock_valuation_layer(move, product_id, price_unit)
             # Update Invoice Lines
             # for ivl in line.invoice_lines:
             #     if ivl.move_id:
             #         self._update_work_flow_invoice(ivl.move_id)
-
 
     def update_invoice_valuation(self, move, product_id, price_unit):
         lot_ids = self._get_list_lot_ids(move.lot_id)
@@ -236,6 +236,14 @@ class PurchaseOrder(models.Model):
                             
                             if move_sale.lot_id:
                                 self._update_account_move_from_sale(move_sale, line.product_id, line.price_unit)
+            record.calc_purchase_analytics()
+
+    @api.model
+    def create(self, vals):
+        purchaseperson = self.env['res.partner'].search([('id', '=', vals.get('partner_id'))], limit=1).purchaseperson_id.id
+        if purchaseperson:
+            vals['user_id'] = purchaseperson
+        return super(PurchaseOrder, self).create(vals)
 
     def write(self, vals):
         res = super(PurchaseOrder, self).write(vals)
@@ -309,6 +317,13 @@ class PurchaseOrderLine(models.Model):
 
     total_invoiced = fields.Float(compute='_compute_total_invoiced', string="Billed Total", store=True)
     purchase_lot = fields.Many2one('stock.production.lot', 'Lote')
+
+    @api.model
+    def create(self, vals):
+        if vals['price_unit'] == 0:
+            raise ValidationError('el precio no puede ser 0')
+        return super(PurchaseOrderLine, self).create(vals)
+
 
     @api.depends('invoice_lines.price_unit', 'invoice_lines.quantity')
     def _compute_total_invoiced(self):
