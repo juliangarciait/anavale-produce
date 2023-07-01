@@ -139,10 +139,6 @@ class PurchaseOrder(models.Model):
         domain = [('lot_id', 'in', tuple(self._get_list_lot_ids(move_sale.lot_id))),
                   ('product_id', 'in', self._get_list_variant_ids(product_id.product_tmpl_id))]
         lines = self.env['sale.order.line'].search(domain)
-        _logger.info("$"*900)
-        _logger.info(domain)
-        _logger.info(lines.read())
-        
         for line in lines:
             # Update Purchase Move
             for move in line.move_ids:
@@ -155,15 +151,11 @@ class PurchaseOrder(models.Model):
             #     if ivl.move_id:
             #         self._update_work_flow_invoice(ivl.move_id)
 
+
     def update_invoice_valuation(self, move, product_id, price_unit):
-        _logger.info("&"*900)
-        product_ids = self._get_list_variant_ids(product_id.product_tmpl_id)
-        order_id = move.sale_line_id and move.sale_line_id.order_id
+        lot_ids = self._get_list_lot_ids(move.lot_id)
         accounts = product_id.product_tmpl_id.get_product_accounts()
-        _logger.info(accounts)
-        domain = [("product_id", "=", product_id.id), ("account_id", "in", [accounts.get("expense").id, accounts.get("stock_output").id])]
-        if order_id:
-            domain.append(("move_id.invoice_origin", "=", order_id.name))
+        domain = [("lot_id", "in", lot_ids), ("account_id", "in", [accounts.get("expense").id, accounts.get("stock_output").id])]
         move_ids = self.env["account.move.line"].search(domain)
         for line in move_ids:
             sql_str = ""
@@ -175,7 +167,6 @@ class PurchaseOrder(models.Model):
                 sql_str = "UPDATE account_move_line set debit=%f, balance=%f,price_subtotal=%f,price_total=%f,price_unit=%f where id=%s" % (
                     price_unit * abs(line.quantity), abs(total), total, total, price_unit, line.id)
             if sql_str:
-                _logger.info(sql_str)
                 self.env.cr.execute(sql_str)
 
 
