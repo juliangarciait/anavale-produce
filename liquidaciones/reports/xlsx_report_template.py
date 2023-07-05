@@ -275,7 +275,7 @@ class XlsxReport(models.AbstractModel):
         sheet.write(19, 4, '', light_box)
         #sheet.write(19, 5, data.get('amount_total'), light_box_currency)
         sheet.write(19, 5, '=SUM(f9:f19)', light_box_currency)
-        sheet.write(19, 6, data.get('freight_in'), light_box_currency)
+        sheet.write(19, 6, data.get('freight_total'), light_box_currency)
         sheet.write(19, 7, data.get('aduana'), light_box_currency)
         sheet.write(19, 8, data.get('storage')+data.get('maneuvers'), light_box_currency1)   
         #sheet.write(19, 9, data.get('commission_total'), light_box_currency)
@@ -640,7 +640,7 @@ class XlsxUtilityReport(models.AbstractModel):
                 j = i - 1
                 inicio_i = i
                 final_i = i
-                sheet.write(i - 1, 10, (-settlement_id.freight_total-settlement_id.aduana_total-settlement_id.storage), light_box_currency)
+                sheet.write(i - 1, 10, (-settlement_id.freight_total-settlement_id.aduana_total-settlement_id.storage-settlement_id.maneuvers), light_box_currency)
                 for line in settlement_id.settlements_line_ids:
                     display_name = line.product_id.display_name.replace(
                         ")", "").split("(")
@@ -682,7 +682,7 @@ class XlsxUtilityReport(models.AbstractModel):
                 sheet.write(i+1, 5, "=sum(f{}:f{})".format(str(inicio_i+1), str(i+1)), light_box_currency)
                 sheet.write(i+1, 6, settlement_id.freight_total, light_box_currency)
                 sheet.write(i+1, 7, settlement_id.aduana_total, light_box_currency)
-                sheet.write(i+1, 8, settlement_id.storage, light_box_currency)
+                sheet.write(i+1, 8, settlement_id.storage + settlement_id.maneuvers , light_box_currency)
                 sheet.write(i+1, 9, "=sum(j{}:j{})".format(str(inicio_i+1), str(i+1)), light_box_currency)
                 sheet.write(i+1, 10, "=sum(k{}:k{})".format(str(inicio_i), str(i+1)), light_box_currency)
                 sheet.write(liquidacion_ubicacion, 13, "=k{}".format(str(i+2)), travels_middle_right)

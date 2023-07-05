@@ -56,7 +56,7 @@ class SettlementsSaleOrder(models.Model):
             storage = move_line_ids.filtered(lambda line: line.account_id.id == 1395 and line.move_id.state == 'posted')
             aduana_usa = move_line_ids.filtered(lambda line: line.account_id.id == 1393 and line.move_id.state == 'posted')
             aduana_mex = move_line_ids.filtered(lambda line: line.account_id.id == 1392 and line.move_id.state == 'posted')#[]1392
-            adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
+            adjustment = move_line_ids.filtered(lambda line: line.account_id.id in (1378, 1377, 1379, 1477) and line.move_id.state == 'posted')
             amountVar = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids and line.move_id.state == 'posted')
             boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
             subAmount = {}
@@ -147,6 +147,7 @@ class SettlementsSaleOrder(models.Model):
                                         'default_aduana_update': aduana_total,
                                         'default_storage_update': storageSum,
                                         'default_maneuvers_update': maneuversSum,
+                                        'default_adjustment_update': adjustmentSum,
                                         'default_freight_out_update': freight_outSum,            
                                         },
                 'views': [(self.env.ref(view_form).id, 'form')],
@@ -161,7 +162,8 @@ class SettlementsSaleOrder(models.Model):
                 exists_st.storage_update = storageSum
                 exists_st.maneuvers_update = maneuversSum
                 exists_st.freight_out_update = freight_outSum
-                action_data.update({"context": {'default_ventas_update':float(subtotal)}, "res_id": exists_st.id})
+                exists_st.adjustment_update = adjustmentSum
+                action_data.update({"context": {'default_ventas_update':float(subtotal)-adjustmentSum}, "res_id": exists_st.id})
             return action_data
 
  
