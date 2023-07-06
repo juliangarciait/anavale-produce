@@ -85,7 +85,10 @@ class SettlementsSaleOrder(models.Model):
                     stock = sum([q.quantity for q in quants])
                     subtotal = subAmount.get(line.product_id.id, False)
                     ventas_update += subtotal
-                    var_price_unit_hidden = line.qty_received and subtotal/(line.qty_received-stock) or 0
+                    if line.qty_received > stock:
+                        var_price_unit_hidden = line.qty_received and subtotal/(line.qty_received-stock) or 0
+                    else:
+                        var_price_unit_hidden = 0
                     new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
                                 "product_uom": line.product_uom.id, "price_unit": var_price_unit_hidden, "price_unit_origin_rel": var_price_unit_hidden, "price_unit_origin": var_price_unit_hidden,
                                 "box_emb":line.product_qty, "box_rec": line.qty_received, "box_sale": line.qty_received-stock,
@@ -401,6 +404,8 @@ class SettlementsInherit(models.Model):
         aduana_liquidacion = 0
         if self.check_storage == True:
             storage_liquidacion = self.storage
+        if self.check_others == True:
+            storage_liquidacion += self.others
         if self.check_freight_in == True:
             flete_liquidacion = self.freight_in
         if self.check_aduana == True:
