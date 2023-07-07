@@ -81,8 +81,11 @@ class SettlementsSaleOrder(models.Model):
             if self.tipo_precio == 'variable':
                 for line in purchase_rec.order_line: #3
                     stock = 0
-                    quants = quant_obj.search([('product_id', '=', line.product_id.id), ('lot_id', 'in', lot_ids.ids), ('location_id', 'in', location_id.ids)])
-                    stock = sum([q.quantity for q in quants])
+                    line_lotes =  self.env['stock.production.lot'].search([('id', 'in', lot_ids.ids),('product_id', '=', line.product_id.id)])
+                    line_lotes += self.env['stock.production.lot'].search([('parent_lod_id', 'in', line_lotes.ids)])
+                    quants1 = quant_obj.search([ ('lot_id', 'in', line_lotes.ids), ('location_id', 'in', location_id.ids)])
+                    #quants = quant_obj.search([('product_id', '=', line.product_id.id), ('lot_id', 'in', lot_ids.ids), ('location_id', 'in', location_id.ids)])
+                    stock = sum([q.quantity for q in quants1])
                     subtotal = subAmount.get(line.product_id.id, False)
                     ventas_update += subtotal
                     if line.qty_received > stock:
