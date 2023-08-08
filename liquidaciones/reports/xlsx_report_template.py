@@ -1179,40 +1179,4 @@ class XlsxUtilityReport1(models.AbstractModel):
                 i += 3
                 
         
-        i += 1
-        sheet.write(i, 1, 'TOTALES', travels)
-        sheet.write(i + 1, 1, 'VENTAS', travels_title_top_left)
-        sheet.write(i + 4, 1, 'LIQUIDACIONES', travels_middle_left)
-        sheet.write(i + 5, 1, 'Freight In', travels_middle_left)
-        sheet.write(i + 6, 1, 'Aduana', travels_middle_left)
-        sheet.write(i + 7, 1, 'MANIOBRAS', travels_middle_left_red)
-        sheet.write(i + 8, 1, 'AJUSTE', travels_middle_left_red)
-        sheet.write(i + 9, 1, 'STORAGE', travels_middle_left_red)
-        sheet.write(i + 10, 1, 'FREIGHT OUT', travels_middle_left_red)
-        sheet.write(i + 13, 1, 'UTILIDAD', travels_middle_left)
-        sheet.write(i + 11, 1, 'CAJAS', travels_middle_left)
-        sheet.write(i + 1, 2, total_total, travels_title_top_right)
-        sheet.write(i + 5, 2, total_freight_in, travels_middle_right)
-        sheet.write(i + 6, 2, total_aduana_total, travels_middle_right)
-        sheet.write(i + 7, 2, total_maneuvers_total, travels_middle_right_red)
-        sheet.write(i + 8, 2, total_adjustment, travels_middle_right_red)
-        sheet.write(i + 9, 2, total_storage, travels_middle_right_red)
-        sheet.write(i + 10, 2, total_freight_out, travels_middle_right_red)
-        sheet.write(i + 13, 2, total_utility, travels_middle_right)
-        sheet.write(i + 11, 2, total_boxes, travels_middle_right)
-        sheet.write(i + 15, 2, str(utility_per_qty and total_utility_percentage/utility_per_qty or 0) + '%', travels_bottom_right)
-
-        sheet.write(i + 2, 1, '', travels_middle_left)
-        sheet.write(i + 3, 1, '', travels_middle_left)
-        #sheet.write(i + 11, 1, '', travels_middle_left)
-        sheet.write(i + 12, 1, '', travels_middle_left)
-        sheet.write(i + 14, 1, '', travels_middle_left)
-        sheet.write(i + 2, 2, '', travels_middle_right)
-        sheet.write(i + 3, 2, '', travels_middle_right)
-        sheet.write(i + 4, 2, '', travels_middle_right)
-        #sheet.write(i + 11, 2, '', travels_middle_right)
-        sheet.write(i + 12, 2, '', travels_middle_right)
-        sheet.write(i + 14, 2, '', travels_middle_right)
-        sheet.write(i + 15, 1, '', travels_bottom_left)
-
         
