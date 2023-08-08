@@ -40,7 +40,7 @@ class SettlementsSaleOrder(models.Model):
         tag_name = ''
         #comprobacion de que no haya ventas pendientes de facturar
         sale_lines = self.env['sale.order.line'].search([('lot_id', 'in', lot_ids.ids),('invoice_status', '=', 'to invoice')])
-        if len(sale_lines) > 0:
+        if len(sale_lines) > 100:  #quite la limitante por mientas
             raise UserError('Hay ventas pendientes de facturar para estos lotes!')
         else:                                                    
             move_line_ids = self.env['account.move.line'].search([('analytic_tag_ids', 'in', analytic_tag_ids.ids), ('move_id.state', '=', 'posted')])
@@ -73,7 +73,7 @@ class SettlementsSaleOrder(models.Model):
             adjustmentSum = sum([line.price_subtotal for line in adjustment])
             aduana_usaSum = sum([line.price_subtotal for line in aduana_usa])
             aduana_mexSum = sum([line.price_subtotal for line in aduana_mex])
-            boxes_sum = sum([line.price_subtotal for line in boxes])
+            boxes_sum = sum([line.debit for line in boxes])
             aduana_total = aduana_mexSum + aduana_usaSum       
             quant_obj = self.env["stock.quant"] 
             location_id = self.env["stock.location"].search([('usage', '=', 'internal')])
@@ -86,17 +86,19 @@ class SettlementsSaleOrder(models.Model):
                     quants1 = quant_obj.search([ ('lot_id', 'in', line_lotes.ids), ('location_id', 'in', location_id.ids)])
                     #quants = quant_obj.search([('product_id', '=', line.product_id.id), ('lot_id', 'in', lot_ids.ids), ('location_id', 'in', location_id.ids)])
                     stock = sum([q.quantity for q in quants1])
+                    sales_pendientes = self.env["sale.order.line"].search([ ('lot_id', 'in', line_lotes.ids), ('invoice_status', '=', 'to invoice')])
+                    invoice_pendientes = sum([q.qty_to_invoice for q in sales_pendientes])
                     subtotal = subAmount.get(line.product_id.id, False)
                     ventas_update += subtotal
-                    if line.qty_received > stock:
-                        var_price_unit_hidden = line.qty_received and subtotal/(line.qty_received-stock) or 0
+                    if line.qty_received > stock+invoice_pendientes:
+                        var_price_unit_hidden = line.qty_received and subtotal/(line.qty_received-stock-invoice_pendientes) or 0
                     else:
                         var_price_unit_hidden = 0
                     new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
                                 "product_uom": line.product_uom.id, "price_unit": var_price_unit_hidden, "price_unit_origin_rel": var_price_unit_hidden, "price_unit_origin": var_price_unit_hidden,
-                                "box_emb":line.product_qty, "box_rec": line.qty_received, "box_sale": line.qty_received-stock,
+                                "box_emb":line.product_qty, "box_rec": line.qty_received, "box_sale": line.qty_received-stock-invoice_pendientes,
                                 "amount": float(subtotal), "amount_calc": float(subtotal),
-                                "current_stock": stock}))
+                                "current_stock": stock, "pending_invoice":invoice_pendientes}))
                     product_line.append(line.product_id.id)
             else:
                 for line in purchase_rec.order_line: #3
@@ -154,7 +156,10 @@ class SettlementsSaleOrder(models.Model):
                                         'default_storage_update': storageSum,
                                         'default_maneuvers_update': maneuversSum,
                                         'default_adjustment_update': adjustmentSum,
-                                        'default_freight_out_update': freight_outSum,            
+                                        'default_freight_out_update': freight_outSum, 
+                                        'default_pending_invoice': invoice_pendientes,
+                                        'default_boxes_update': boxes_sum,
+                                        'default_stock':stock           
                                         },
                 'views': [(self.env.ref(view_form).id, 'form')],
             }
@@ -169,6 +174,8 @@ class SettlementsSaleOrder(models.Model):
                 exists_st.maneuvers_update = maneuversSum
                 exists_st.freight_out_update = freight_outSum
                 exists_st.adjustment_update = adjustmentSum
+                exists_st.stock = stock
+                exists_st.pending_invoice = invoice_pendientes
                 action_data.update({"context": {'default_ventas_update':float(subtotal)-adjustmentSum}, "res_id": exists_st.id})
             return action_data
 
@@ -281,6 +288,10 @@ class SettlementsInherit(models.Model):
     freight_update = fields.Float( string="Flete Actualizado")
     Liquidacion = fields.Float( string="Flete Actualizado")
     ventas_update = fields.Float(string="Ventas Actualizado")
+    boxes_update = fields.Float(string="Boxes Actualizado")
+    stock = fields.Integer(string="Stock Pendiente")
+    pending_invoice = fields.Integer(string="Facturas Pendiente")
+
 
 
 
@@ -446,11 +457,13 @@ class SettlementsInherit(models.Model):
             'aduana_update': self.aduana_update,
             'storage_update': self.storage_update,
             'maneuvers_update':self.maneuvers_update,
-            'freight_out_update':self.freight_out_update
+            'freight_out_update':self.freight_out_update,
+            'boxes_update':self.boxes_update
 
         }
-        return self.env.ref('liquidaciones.xlsx_report').with_context(
+        return self.env.ref('liquidaciones.xlsx_utlity_report1').with_context(
             landscape=True).report_action(self, data=data)
+        #return self.env['report.liquidaciones.xlsx_utility_report'].report_action(self, data=data)#(objects=self.settlements_sale_order_ids)
 
 
 class SettlementsInheritLines(models.Model):
@@ -482,8 +495,10 @@ class SettlementsInheritLines(models.Model):
     # Este lo escribe el usuario
     box_rec = fields.Integer(tracking=True, string="Cajas Rec.")
     current_stock = fields.Float(tracking=True, string="Stock")
+    pending_invoice = fields.Float(tracking=True, string="PorFacturar")
     box_sale = fields.Integer(tracking=True, string="Cajas Vendidas")
     current_stock_price = fields.Float(tracking=True, string="StockPrice")
+    pending_invoice_price = fields.Float(tracking=True, string="PorfactPrice")
     price_unit = fields.Float(
         tracking=True, string="PrecioFinal")
     price_unit_origin = fields.Float(
@@ -507,6 +522,7 @@ class SettlementsInheritLines(models.Model):
         tracking=True, string="Comission", related="commission",readonly=False)
     settlement_id = fields.Many2one('sale.settlements')
     stock_value = fields.Float()
+    pending_invoice_value = fields.Float()
 
     @api.onchange('current_stock_price')
     def _calculate_value(self):
@@ -514,12 +530,19 @@ class SettlementsInheritLines(models.Model):
             stock_val = 0
             stock_val = line.current_stock * line.current_stock_price
             line.stock_value = stock_val
+        
+    @api.onchange('pending_invoice_price')
+    def _calculate_pending_value(self):
+        for line in self:
+            pending_invoice_value1 = 0
+            pending_invoice_value1 = line.pending_invoice * line.pending_invoice_price
+            line.pending_invoice_value = pending_invoice_value1
 
-    @api.onchange('deducciones', 'stock_value',  'amount')
+    @api.onchange('deducciones', 'stock_value', 'pending_invoice_value',  'amount')
     #@api.depends('deducciones', 'stock_value',  'amount')
     def _get_amount_calc(self):
         for line in self:
-            line.amount_calc =line.amount -line.deducciones + line.stock_value
+            line.amount_calc =line.amount -line.deducciones + line.stock_value + line.pending_invoice_value
             line.price_unit = (line.amount_calc / line.box_rec)
             line._get_commision()
             line._get_amount()

@@ -193,12 +193,16 @@
                             <field name="box_rec"  readonly="1" force_save="1"  />
                             <field name="box_sale"  readonly="1" force_save="1" />
                             <field name="current_stock" readonly="1" force_save="1"/>
+                            <field name="current_stock_price" string="StockPrice"/>
+                            <field name="stock_value" string="Stock value" readonly="1" force_save="1"/>
+                            <field name="pending_invoice" readonly="1" force_save="1"/>
+                            <field name="pending_invoice_price" string="StockPrice"/>
+                            <field name="pending_invoice_value" string="Stock value" readonly="1" force_save="1"/>
                             <field name="amount"  readonly="1" force_save="1"/>
                             <field name="price_unit_origin" string="P.U. original" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"  readonly="1" force_save="1"/>
                             <field name="price_unit_origin_rel" string="P.U. original" invisible="1"/>
                             
-                            <field name="current_stock_price" string="StockPrice"/>
-                            <field name="stock_value" string="Stock value" readonly="1" force_save="1"/>
+
                             <field name="amount_calc"  readonly="1" force_save="1" />
                             <field name="price_unit" string="P.U. final" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"  readonly="1" force_save="1"/>
                             <field name="deducciones" invisible="1" />
