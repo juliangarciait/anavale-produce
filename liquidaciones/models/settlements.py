@@ -49,7 +49,7 @@ class SettlementsSaleOrder(models.Model):
             tag_name = tag_name.split("-")
             if len(tag_name) < 2:
                 tag_name.append("")
-            sales = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids and line.move_id.state == 'posted')
+            sales = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.move_id.state == 'posted')
             freight_in = move_line_ids.filtered(lambda line: line.account_id.id == 1387 and line.move_id.state == 'posted')
             freight_out = move_line_ids.filtered(lambda line: line.account_id.id == 1394 and line.move_id.state == 'posted')
             maneuvers = move_line_ids.filtered(lambda line: line.account_id.id == 1390 and line.move_id.state == 'posted')
