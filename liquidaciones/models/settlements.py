@@ -84,21 +84,44 @@ class SettlementsSaleOrder(models.Model):
                     line_lotes =  self.env['stock.production.lot'].search([('id', 'in', lot_ids.ids),('product_id', '=', line.product_id.id)])
                     line_lotes += self.env['stock.production.lot'].search([('parent_lod_id', 'in', line_lotes.ids)])
                     quants1 = quant_obj.search([ ('lot_id', 'in', line_lotes.ids), ('location_id', 'in', location_id.ids)])
+                    #inicia busqueda de ventas lotes padre e hijo
+                    move_lot = self.env['stock.move'].search([('purchase_line_id', '=', line.id),('state','=','done')])
+                    move_line_lot = self.env['stock.move.line'].search([('move_id', '=', move_lot.id),('state','=','done')])
+                    line_lot =  self.env['stock.production.lot'].search([('id', '=', move_line_lot.lot_id.id)])
+                    line_lot += self.env['stock.production.lot'].search([('parent_lod_id', 'in', line_lot.ids)])
+                    ventas_lines_lot_facturadas = self.env['sale.order.line'].search([('lot_id', 'in', line_lot.ids),('invoice_status','=','invoiced')])
+                    invoice_line_ids = []
+                    for lin in ventas_lines_lot_facturadas:
+                        invoice_line_ids.extend(lin.invoice_lines.ids)
+                    invoice_line_ids = self.env['account.move.line'].search([('id', 'in', invoice_line_ids),('parent_state','=', 'posted')])
+                    suma_cantidad_facturada = 0
+                    suma_unidades_facturadas = 0
+                    suma_unidades_por_facturadas = 0
+                    for invoice_lin in invoice_line_ids:
+                        suma_cantidad_facturada += invoice_lin.credit
+                        suma_unidades_facturadas += invoice_lin.quantity
+                    ventas_lines_lot_por_facturadas = self.env['sale.order.line'].search([('lot_id', 'in', line_lot.ids),('invoice_status','=','to_invoice')])
+                    for venta_line in ventas_lines_lot_por_facturadas:
+                        suma_unidades_por_facturadas += venta_line.qty_to_invoice
+
+                    #
                     #quants = quant_obj.search([('product_id', '=', line.product_id.id), ('lot_id', 'in', lot_ids.ids), ('location_id', 'in', location_id.ids)])
                     stock = sum([q.quantity for q in quants1])
                     sales_pendientes = self.env["sale.order.line"].search([ ('lot_id', 'in', line_lotes.ids), ('invoice_status', '=', 'to invoice')])
                     invoice_pendientes = sum([q.qty_to_invoice for q in sales_pendientes])
                     subtotal = subAmount.get(line.product_id.id, False)
                     ventas_update += subtotal
+                    print('espera')
                     if line.qty_received > stock+invoice_pendientes:
-                        var_price_unit_hidden = line.qty_received and subtotal/(line.qty_received-stock-invoice_pendientes) or 0
+                        #var_price_unit_hidden = line.qty_received and subtotal/(line.qty_received-stock-invoice_pendientes) or 0
+                        var_price_unit_hidden = line.qty_received and suma_cantidad_facturada/suma_unidades_facturadas or 0
                     else:
                         var_price_unit_hidden = 0
                     new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
                                 "product_uom": line.product_uom.id, "price_unit": var_price_unit_hidden, "price_unit_origin_rel": var_price_unit_hidden, "price_unit_origin": var_price_unit_hidden,
-                                "box_emb":line.product_qty, "box_rec": line.qty_received, "box_sale": line.qty_received-stock-invoice_pendientes,
-                                "amount": float(subtotal), "amount_calc": float(subtotal),
-                                "current_stock": stock, "pending_invoice":invoice_pendientes}))
+                                "box_emb":line.product_qty, "box_rec": line.qty_received, "box_sale": suma_unidades_facturadas,
+                                "amount": float(suma_cantidad_facturada), "amount_calc": float(suma_cantidad_facturada),
+                                "current_stock": stock, "pending_invoice":suma_unidades_por_facturadas}))
                     product_line.append(line.product_id.id)
             else:
                 for line in purchase_rec.order_line: #3
@@ -291,6 +314,7 @@ class SettlementsInherit(models.Model):
     boxes_update = fields.Float(string="Boxes Actualizado")
     stock = fields.Integer(string="Stock Pendiente")
     pending_invoice = fields.Integer(string="Facturas Pendiente")
+    check_manual_price=fields.Boolean(string="Precio Manual")
 
 
 
@@ -303,40 +327,41 @@ class SettlementsInherit(models.Model):
             "freight_out", "check_freight_out", "freight_in", "check_freight_in",
             "total", "aduana", "check_aduana", "aduana_mex", "check_aduana_mx")
     def _update_lines(self):
-        _logger.info("Entra a update_lines")
-        total_cost = unit_cost = 0
-        total_cost += not self.check_storage and self.storage or 0
-        total_cost += not self.check_maneuvers and self.maneuvers or 0
-        total_cost += not self.check_adjustment and self.adjustment or 0
-        total_cost += not self.check_others and self.others or 0
-        total_cost += not self.check_boxes and self.boxes or 0
-        total_cost += not self.check_freight_out and self.freight_out or 0
-        total_cost += not self.check_freight_in and self.freight_in or 0
-        total_cost += not self.check_aduana and self.aduana or 0
-        total_cost += not self.check_aduana_mx and self.aduana_mex or 0
-        total_box = sum([line.box_rec for line in self.settlements_line_ids if (line.amount + line.stock_value) > 0])
-        #total_box = sum([line.box_rec for line in self.settlements_line_ids])
-        #saber si alguna linea no tiene amount 0 para no cargarle nada
+        if self.check_manual_price == False:
+            _logger.info("Entra a update_lines")
+            total_cost = unit_cost = 0
+            total_cost += not self.check_storage and self.storage or 0
+            total_cost += not self.check_maneuvers and self.maneuvers or 0
+            total_cost += not self.check_adjustment and self.adjustment or 0
+            total_cost += not self.check_others and self.others or 0
+            total_cost += not self.check_boxes and self.boxes or 0
+            total_cost += not self.check_freight_out and self.freight_out or 0
+            total_cost += not self.check_freight_in and self.freight_in or 0
+            total_cost += not self.check_aduana and self.aduana or 0
+            total_cost += not self.check_aduana_mx and self.aduana_mex or 0
+            total_box = sum([line.box_rec for line in self.settlements_line_ids if (line.amount + line.stock_value) > 0])
+            #total_box = sum([line.box_rec for line in self.settlements_line_ids])
+            #saber si alguna linea no tiene amount 0 para no cargarle nada
 
-        unit_cost = (total_cost/total_box) if total_box != 0 else 0
-        if self.price_type == "open":
-            for line in self.settlements_line_ids:
-                if line.price_unit_origin_rel > 0 and line.amount_calc >0:
-                    #line.price_unit = line.price_unit_origin_rel - unit_cost - self.ajuste_precio
-                    ##line.amount = line.price_unit * line.box_rec
-                    #line.commission_rel = line.amount * (self.commission_percentage/100)
-                    #line.commission = line.amount * (self.commission_percentage/100)
-                    line.deducciones = unit_cost * line.box_rec
-                    line._get_amount_calc()
-                    
-                else:
-                    line.price_unit = 0
-                    line.amount = 0
-                    line.commission_rel = 0
-                    line.commission = 0
-        self.storage_total = self.check_storage and self.storage or 0
-        self.maneuvers_total = self.check_maneuvers and self.maneuvers or 0
-        self.adjustment_total = self.check_adjustment and self.adjustment or 0
+            unit_cost = (total_cost/total_box) if total_box != 0 else 0
+            if self.price_type == "open":
+                for line in self.settlements_line_ids:
+                    if line.price_unit > 0 and line.amount_calc >0:
+                        #line.price_unit = line.price_unit_origin_rel - unit_cost - self.ajuste_precio
+                        ##line.amount = line.price_unit * line.box_rec
+                        #line.commission_rel = line.amount * (self.commission_percentage/100)
+                        #line.commission = line.amount * (self.commission_percentage/100)
+                        line.deducciones = unit_cost * line.box_rec
+                        line._get_amount_calc()
+                        
+                    else:
+                        line.price_unit = 0
+                        line.amount = 0
+                        line.commission_rel = 0
+                        line.commission = 0
+            self.storage_total = self.check_storage and self.storage or 0
+            self.maneuvers_total = self.check_maneuvers and self.maneuvers or 0
+            self.adjustment_total = self.check_adjustment and self.adjustment or 0
 
     #@api.depends('settlements_line_ids')
     def _get_subtotal_total(self):
@@ -454,7 +479,7 @@ class SettlementsInherit(models.Model):
             'ventas_update':self.ventas_update,
             'freight_update': self.freight_update,
             'adjustment_update': self.adjustment_update,
-            'aduana_update': self.aduana_update,
+            'aduana_update': self.aduana + self.aduana_mex,
             'storage_update': self.storage_update,
             'maneuvers_update':self.maneuvers_update,
             'freight_out_update':self.freight_out_update,
@@ -462,6 +487,86 @@ class SettlementsInherit(models.Model):
 
         }
         return self.env.ref('liquidaciones.xlsx_utlity_report1').with_context(
+            landscape=True).report_action(self, data=data)
+    
+
+    def action_print_report_noupdate(self):
+        lines = []
+        freight_spoilage_total = 0
+        box_emb_total = 0
+        box_rec_total = 0
+        amount_total = 0
+        for line in self.settlements_line_ids: 
+            display_name = line.product_id.display_name.replace(
+                ")", "").split("(")
+            variant = len(display_name) > 1 and display_name[1]
+            data_lines = {
+                'product': line.product_id.name,
+                'product_uom': variant,
+                'box_emb': line.box_emb,
+                'box_rec': line.box_rec,
+                'price_unit': line.price_unit,
+                'amount': line.amount,
+                'freight': line.freight,
+                'spoilage': line.commission,
+                'stock_value': line.stock_value,
+                'total': line.total
+            }
+            lines.append(data_lines)
+            
+            freight_spoilage_total += line.freight * -1
+            
+            box_rec_total += line.box_rec
+            amount_total += line.amount
+        storage_liquidacion = 0
+        flete_liquidacion = 0
+        aduana_liquidacion = 0
+        if self.check_storage == True:
+            storage_liquidacion = self.storage
+        if self.check_others == True:
+            storage_liquidacion += self.others
+        if self.check_freight_in == True:
+            flete_liquidacion = self.freight_in
+        if self.check_aduana == True:
+            aduana_liquidacion = self.aduana_total
+
+        
+            
+        data = {
+            'company': self.company,
+            'sales': self.total,
+            'freight_in': self.freight_in,
+            'aduana': self.aduana_total,
+            'maneuvers': self.maneuvers_total,
+            'adjustment': self.adjustment,
+            'storage': storage_liquidacion,
+            'freight_out': self.freight_out,
+            'utility': self.utility,
+            'utility_percentage': self.utility_percentage,
+            'date': self.date,
+            'freight_spoilage_total': freight_spoilage_total,
+            'lines': lines,
+            'box_emb_total': box_emb_total,
+            'box_rec_total': box_rec_total,
+            'amount_total': amount_total,
+            'freight_total': self.freight_total,
+            'total': self.total_total,
+            'commission_percentage': self.commission_percentage,
+            'commission_total': self.commission,
+            'note': self.note,
+            'viaje': self.journey,
+            'boxes': self.boxes,
+            'ventas_update':self.ventas_update,
+            'freight_update': self.freight_update,
+            'adjustment_update': self.adjustment_update,
+            'aduana_update': self.aduana_update,
+            'storage_update': self.storage_update,
+            'maneuvers_update':self.maneuvers_update,
+            'freight_out_update':self.freight_out_update,
+            'boxes_update':self.boxes_update
+
+        }
+        return self.env.ref('liquidaciones.xlsx_utlity_report_noupdate').with_context(
             landscape=True).report_action(self, data=data)
         #return self.env['report.liquidaciones.xlsx_utility_report'].report_action(self, data=data)#(objects=self.settlements_sale_order_ids)
 
@@ -564,3 +669,9 @@ class SettlementsInheritLines(models.Model):
     def _get_price_original(self):
         for line in self:
             line.price_unit = (line.amount_calc / line.box_rec)
+
+    @api.onchange('price_unit')
+    def _get_price_unit(self):
+        for line in self:
+            if line.settlement_id.check_manual_price == True:
+                line.amount_calc = (line.price_unit * line.box_rec)

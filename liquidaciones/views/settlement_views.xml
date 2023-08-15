@@ -161,6 +161,10 @@
                                     <field name="aduana_mex"  force_save="1"/>
                                     <field name="check_aduana_mx" attrs="{'invisible': [('price_type','=', 'close')]}" />
                                 </div>
+                                <label for="check_manual_price" />
+                                <div class="o_row">
+                                    <field name="check_manual_price"  force_save="1"/>
+                                </div>
                                 <div class="oe_tittle">
                                     <h4>
                                         <strong attrs="{'invisible': [('price_type','=', 'open')]}">
@@ -179,7 +183,10 @@
 
                                 </div>
                                 <footer>
-                                    <button string="Print" class="oe_highlight" type="object" name="action_print_report" />
+                                        <div class="o_row">
+                                            <button string="Print" class="oe_highlight" type="object" name="action_print_report" />
+                                        </div>
+                                    <button string="Print2" class="oe_highlight" type="object" name="action_print_report_noupdate" />
                                 </footer>
                             </group>
                         </group>
@@ -193,10 +200,10 @@
                             <field name="box_rec"  readonly="1" force_save="1"  />
                             <field name="box_sale"  readonly="1" force_save="1" />
                             <field name="current_stock" readonly="1" force_save="1"/>
-                            <field name="current_stock_price" string="StockPrice"/>
+                            <field name="current_stock_price" string="StockPrice" attrs="{'readonly':[('parent.check_manual_price','=',True)]}" />
                             <field name="stock_value" string="Stock value" readonly="1" force_save="1"/>
                             <field name="pending_invoice" readonly="1" force_save="1"/>
-                            <field name="pending_invoice_price" string="StockPrice"/>
+                            <field name="pending_invoice_price" string="StockPrice"  attrs="{'readonly':[('parent.check_manual_price','=',True)]}"/>
                             <field name="pending_invoice_value" string="Stock value" readonly="1" force_save="1"/>
                             <field name="amount"  readonly="1" force_save="1"/>
                             <field name="price_unit_origin" string="P.U. original" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"  readonly="1" force_save="1"/>
@@ -204,7 +211,7 @@
                             
 
                             <field name="amount_calc"  readonly="1" force_save="1" />
-                            <field name="price_unit" string="P.U. final" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}"  readonly="1" force_save="1"/>
+                            <field name="price_unit" string="P.U. final" attrs="{'column_invisible': [('parent.price_type','=', 'close')],'readonly':[('parent.check_manual_price','=',False)]}" force_save="1"/>
                             <field name="deducciones" invisible="1" />
                             <field name="commission" attrs="{'column_invisible': [('parent.price_type','=', 'close')]}" readonly="1"  force_save="1"/>
                             <field name="commission_rel" invisible="1" readonly="0"/>

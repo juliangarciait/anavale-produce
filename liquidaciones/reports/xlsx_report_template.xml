@@ -26,4 +26,12 @@
         name="liquidaciones.xlsx_utility_report1"
         file="liquidaciones.xlsx_utility_report"
     />
+    <report 
+        id="xlsx_utlity_report_noupdate"
+        model="sale.settlements"
+        string="Reporte de utilidad1"
+        report_type="xlsx"
+        name="liquidaciones.xlsx_utility_report_noupdate"
+        file="liquidaciones.xlsx_utility_report"
+    />
 </odoo>
