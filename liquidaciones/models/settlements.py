@@ -86,8 +86,8 @@ class SettlementsSaleOrder(models.Model):
                     line_lotes += self.env['stock.production.lot'].search([('parent_lod_id', 'in', line_lotes.ids)])
                     quants1 = quant_obj.search([ ('lot_id', 'in', line_lotes.ids), ('location_id', 'in', location_id.ids)])
                     #inicia busqueda de ventas lotes padre e hijo
-                    move_lot = self.env['stock.move'].search([('purchase_line_id', '=', line.id),('state','=','done')])
-                    move_line_lot = self.env['stock.move.line'].search([('move_id', 'in', move_lot.id),('state','=','done')], limit=1)
+                    move_lot = self.env['stock.move'].search([('purchase_line_id', '=', line.id),('state','=','done')], limit=1)
+                    move_line_lot = self.env['stock.move.line'].search([('move_id', '=', move_lot.id),('state','=','done')], limit=1)
                     line_lot =  self.env['stock.production.lot'].search([('id', '=', move_line_lot.lot_id.id)])
                     line_lot += self.env['stock.production.lot'].search([('parent_lod_id', 'in', line_lot.ids)])
                     ventas_lines_lot_facturadas = self.env['sale.order.line'].search([('lot_id', 'in', line_lot.ids),('invoice_status','=','invoiced')])
