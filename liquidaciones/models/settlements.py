@@ -112,7 +112,7 @@ class SettlementsSaleOrder(models.Model):
                     subtotal = subAmount.get(line.product_id.id, False)
                     ventas_update += subtotal
                     print('espera')
-                    if line.qty_received > stock+invoice_pendientes:
+                    if line.qty_received > 0 and line.qty_received > stock+invoice_pendientes:
                         #var_price_unit_hidden = line.qty_received and subtotal/(line.qty_received-stock-invoice_pendientes) or 0
                         var_price_unit_hidden = line.qty_received and suma_cantidad_facturada/suma_unidades_facturadas or 0
                     else:
@@ -199,6 +199,20 @@ class SettlementsSaleOrder(models.Model):
                 exists_st.adjustment_update = adjustmentSum
                 exists_st.stock = stock
                 exists_st.pending_invoice = invoice_pendientes
+                update_stock_value = 0
+                update_pending_value = 0
+                if stock > 0:
+                    for idx, item in enumerate(new_lines):
+                        if item[2]['current_stock'] > 0:
+                            update_stock_value = exists_st.settlements_line_ids[idx].current_stock_price * item[2]['current_stock'] 
+                    #calculo de valor stock
+                if invoice_pendientes > 0:
+                    for idx, item in new_lines:
+                        if item[2]['pending_invoice'] > 0:
+                            update_pending_value = exists_st.settlements_line_ids[idx].pending_invoice_price * item[2]['pending_invoice'] 
+                    #calcular pendiente de invoice
+                exists_st.stock_value = update_stock_value
+                exists_st.pending_invoice_value = update_pending_value
                 action_data.update({"context": {'default_ventas_update':float(subtotal)-adjustmentSum}, "res_id": exists_st.id})
             return action_data
 
@@ -313,7 +327,9 @@ class SettlementsInherit(models.Model):
     ventas_update = fields.Float(string="Ventas Actualizado")
     boxes_update = fields.Float(string="Boxes Actualizado")
     stock = fields.Integer(string="Stock Pendiente")
+    stock_value = fields.Integer(string="Stock Pendiente valor")
     pending_invoice = fields.Integer(string="Facturas Pendiente")
+    pending_invoice_value = fields.Integer(string="Facturas Pendiente valor")
     check_manual_price=fields.Boolean(string="Precio Manual")
 
 
@@ -483,7 +499,9 @@ class SettlementsInherit(models.Model):
             'storage_update': self.storage_update,
             'maneuvers_update':self.maneuvers_update,
             'freight_out_update':self.freight_out_update,
-            'boxes_update':self.boxes_update
+            'boxes_update':self.boxes_update,
+            'stock_value':self.stock_value,
+            'pending_invoice_value': self.pending_invoice_value
 
         }
         return self.env.ref('liquidaciones.xlsx_utlity_report1').with_context(
