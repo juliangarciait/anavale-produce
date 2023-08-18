@@ -108,6 +108,7 @@ class SettlementsSaleOrder(models.Model):
                     #quants = quant_obj.search([('product_id', '=', line.product_id.id), ('lot_id', 'in', lot_ids.ids), ('location_id', 'in', location_id.ids)])
                     stock = sum([q.quantity for q in quants1])
                     sales_pendientes = self.env["sale.order.line"].search([ ('lot_id', 'in', line_lotes.ids), ('invoice_status', '=', 'to invoice')])
+                    invoice_pendientes = 0
                     invoice_pendientes = sum([q.qty_to_invoice for q in sales_pendientes])
                     subtotal = subAmount.get(line.product_id.id, False)
                     ventas_update += subtotal
