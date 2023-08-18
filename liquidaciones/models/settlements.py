@@ -112,7 +112,7 @@ class SettlementsSaleOrder(models.Model):
                     subtotal = subAmount.get(line.product_id.id, False)
                     ventas_update += subtotal
                     print('espera')
-                    if line.qty_received > 0 and line.qty_received > stock+invoice_pendientes:
+                    if line.qty_received > 0 and line.qty_received > stock+invoice_pendientes and suma_unidades_facturadas>0:
                         #var_price_unit_hidden = line.qty_received and subtotal/(line.qty_received-stock-invoice_pendientes) or 0
                         var_price_unit_hidden = line.qty_received and suma_cantidad_facturada/suma_unidades_facturadas or 0
                     else:
