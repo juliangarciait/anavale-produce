@@ -78,6 +78,7 @@ class SettlementsSaleOrder(models.Model):
             quant_obj = self.env["stock.quant"] 
             location_id = self.env["stock.location"].search([('usage', '=', 'internal')])
             ventas_update = 0
+            invoice_pendientes_update = 0
             if self.tipo_precio == 'variable':
                 for line in purchase_rec.order_line: #3
                     stock = 0
@@ -110,6 +111,7 @@ class SettlementsSaleOrder(models.Model):
                     sales_pendientes = self.env["sale.order.line"].search([ ('lot_id', 'in', line_lotes.ids), ('invoice_status', '=', 'to invoice')])
                     invoice_pendientes = 0
                     invoice_pendientes = sum([q.qty_to_invoice for q in sales_pendientes])
+                    invoice_pendientes_update += invoice_pendientes
                     subtotal = subAmount.get(line.product_id.id, False)
                     ventas_update += subtotal
                     print('espera')
@@ -181,7 +183,7 @@ class SettlementsSaleOrder(models.Model):
                                         'default_maneuvers_update': maneuversSum,
                                         'default_adjustment_update': adjustmentSum,
                                         'default_freight_out_update': freight_outSum, 
-                                        'default_pending_invoice': invoice_pendientes,
+                                        'default_pending_invoice': invoice_pendientes_update,
                                         'default_boxes_update': boxes_sum,
                                         'default_stock':stock           
                                         },
@@ -199,7 +201,7 @@ class SettlementsSaleOrder(models.Model):
                 exists_st.freight_out_update = freight_outSum
                 exists_st.adjustment_update = adjustmentSum
                 exists_st.stock = stock
-                exists_st.pending_invoice = invoice_pendientes
+                exists_st.pending_invoice = invoice_pendientes_update
                 update_stock_value = 0
                 update_pending_value = 0
                 if stock > 0:
@@ -207,7 +209,7 @@ class SettlementsSaleOrder(models.Model):
                         if item[2]['current_stock'] > 0:
                             update_stock_value = exists_st.settlements_line_ids[idx].current_stock_price * item[2]['current_stock'] 
                     #calculo de valor stock
-                if invoice_pendientes > 0:
+                if invoice_pendientes_update > 0:
                     for idx, item in new_lines:
                         if item[2]['pending_invoice'] > 0:
                             update_pending_value = exists_st.settlements_line_ids[idx].pending_invoice_price * item[2]['pending_invoice'] 
