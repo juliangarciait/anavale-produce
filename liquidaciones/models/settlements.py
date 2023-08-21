@@ -501,7 +501,7 @@ class SettlementsInherit(models.Model):
             'ventas_update':self.ventas_update,
             'freight_update': self.freight_update,
             'adjustment_update': self.adjustment_update,
-            'aduana_update': self.aduana + self.aduana_mex,
+            'aduana_update': self.aduana_update,
             'storage_update': self.storage_update,
             'maneuvers_update':self.maneuvers_update,
             'freight_out_update':self.freight_out_update,
