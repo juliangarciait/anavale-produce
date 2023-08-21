@@ -94,7 +94,7 @@ class SettlementsSaleOrder(models.Model):
                     invoice_line_ids = []
                     for lin in ventas_lines_lot_facturadas:
                         invoice_line_ids.extend(lin.invoice_lines.ids)
-                    invoice_line_ids = self.env['account.move.line'].search([('id', 'in', invoice_line_ids)]) #,('parent_state','=', 'posted')
+                    invoice_line_ids = self.env['account.move.line'].search([('id', 'in', invoice_line_ids),('parent_state','!=', 'cancel')]) #,('parent_state','=', 'posted')
                     suma_cantidad_facturada = 0
                     suma_unidades_facturadas = 0
                     suma_unidades_por_facturadas = 0
