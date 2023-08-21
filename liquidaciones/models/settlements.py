@@ -94,13 +94,16 @@ class SettlementsSaleOrder(models.Model):
                     invoice_line_ids = []
                     for lin in ventas_lines_lot_facturadas:
                         invoice_line_ids.extend(lin.invoice_lines.ids)
-                    invoice_line_ids = self.env['account.move.line'].search([('id', 'in', invoice_line_ids),('parent_state','=', 'posted')])
+                    invoice_line_ids = self.env['account.move.line'].search([('id', 'in', invoice_line_ids)]) #,('parent_state','=', 'posted')
                     suma_cantidad_facturada = 0
                     suma_unidades_facturadas = 0
                     suma_unidades_por_facturadas = 0
                     for invoice_lin in invoice_line_ids:
-                        suma_cantidad_facturada += invoice_lin.credit
-                        suma_unidades_facturadas += invoice_lin.quantity
+                        if invoice_lin.parent_state == 'posted':
+                            suma_cantidad_facturada += invoice_lin.credit
+                            suma_unidades_facturadas += invoice_lin.quantity
+                        else:
+                            suma_unidades_por_facturadas += invoice_lin.quantity
                     ventas_lines_lot_por_facturadas = self.env['sale.order.line'].search([('lot_id', 'in', line_lot.ids),('invoice_status','=','to invoice')])
                     for venta_line in ventas_lines_lot_por_facturadas:
                         suma_unidades_por_facturadas += venta_line.qty_to_invoice
