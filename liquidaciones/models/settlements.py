@@ -213,7 +213,7 @@ class SettlementsSaleOrder(models.Model):
                             update_stock_value = exists_st.settlements_line_ids[idx].current_stock_price * item[2]['current_stock'] 
                     #calculo de valor stock
                 if invoice_pendientes_update > 0:
-                    for idx, item in new_lines:
+                    for idx, item in enumerate(new_lines):
                         if item[2]['pending_invoice'] > 0:
                             update_pending_value = exists_st.settlements_line_ids[idx].pending_invoice_price * item[2]['pending_invoice'] 
                     #calcular pendiente de invoice
