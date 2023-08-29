@@ -9,12 +9,13 @@
         file="liquidaciones.xlsx_report"
     />
 
+
     <report 
-        id="xlsx_utlity_report"
+        id="xlsx_utlity_report2"
         model="purchase.order"
         string="Reporte de utilidad"
         report_type="xlsx"
-        name="liquidaciones.xlsx_utility_report"
+        name="liquidaciones.xlsx_utility_report2"
         file="liquidaciones.xlsx_utility_report"
     />
 
@@ -23,7 +24,7 @@
         model="sale.settlements"
         string="Reporte de utilidad1"
         report_type="xlsx"
-        name="liquidaciones.xlsx_utility_report1"
+        name="liquidaciones.xlsx_utility_report2"
         file="liquidaciones.xlsx_utility_report"
     />
     <report 

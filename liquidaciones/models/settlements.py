@@ -115,6 +115,15 @@ class SettlementsSaleOrder(models.Model):
                     invoice_pendientes = 0
                     invoice_pendientes = sum([q.qty_to_invoice for q in sales_pendientes])
                     invoice_pendientes_update += invoice_pendientes
+                    sales_pendientes = self.env["sale.order.line"].search([ ('lot_id', 'in', line_lotes.ids), ('invoice_status','=','invoiced')])
+                    invoice_line_ids1 = []
+                    for lin in sales_pendientes:
+                        invoice_line_ids1.extend(lin.invoice_lines.ids)
+                    invoice_line_ids1 = self.env['account.move.line'].search([('id', 'in', invoice_line_ids1),('parent_state','!=', 'cancel')]) #,('parent_state','=', 'posted')
+                    for invoice_lin in invoice_line_ids1:
+                        if invoice_lin.parent_state == 'draft':
+                            invoice_pendientes_update += invoice_lin.quantity
+
                     subtotal = subAmount.get(line.product_id.id, False)
                     ventas_update += subtotal
                     print('espera')
@@ -127,7 +136,7 @@ class SettlementsSaleOrder(models.Model):
                                 "product_uom": line.product_uom.id, "price_unit": var_price_unit_hidden, "price_unit_origin_rel": var_price_unit_hidden, "price_unit_origin": var_price_unit_hidden,
                                 "box_emb":line.product_qty, "box_rec": line.qty_received, "box_sale": suma_unidades_facturadas,
                                 "amount": float(suma_cantidad_facturada), "amount_calc": float(suma_cantidad_facturada),
-                                "current_stock": stock, "pending_invoice":suma_unidades_por_facturadas}))
+                                "current_stock": stock, "pending_invoice":suma_unidades_por_facturadas, "lot_id":line_lotes[0].id}))
                     product_line.append(line.product_id.id)
             else:
                 for line in purchase_rec.order_line: #3
@@ -210,12 +219,12 @@ class SettlementsSaleOrder(models.Model):
                 if stock > 0:
                     for idx, item in enumerate(new_lines):
                         if item[2]['current_stock'] > 0:
-                            update_stock_value = exists_st.settlements_line_ids[idx].current_stock_price * item[2]['current_stock'] 
+                            update_stock_value += exists_st.settlements_line_ids[idx].current_stock_price * item[2]['current_stock'] 
                     #calculo de valor stock
                 if invoice_pendientes_update > 0:
                     for idx, item in enumerate(new_lines):
                         if item[2]['pending_invoice'] > 0:
-                            update_pending_value = exists_st.settlements_line_ids[idx].pending_invoice_price * item[2]['pending_invoice'] 
+                            update_pending_value += exists_st.settlements_line_ids[idx].pending_invoice_price * item[2]['pending_invoice'] 
                     #calcular pendiente de invoice
                 exists_st.stock_value = update_stock_value
                 exists_st.pending_invoice_value = update_pending_value
@@ -230,6 +239,27 @@ class SettlementsInherit(models.Model):
     def close_settlements(self):
         self.write({'status': 'close'})
         self.order_id.write({'settlements_status': 'close'})
+        purchase = self.order_id
+        total = 0
+        total_lineas = 0
+        for line in purchase.order_line:
+            for settlementline in self.settlements_line_ids:
+                if line.product_id == settlementline.product_id and line.product_uom == settlementline.product_uom:
+                    line.price_unit = settlementline.total / settlementline.box_rec
+                    total += settlementline.total
+                    total_lineas += line.price_subtotal
+        purchase.action_view_invoice()
+        factura =[]
+        for bill in purchase.invoice_ids:
+            if bill.state == 'draft':
+                factura = bill
+        if total < total_lineas:
+            print("falto")
+            
+        elif total > total_lineas: 
+            print("sobro")
+        else: print("igual")
+             
     
     def draft_settlements(self):
         self.write({'status': 'draft'})
@@ -337,6 +367,7 @@ class SettlementsInherit(models.Model):
     pending_invoice = fields.Integer(string="Facturas Pendiente")
     pending_invoice_value = fields.Integer(string="Facturas Pendiente valor")
     check_manual_price=fields.Boolean(string="Precio Manual")
+    actualizacion = fields.Boolean(default=True)
 
 
 
@@ -432,13 +463,79 @@ class SettlementsInherit(models.Model):
                 utility_percentage = self.total != 0 and ((self.utility/self.total) * 100) or 0.0
         self.utility_percentage = utility_percentage
 
+    def calcular_update(self):
+        lines = []
+        freight_spoilage_total = 0
+        box_emb_total = 0
+        box_rec_total = 0
+        amount_total = 0
+        stock_value_calc = 0
+        pendiente_value_calc = 0
+        for line in self.settlements_line_ids:
+            #calculo de stock value y por facturar value
+            quant_obj = self.env["stock.quant"] 
+            location_id = self.env["stock.location"].search([('usage', '=', 'internal')])
+            line_lotes =  self.env['stock.production.lot'].search([('id', '=', line.lot_id.id)])
+            line_lotes += self.env['stock.production.lot'].search([('parent_lod_id', 'in', line_lotes.ids)])
+            quants1 = quant_obj.search([ ('lot_id', 'in', line_lotes.ids), ('location_id', 'in', location_id.ids)])
+            stock1 = sum([q.quantity for q in quants1])
+            line.stock_value = stock1 * line.current_stock_price
+            stock_value_calc += line.stock_value
+
+            sales_pendientes = self.env["sale.order.line"].search([ ('lot_id', 'in', line_lotes.ids), ('invoice_status', '=', 'to invoice')])
+            invoice_pendientes = 0
+            invoice_pendientes_update = 0
+            invoice_pendientes = sum([q.qty_to_invoice for q in sales_pendientes])
+            invoice_pendientes_update += invoice_pendientes
+            sales_pendientes = self.env["sale.order.line"].search([ ('lot_id', 'in', line_lotes.ids), ('invoice_status','=','invoiced')])
+            invoice_line_ids1 = []
+            for lin in sales_pendientes:
+                invoice_line_ids1.extend(lin.invoice_lines.ids)
+            invoice_line_ids1 = self.env['account.move.line'].search([('id', 'in', invoice_line_ids1),('parent_state','!=', 'cancel')]) #,('parent_state','=', 'posted')
+            for invoice_lin in invoice_line_ids1:
+                if invoice_lin.parent_state == 'draft':
+                    invoice_pendientes_update += invoice_lin.quantity
+            pendiente_value_calc += invoice_pendientes_update * line.pending_invoice_price
+        self.stock_value = stock_value_calc
+        self.pending_invoice_value = pendiente_value_calc
+
+
+
     def action_print_report(self):
         lines = []
         freight_spoilage_total = 0
         box_emb_total = 0
         box_rec_total = 0
         amount_total = 0
+        stock_value_calc = 0
+        pendiente_value_calc = 0
         for line in self.settlements_line_ids: 
+
+            #calculo de stock value y por facturar value
+            quant_obj = self.env["stock.quant"] 
+            location_id = self.env["stock.location"].search([('usage', '=', 'internal')])
+            line_lotes =  self.env['stock.production.lot'].search([('id', '=', line.lot_id.id)])
+            line_lotes += self.env['stock.production.lot'].search([('parent_lod_id', 'in', line_lotes.ids)])
+            quants1 = quant_obj.search([ ('lot_id', 'in', line_lotes.ids), ('location_id', 'in', location_id.ids)])
+            stock1 = sum([q.quantity for q in quants1])
+            line.stock_value = stock1 * line.current_stock_price
+            stock_value_calc += line.stock_value
+
+            sales_pendientes = self.env["sale.order.line"].search([ ('lot_id', 'in', line_lotes.ids), ('invoice_status', '=', 'to invoice')])
+            invoice_pendientes = 0
+            invoice_pendientes_update = 0
+            invoice_pendientes = sum([q.qty_to_invoice for q in sales_pendientes])
+            invoice_pendientes_update += invoice_pendientes
+            sales_pendientes = self.env["sale.order.line"].search([ ('lot_id', 'in', line_lotes.ids), ('invoice_status','=','invoiced')])
+            invoice_line_ids1 = []
+            for lin in sales_pendientes:
+                invoice_line_ids1.extend(lin.invoice_lines.ids)
+            invoice_line_ids1 = self.env['account.move.line'].search([('id', 'in', invoice_line_ids1),('parent_state','!=', 'cancel')]) #,('parent_state','=', 'posted')
+            for invoice_lin in invoice_line_ids1:
+                if invoice_lin.parent_state == 'draft':
+                    invoice_pendientes_update += invoice_lin.quantity
+            pendiente_value_calc += invoice_pendientes_update * line.pending_invoice_price
+
             display_name = line.product_id.display_name.replace(
                 ")", "").split("(")
             variant = len(display_name) > 1 and display_name[1]
@@ -456,6 +553,9 @@ class SettlementsInherit(models.Model):
             }
             lines.append(data_lines)
             
+            self.stock_value = stock_value_calc
+            self.pending_invoice_value = pendiente_value_calc
+
             freight_spoilage_total += line.freight * -1
             
             box_rec_total += line.box_rec
@@ -510,11 +610,12 @@ class SettlementsInherit(models.Model):
             'pending_invoice_value': self.pending_invoice_value
 
         }
-        return self.env.ref('liquidaciones.xlsx_utlity_report1').with_context(
+        return self.env.ref('liquidaciones.xlsx_utlity_report2').with_context(
             landscape=True).report_action(self, data=data)
     
 
     def action_print_report_noupdate(self):
+        self.actualizacion == False
         lines = []
         freight_spoilage_total = 0
         box_emb_total = 0
@@ -652,6 +753,7 @@ class SettlementsInheritLines(models.Model):
     settlement_id = fields.Many2one('sale.settlements')
     stock_value = fields.Float()
     pending_invoice_value = fields.Float()
+    lot_id = fields.Many2one('stock.production.lot', string='Lot')
 
     @api.onchange('current_stock_price')
     def _calculate_value(self):
