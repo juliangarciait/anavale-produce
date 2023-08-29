@@ -2052,7 +2052,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                 sheet.write(i+1, 5, "=sum(f{}:f{})".format(str(inicio_i+1), str(i+1)), light_box_currency)
                 sheet.write(i+1, 6, settlement_id.freight_total, light_box_currency)
                 sheet.write(i+1, 7, settlement_id.aduana_total, light_box_currency)
-                sheet.write(i+1, 8, settlement_id.storage + settlement_id.maneuvers , light_box_currency)
+                sheet.write(i+1, 8, settlement_id.storage_total + settlement_id.maneuvers_total , light_box_currency)
                 sheet.write(i+1, 9, settlement_id.boxes , light_box_currency)
                 sheet.write(i+1, 10, "=sum(k{}:k{})".format(str(inicio_i+1), str(i+1)), light_box_currency)
                 sheet.write(i+1, 11, "=sum(l{}:l{})".format(str(inicio_i), str(i+1)), light_box_currency)
