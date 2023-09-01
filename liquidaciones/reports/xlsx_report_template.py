@@ -2008,7 +2008,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                 j = i - 1
                 inicio_i = i
                 final_i = i
-                sheet.write(i - 1, 11, (-settlement_id.freight_total-settlement_id.aduana_total-settlement_id.storage-settlement_id.maneuvers-settlement_id.boxes), light_box_currency)
+                sheet.write(i - 1, 11, (-settlement_id.freight_total-settlement_id.aduana_total-settlement_id.storage_total-settlement_id.maneuvers_total-settlement_id.boxes), light_box_currency)
                 for line in settlement_id.settlements_line_ids:
                     display_name = line.product_id.display_name.replace(
                         ")", "").split("(")

@@ -230,6 +230,20 @@ class SettlementsSaleOrder(models.Model):
                 exists_st.pending_invoice_value = update_pending_value
                 action_data.update({"context": {'default_ventas_update':float(subtotal)-adjustmentSum}, "res_id": exists_st.id})
             return action_data
+    
+    def create_invoice(self):
+        for order in self:
+            invoice_vals = {
+                'partner_id': order.partner_id.id,
+                'type': 'in_invoice',  # Factura de compra
+                'purchase_id': order.id,
+                # Agrega más campos necesarios para la factura
+                # ...
+            }
+            new_invoice = self.env['account.move'].create(invoice_vals)
+            bill_union = self.env['purchase.bill.union'].search([('purchase_order_id', '=', order.id)])
+            new_invoice.purchase_vendor_bill_id = bill_union
+            new_invoice._onchange_purchase_auto_complete()
 
  
 class SettlementsInherit(models.Model):
@@ -248,7 +262,7 @@ class SettlementsInherit(models.Model):
                     line.price_unit = settlementline.total / settlementline.box_rec
                     total += settlementline.total
                     total_lineas += line.price_subtotal
-        purchase.action_view_invoice()
+        purchase.create_invoice()
         factura =[]
         for bill in purchase.invoice_ids:
             if bill.state == 'draft':
@@ -437,6 +451,15 @@ class SettlementsInherit(models.Model):
         aduana_total += self.check_aduana and self.aduana or 0 
         aduana_total += self.check_aduana_mx and self.aduana_mex or 0
         self.aduana_total = aduana_total
+
+    @api.onchange('storage','check_storage', 'check_maneuvers', 'maneuvers')
+    def _get_storage_total(self):
+        storage_total = 0 
+        maneuvers_total = 0
+        storage_total += self.check_storage and self.storage or 0 
+        maneuvers_total += self.check_maneuvers and self.maneuvers or 0
+        self.storage_total = storage_total
+        self.maneuvers_total = maneuvers_total
     
     def _get_total_total(self):
         cost = self.storage_total
