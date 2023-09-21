@@ -20,7 +20,7 @@ porcentajes = {
 class SettlementsSaleOrder(models.Model):
     _inherit = 'purchase.order'
     settlement_id = fields.Many2one('sale.settlements')
-    settlements_status = fields.Selection([('draft', 'Borrador'), ('close', 'Cerrado')], default = 'draft')
+    settlements_status = fields.Selection([('no', 'Sin liquidacion'),('draft', 'Borrador'),('review', 'Review'), ('close', 'Cerrado')], default = 'no')
     settlement_ids = fields.One2many('sale.settlements', 'order_id')
     
     def settlements_wizard_function(self):
@@ -256,10 +256,24 @@ class SettlementsInherit(models.Model):
         purchase = self.order_id
         total = 0
         total_lineas = 0
+        total_units = 0
+        total_cost = 0
+        total_cost += self.check_storage and self.storage or 0
+        total_cost += self.check_maneuvers and self.maneuvers or 0
+        total_cost += self.check_adjustment and self.adjustment or 0
+        total_cost += self.check_others and self.others or 0
+        total_cost += self.check_boxes and self.boxes or 0
+        total_cost += self.check_freight_out and self.freight_out or 0
+        total_cost += self.check_freight_in and self.freight_in or 0
+        total_cost += self.check_aduana and self.aduana or 0
+        total_cost += self.check_aduana_mx and self.aduana_mex or 0
+        for settlementline in self.settlements_line_ids:
+            total_units += settlementline.box_rec
+        costo_caja = total_cost / total_units
         for line in purchase.order_line:
             for settlementline in self.settlements_line_ids:
                 if line.product_id == settlementline.product_id and line.product_uom == settlementline.product_uom:
-                    line.price_unit = settlementline.total / settlementline.box_rec
+                    line.price_unit = (settlementline.total - (settlementline.box_rec * costo_caja) ) / settlementline.box_rec
                     total += settlementline.total
                     total_lineas += line.price_subtotal
         purchase.create_invoice()
@@ -267,10 +281,10 @@ class SettlementsInherit(models.Model):
         for bill in purchase.invoice_ids:
             if bill.state == 'draft':
                 factura = bill
-        if total < total_lineas:
+        if total - total_cost < total_lineas:
             print("falto")
             
-        elif total > total_lineas: 
+        elif total - total_cost > total_lineas: 
             print("sobro")
         else: print("igual")
              
@@ -278,6 +292,11 @@ class SettlementsInherit(models.Model):
     def draft_settlements(self):
         self.write({'status': 'draft'})
         self.order_id.write({'settlements_status': 'draft'})
+
+    
+    def review_settlements(self):
+        self.write({'status': 'review'})
+        self.order_id.write({'settlements_status': 'review'})
 
     purchase_date = fields.Datetime()
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
@@ -340,7 +359,7 @@ class SettlementsInherit(models.Model):
                                    ('close','Closed price')], 
                                    String="Tipo de precio", required=True,
                                    help="Please select a type of price.")
-    status = fields.Selection([('draft','Borrador'),
+    status = fields.Selection([('draft', 'Borrador'),('review', 'Review'),
                                    ('close','Cerrado')], required=True, default = 'draft')
     check_maneuvers=fields.Boolean()
     check_adjustment=fields.Boolean()

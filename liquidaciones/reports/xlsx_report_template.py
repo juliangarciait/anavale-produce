@@ -1898,6 +1898,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                         analytic_tag_ids += tag
                 move_line_ids = self.env['account.move.line'].search([('analytic_tag_ids', 'in', analytic_tag_ids.ids), ('move_id.state', '=', 'posted')])
                 sales_lines = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids and line.move_id.state == 'posted')
+                sales_ajust_lines = move_line_ids.filtered(lambda line: line.account_id.id in (1377, 1378, 1379) and line.move_id.state == 'posted')
                 freight_in = move_line_ids.filtered(lambda line: line.account_id.id == 1387 and line.move_id.state == 'posted')
                 freight_out = move_line_ids.filtered(lambda line: line.account_id.id == 1394 and line.move_id.state == 'posted')
                 maneuvers = move_line_ids.filtered(lambda line: line.account_id.id == 1390 and line.move_id.state == 'posted')
@@ -1907,6 +1908,8 @@ class XlsxUtilityReport2(models.AbstractModel):
                 adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
                 boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
                 sale_update = sum([sale.price_subtotal for sale in sales_lines])
+                sale_ajust_update = sum([sale.price_subtotal for sale in sales_ajust_lines])
+                sale_update = sale_update - sale_ajust_update
                 freight_in_update = sum([accline.price_subtotal for accline in freight_in])
                 freight_out_update = sum([accline.price_subtotal for accline in freight_out])
                 maneuvers_update = sum([accline.price_subtotal for accline in maneuvers])

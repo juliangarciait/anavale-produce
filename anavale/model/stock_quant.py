@@ -85,20 +85,19 @@ class StockQuant(models.Model):
         #commit
 
     def _compute_value(self):
-        """ For standard and AVCO valuation, compute the current accounting
-        valuation of the quants by multiplying the quantity by
-        the standard price. Instead for FIFO, use the quantity times the
-        average cost (valuation layers are not manage by location so the
-        average cost is the same for all location and the valuation field is
-        a estimation more than a real value).
-        """
         res = super(StockQuant, self)._compute_value()
         for quant in self:
             if quant.value > 0 and quant.product_id.id == 561:
                 purchase = quant.lot_id.mapped('purchase_order_ids.id')
                 purchase_lines = self.env['purchase.order.line'].search([('order_id','=',purchase)])
+                lote_quant = quant.lot_id
+                print(lote_quant.name)
+                if lote_quant.name == 'FPMP3FM23-001':
+                    print("paro aqui")
+                movimiento_recepcion = self.env['stock.move.line'].search([('location_id','=',4), ('lot_id','=',lote_quant.id)])
+                cantidad_recibida = movimiento_recepcion.qty_done or 0
                 for line in purchase_lines:
-                    if quant.product_id == line.product_id:
+                    if quant.product_id == line.product_id and cantidad_recibida == line.product_qty:
                         quant.value = quant.quantity * line.price_unit
 
                 

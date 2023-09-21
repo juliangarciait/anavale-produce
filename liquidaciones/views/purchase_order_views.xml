@@ -25,4 +25,15 @@
         </field>
     </record>
 
+    <record id="inherited_view_purchase_order_tree_liquidaciones" model="ir.ui.view">
+            <field name="name">inherited.view.purchase.order.tree</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree" position="inside">
+                    <field name="settlements_status" optional="show"/>
+                </xpath>
+            </field>
+        </record>
+
 </odoo>

@@ -42,8 +42,9 @@
             <form>
                 <header>
                     <field name="status" widget="statusbar"/>
-                    <button name="draft_settlements" type="object" class="oe_highlight" string="Set to Draft" attrs="{'invisible': [('status', '!=', 'close')]}"/>
-                    <button name="close_settlements" type="object" class="oe_highlight" string="Close" attrs="{'invisible': [('status', '!=', 'draft')]}"/>
+<button name="draft_settlements" type="object" class="oe_highlight" string="Set to Draft" attrs="{'invisible': [('status', '=', 'draft')]}"/>
+                    <button name="review_settlements" type="object" class="oe_highlight" string="Set to Review" attrs="{'invisible': [('status', '=', 'review')]}"/>
+                    <button name="close_settlements" type="object" class="oe_highlight" string="Close" attrs="{'invisible': [('status', '=', 'close')]}"/>
                 </header>
                 <sheet>
                       <!-- tabla de liquidaciones para precio abierto -->
@@ -338,8 +339,9 @@
             <form create="0" edit="0" >
                 <header>
                     <field name="status" widget="statusbar"/>
-                    <button name="draft_settlements" type="object" class="oe_highlight" string="Set to Draft" attrs="{'invisible': [('status', '!=', 'close')]}"/>
-                    <button name="close_settlements" type="object" class="oe_highlight" string="Close" attrs="{'invisible': [('status', '!=', 'draft')]}"/>
+                    <button name="draft_settlements" type="object" class="oe_highlight" string="Set to Draft" attrs="{'invisible': [('status', '=', 'draft')]}"/>
+                    <button name="review_settlements" type="object" class="oe_highlight" string="Set to Review" attrs="{'invisible': [('status', '=', 'review')]}"/>
+                    <button name="close_settlements" type="object" class="oe_highlight" string="Close" attrs="{'invisible': [('status', '=', 'close')]}"/>
                 </header>
                 <sheet>
                       <!-- tabla de liquidaciones para precio abierto -->
