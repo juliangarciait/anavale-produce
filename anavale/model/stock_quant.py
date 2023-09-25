@@ -95,7 +95,10 @@ class StockQuant(models.Model):
                 if lote_quant.name == 'FPMP3FM23-001':
                     print("paro aqui")
                 movimiento_recepcion = self.env['stock.move.line'].search([('location_id','=',4), ('lot_id','=',lote_quant.id)])
-                cantidad_recibida = movimiento_recepcion.qty_done or 0
+                movimientos = 0
+                for mov in movimiento_recepcion:
+                    movimientos += mov.qty_done
+                cantidad_recibida = movimientos
                 for line in purchase_lines:
                     if quant.product_id == line.product_id and cantidad_recibida == line.product_qty:
                         quant.value = quant.quantity * line.price_unit
