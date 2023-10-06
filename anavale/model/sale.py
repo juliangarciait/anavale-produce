@@ -92,6 +92,18 @@ class SaleOrder(models.Model):
                     str(line.product_id.name), line.lot_id.name))
             list_mapped.append((line.product_id, line.lot_id))
 
+
+    #funcion para crear factura con la fecha del delivery
+    def _create_invoices(self, grouped=False, final=False):
+        res = super(SaleOrder, self)._create_invoices(grouped=False, final=False)
+        invoice_date = 0
+        for pick in self.picking_ids:
+            if pick.state == 'done':
+                invoice_date = pick.date_done
+        if invoice_date != 0:
+            res.invoice_date = invoice_date
+            res.date = invoice_date
+
         #self._onchange_lot_id(self.product_uom_qty, self._origin.id)
         #if self.product_id and self.lot_id and self.product_uom_qty > self.lot_available_sell:
         #    raise UserError('Maximum %s units for selected Lot!' % self.lot_available_sell)

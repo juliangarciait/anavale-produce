@@ -1897,7 +1897,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                     if not tag in analytic_tag_ids:
                         analytic_tag_ids += tag
                 move_line_ids = self.env['account.move.line'].search([('analytic_tag_ids', 'in', analytic_tag_ids.ids), ('move_id.state', '=', 'posted')])
-                sales_lines = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.product_id in po_product_ids and line.move_id.state == 'posted')
+                sales_lines = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.move_id.state == 'posted')
                 sales_ajust_lines = move_line_ids.filtered(lambda line: line.account_id.id in (1377, 1379) and line.move_id.state == 'posted')
                 freight_in = move_line_ids.filtered(lambda line: line.account_id.id == 1387 and line.move_id.state == 'posted')
                 freight_out = move_line_ids.filtered(lambda line: line.account_id.id == 1394 and line.move_id.state == 'posted')
