@@ -199,10 +199,12 @@
                         <tree editable="bottom" string="Lineas de Liquidaciones">
                             <field name="product_id"  readonly="1" force_save="1" />
                             <field name="box_rec"  readonly="1" force_save="1"  />
-                            <field name="box_sale"  readonly="1" force_save="1" />
-                            <field name="current_stock" readonly="1" force_save="1"/>
-                            <field name="current_stock_price" string="StockPrice" attrs="{'readonly':[('parent.check_manual_price','=',True)]}" />
-                            <field name="stock_value" string="Stock value" readonly="1" force_save="1"/>
+                            <field name="box_sale"  readonly="1" force_save="1" />  
+
+                            
+                            <field name="current_stock" readonly="1" force_save="1"/> 
+                            <field name="current_stock_price" string="StockPrice" attrs="{'readonly':[('parent.check_manual_price','=',True)]}"/>
+                            <field name="stock_value" string="Stock value" readonly="1" force_save="1" />
                             <field name="pending_invoice" readonly="1" force_save="1"/>
                             <field name="pending_invoice_price" string="StockPrice"  attrs="{'readonly':[('parent.check_manual_price','=',True)]}"/>
                             <field name="pending_invoice_value" string="Stock value" readonly="1" force_save="1"/>

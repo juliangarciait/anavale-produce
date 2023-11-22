@@ -139,7 +139,14 @@ class SettlementsSaleOrder(models.Model):
                                 "current_stock": stock, "pending_invoice":suma_unidades_por_facturadas, "lot_id":line_lotes[0].id}))
                     product_line.append(line.product_id.id)
             else:
+                subtotal = 0
+                for line in purchase_rec.order_line:
+                    subtotal += subAmount.get(line.product_id.id, False)
                 for line in purchase_rec.order_line: #3
+
+                    line_lotes =  self.env['stock.production.lot'].search([('id', 'in', lot_ids.ids),('product_id', '=', line.product_id.id)])
+                    line_lotes += self.env['stock.production.lot'].search([('parent_lod_id', 'in', line_lotes.ids)]) 
+
                     stock = 0
                     quants = quant_obj.search([('product_id', '=', line.product_id.id), ('lot_id', 'in', lot_ids.ids), ('location_id', 'in', location_id.ids)])
                     stock = sum([q.quantity for q in quants])
@@ -147,7 +154,7 @@ class SettlementsSaleOrder(models.Model):
                                 "product_uom": line.product_uom.id, "price_unit": line.price_unit, "price_unit_origin_rel": line.price_unit,
                                 "box_emb": line.product_qty, "box_rec": line.qty_received, "box_sale": line.qty_received-stock,
                                 "amount": float(line.qty_received * line.price_unit), "amount_calc": float(line.qty_received * line.price_unit),
-                                "current_stock": stock}))
+                                "current_stock": stock, "lot_id":line_lotes[0].id}))
                     product_line.append(line.product_id.id)
                     
             closed_price = self.env['sale.settlements'].search([('order_id', 'in', purchase_rec.ids), ('status', '=', 'close')])
@@ -581,27 +588,50 @@ class SettlementsInherit(models.Model):
             display_name = line.product_id.display_name.replace(
                 ")", "").split("(")
             variant = len(display_name) > 1 and display_name[1]
-            data_lines = {
-                'product': line.product_id.name,
-                'product_uom': variant,
-                'box_emb': line.box_emb,
-                'box_rec': line.box_rec,
-                'price_unit': line.price_unit,
-                'amount': line.amount,
-                'freight': line.freight,
-                'spoilage': line.commission,
-                'stock_value': line.stock_value,
-                'total': line.total
-            }
-            lines.append(data_lines)
-            
-            self.stock_value = stock_value_calc
-            self.pending_invoice_value = pendiente_value_calc
+            if self.price_type == 'open':
+                data_lines = {
+                    'product': line.product_id.name,
+                    'product_uom': variant,
+                    'box_emb': line.box_emb,
+                    'box_rec': line.box_rec,
+                    'price_unit': line.price_unit,
+                    'amount': line.amount,
+                    'freight': line.freight,
+                    'spoilage': line.commission,
+                    'stock_value': line.stock_value,
+                    'total': line.total
+                }
+                lines.append(data_lines)
+                
+                self.stock_value = stock_value_calc
+                self.pending_invoice_value = pendiente_value_calc
 
-            freight_spoilage_total += line.freight * -1
-            
-            box_rec_total += line.box_rec
-            amount_total += line.amount
+                freight_spoilage_total += line.freight * -1
+                
+                box_rec_total += line.box_rec
+                amount_total += line.amount
+            else:
+                data_lines = {
+                    'product': line.product_id.name,
+                    'product_uom': variant,
+                    'box_emb': line.box_emb,
+                    'box_rec': line.box_rec,
+                    'price_unit': line.price_unit_origin,
+                    'amount': line.amount,
+                    'freight': line.freight,
+                    'spoilage': line.commission,
+                    'stock_value': line.stock_value,
+                    'total': line.amount
+                }
+                lines.append(data_lines)
+                
+                self.stock_value = stock_value_calc
+                self.pending_invoice_value = pendiente_value_calc
+
+                freight_spoilage_total += line.freight * -1
+                
+                box_rec_total += line.box_rec
+                amount_total += line.amount
         storage_liquidacion = 0
         flete_liquidacion = 0
         aduana_liquidacion = 0
