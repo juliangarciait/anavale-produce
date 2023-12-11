@@ -171,7 +171,7 @@ class SettlementsSaleOrder(models.Model):
                         suma_unidades_por_facturadas += venta_line.qty_to_invoice 
 
                     stock = 0
-                    quants = quant_obj.search([('product_id', '=', line.product_id.id), ('lot_id', 'in', lot_ids.ids), ('location_id', 'in', location_id.ids)])
+                    quants = quant_obj.search([('lot_id', 'in', line_lotes.ids), ('location_id', 'in', location_id.ids)])
                     stock = sum([q.quantity for q in quants])
                     new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
                                 "product_uom": line.product_uom.id, "price_unit": line.price_unit, "price_unit_origin_rel": line.price_unit,
@@ -283,40 +283,41 @@ class SettlementsInherit(models.Model):
     def close_settlements(self):
         self.write({'status': 'close'})
         self.order_id.write({'settlements_status': 'close'})
-        purchase = self.order_id
-        total = 0
-        total_lineas = 0
-        total_units = 0
-        total_cost = 0
-        total_cost += self.check_storage and self.storage or 0
-        total_cost += self.check_maneuvers and self.maneuvers or 0
-        total_cost += self.check_adjustment and self.adjustment or 0
-        total_cost += self.check_others and self.others or 0
-        total_cost += self.check_boxes and self.boxes or 0
-        total_cost += self.check_freight_out and self.freight_out or 0
-        total_cost += self.check_freight_in and self.freight_in or 0
-        total_cost += self.check_aduana and self.aduana or 0
-        total_cost += self.check_aduana_mx and self.aduana_mex or 0
-        for settlementline in self.settlements_line_ids:
-            total_units += settlementline.box_rec
-        costo_caja = total_cost / total_units
-        for line in purchase.order_line:
+        if self.price_type == 'open':
+            purchase = self.order_id
+            total = 0
+            total_lineas = 0
+            total_units = 0
+            total_cost = 0
+            total_cost += self.check_storage and self.storage or 0
+            total_cost += self.check_maneuvers and self.maneuvers or 0
+            total_cost += self.check_adjustment and self.adjustment or 0
+            total_cost += self.check_others and self.others or 0
+            total_cost += self.check_boxes and self.boxes or 0
+            total_cost += self.check_freight_out and self.freight_out or 0
+            total_cost += self.check_freight_in and self.freight_in or 0
+            total_cost += self.check_aduana and self.aduana or 0
+            total_cost += self.check_aduana_mx and self.aduana_mex or 0
             for settlementline in self.settlements_line_ids:
-                if line.product_id == settlementline.product_id and line.product_uom == settlementline.product_uom:
-                    line.price_unit = (settlementline.total - (settlementline.box_rec * costo_caja) ) / settlementline.box_rec
-                    total += settlementline.total
-                    total_lineas += line.price_subtotal
-        purchase.create_invoice()
-        factura =[]
-        for bill in purchase.invoice_ids:
-            if bill.state == 'draft':
-                factura = bill
-        if total - total_cost < total_lineas:
-            print("falto")
-            
-        elif total - total_cost > total_lineas: 
-            print("sobro")
-        else: print("igual")
+                total_units += settlementline.box_rec
+            costo_caja = total_cost / total_units
+            for line in purchase.order_line:
+                for settlementline in self.settlements_line_ids:
+                    if line.product_id == settlementline.product_id and line.product_uom == settlementline.product_uom:
+                        line.price_unit = (settlementline.total - (settlementline.box_rec * costo_caja) ) / settlementline.box_rec
+                        total += settlementline.total
+                        total_lineas += line.price_subtotal
+            purchase.create_invoice()
+            factura =[]
+            for bill in purchase.invoice_ids:
+                if bill.state == 'draft':
+                    factura = bill
+            if total - total_cost < total_lineas:
+                print("falto")
+                
+            elif total - total_cost > total_lineas: 
+                print("sobro")
+            else: print("igual")
              
     
     def draft_settlements(self):
