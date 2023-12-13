@@ -143,42 +143,42 @@ class SettlementsSaleOrder(models.Model):
                 for line in purchase_rec.order_line:
                     subtotal += subAmount.get(line.product_id.id, False)
                 for line in purchase_rec.order_line: #3
+                    if line.product_id.type == 'product':
+                        line_lotes =  self.env['stock.production.lot'].search([('id', 'in', lot_ids.ids),('product_id', '=', line.product_id.id)])
+                        line_lotes += self.env['stock.production.lot'].search([('parent_lod_id', 'in', line_lotes.ids)])
 
-                    line_lotes =  self.env['stock.production.lot'].search([('id', 'in', lot_ids.ids),('product_id', '=', line.product_id.id)])
-                    line_lotes += self.env['stock.production.lot'].search([('parent_lod_id', 'in', line_lotes.ids)])
+                        #calcular pendiente por facturar
+                        move_lot = self.env['stock.move'].search([('purchase_line_id', '=', line.id),('state','=','done')], limit=1)
+                        move_line_lot = self.env['stock.move.line'].search([('move_id', '=', move_lot.id),('state','=','done')], limit=1)
+                        line_lot =  self.env['stock.production.lot'].search([('id', '=', move_line_lot.lot_id.id)])
+                        line_lot += self.env['stock.production.lot'].search([('parent_lod_id', 'in', line_lot.ids)])
+                        ventas_lines_lot_facturadas = self.env['sale.order.line'].search([('lot_id', 'in', line_lot.ids),('invoice_status','=','invoiced')])
+                        invoice_line_ids = []
+                        for lin in ventas_lines_lot_facturadas:
+                            invoice_line_ids.extend(lin.invoice_lines.ids)
+                        invoice_line_ids = self.env['account.move.line'].search([('id', 'in', invoice_line_ids),('parent_state','!=', 'cancel')]) #,('parent_state','=', 'posted')
+                        suma_cantidad_facturada = 0
+                        suma_unidades_facturadas = 0
+                        suma_unidades_por_facturadas = 0
+                        for invoice_lin in invoice_line_ids:
+                            if invoice_lin.parent_state == 'posted':
+                                suma_cantidad_facturada += invoice_lin.credit
+                                suma_unidades_facturadas += invoice_lin.quantity
+                            else:
+                                suma_unidades_por_facturadas += invoice_lin.quantity
+                        ventas_lines_lot_por_facturadas = self.env['sale.order.line'].search([('lot_id', 'in', line_lot.ids),('invoice_status','=','to invoice')])
+                        for venta_line in ventas_lines_lot_por_facturadas:
+                            suma_unidades_por_facturadas += venta_line.qty_to_invoice 
 
-                    #calcular pendiente por facturar
-                    move_lot = self.env['stock.move'].search([('purchase_line_id', '=', line.id),('state','=','done')], limit=1)
-                    move_line_lot = self.env['stock.move.line'].search([('move_id', '=', move_lot.id),('state','=','done')], limit=1)
-                    line_lot =  self.env['stock.production.lot'].search([('id', '=', move_line_lot.lot_id.id)])
-                    line_lot += self.env['stock.production.lot'].search([('parent_lod_id', 'in', line_lot.ids)])
-                    ventas_lines_lot_facturadas = self.env['sale.order.line'].search([('lot_id', 'in', line_lot.ids),('invoice_status','=','invoiced')])
-                    invoice_line_ids = []
-                    for lin in ventas_lines_lot_facturadas:
-                        invoice_line_ids.extend(lin.invoice_lines.ids)
-                    invoice_line_ids = self.env['account.move.line'].search([('id', 'in', invoice_line_ids),('parent_state','!=', 'cancel')]) #,('parent_state','=', 'posted')
-                    suma_cantidad_facturada = 0
-                    suma_unidades_facturadas = 0
-                    suma_unidades_por_facturadas = 0
-                    for invoice_lin in invoice_line_ids:
-                        if invoice_lin.parent_state == 'posted':
-                            suma_cantidad_facturada += invoice_lin.credit
-                            suma_unidades_facturadas += invoice_lin.quantity
-                        else:
-                            suma_unidades_por_facturadas += invoice_lin.quantity
-                    ventas_lines_lot_por_facturadas = self.env['sale.order.line'].search([('lot_id', 'in', line_lot.ids),('invoice_status','=','to invoice')])
-                    for venta_line in ventas_lines_lot_por_facturadas:
-                        suma_unidades_por_facturadas += venta_line.qty_to_invoice 
-
-                    stock = 0
-                    quants = quant_obj.search([('lot_id', 'in', line_lotes.ids), ('location_id', 'in', location_id.ids)])
-                    stock = sum([q.quantity for q in quants])
-                    new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
-                                "product_uom": line.product_uom.id, "price_unit": line.price_unit, "price_unit_origin_rel": line.price_unit,
-                                "box_emb": line.product_qty, "box_rec": line.qty_received, "box_sale": line.qty_received-stock,
-                                "amount": float(line.qty_received * line.price_unit), "amount_calc": float(line.qty_received * line.price_unit),
-                                "current_stock": stock, "pending_invoice":suma_unidades_por_facturadas, "lot_id":line_lotes[0].id}))
-                    product_line.append(line.product_id.id)
+                        stock = 0
+                        quants = quant_obj.search([('lot_id', 'in', line_lotes.ids), ('location_id', 'in', location_id.ids)])
+                        stock = sum([q.quantity for q in quants])
+                        new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
+                                    "product_uom": line.product_uom.id, "price_unit": line.price_unit, "price_unit_origin_rel": line.price_unit,
+                                    "box_emb": line.product_qty, "box_rec": line.qty_received, "box_sale": line.qty_received-stock,
+                                    "amount": float(line.qty_received * line.price_unit), "amount_calc": float(line.qty_received * line.price_unit),
+                                    "current_stock": stock, "pending_invoice":suma_unidades_por_facturadas, "lot_id":line_lotes[0].id}))
+                        product_line.append(line.product_id.id)
                     
             closed_price = self.env['sale.settlements'].search([('order_id', 'in', purchase_rec.ids), ('status', '=', 'close')])
             view_tree = closed_price and 'liquidaciones.view_settlements_tree_no_create' or 'liquidaciones.view_settlements_tree'
