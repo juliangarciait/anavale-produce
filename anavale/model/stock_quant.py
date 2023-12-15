@@ -44,11 +44,11 @@ class StockQuant(models.Model):
     @api.model
     def _quant_tasks(self):
         res = super(StockQuant, self)._quant_tasks()
-        date = fields.Datetime.today() - relativedelta(months=1,day=15)
+        date = fields.Datetime.today() - relativedelta(months=2,day=15)
         self._cr.execute("""
                             SELECT id 
                                 FROM stock_quant
-                            WHERE create_date > %s 
+                            WHERE create_date > %s and location_id in (8, 9) and quantity > 0
                         """, (date, ))
         ids = [item.get('id') for item in self._cr.dictfetchall()]
         self.sudo().browse(ids)._compute_sale_order_qty()
