@@ -2009,13 +2009,82 @@ class XlsxUtilityReport2(models.AbstractModel):
                         sheet.write(i + 15, 13, '', travels_bottom_left)
                     
                     exists_st.actualizacion = True
+                    tabla_ventas_inicial =  i + 5
                     liquidacion_ubicacion = i + 4
                     i += 5
                     j = i - 1
                     inicio_i = i
                     final_i = i
                     sheet.write(i - 1, 11, (-settlement_id.freight_total-settlement_id.aduana_total-settlement_id.storage_total-settlement_id.maneuvers_total-settlement_id.boxes), light_box_currency)
+                    #activar variables para cuadro vde ventas
+                    tb_ventas = []
+                    tb_porfacturar = []
+                    tb_stock = []
+                    tb_scrap = []
+
                     for line in settlement_id.settlements_line_ids:
+                        #tabla de ventas inicio
+                        line_lotes =  self.env['stock.production.lot'].search([('id', 'in', lot_ids.ids),('product_id', '=', line.product_id.id)])
+                        line_lotes += self.env['stock.production.lot'].search([('parent_lod_id', 'in', line_lotes.ids)])
+                        quant_obj = self.env["stock.quant"] 
+                        location_id = self.env["stock.location"].search([('usage', '=', 'internal')])
+                        quants1 = quant_obj.search([ ('lot_id', 'in', line_lotes.ids), ('location_id', 'in', location_id.ids)])
+                        scrap_loc_id = self.env["stock.location"].search([('scrap_location', '=', True)])
+                        quants2 = quant_obj.search([ ('lot_id', 'in', line_lotes.ids), ('location_id', 'in', scrap_loc_id.ids)])
+                        stock = sum([q.quantity for q in quants1])
+                        scrap_qty = sum([q.quantity for q in quants2])
+                        ventas_lines_lot_facturadas = self.env['sale.order.line'].search([('lot_id', 'in', line_lotes.ids),('invoice_status','=','invoiced')])
+                        invoice_line_ids = []
+                        for lin in ventas_lines_lot_facturadas:
+                            invoice_line_ids.extend(lin.invoice_lines.ids)
+                        invoice_line_ids = self.env['account.move.line'].search([('id', 'in', invoice_line_ids),('parent_state','!=', 'cancel')]) #,('parent_state','=', 'posted')
+                        suma_cantidad_facturada = 0
+                        suma_unidades_facturadas = 0
+                        suma_unidades_por_facturadas = 0
+                        ventas_lines_lot_porfacturadas = self.env['sale.order.line'].search([('lot_id', 'in', line_lotes.ids),('invoice_status','=','to invoice')])
+                        for lin in ventas_lines_lot_porfacturadas:
+                            suma_unidades_por_facturadas += lin.qty_delivered
+                        for invoice_lin in invoice_line_ids:
+                            if invoice_lin.parent_state == 'posted':
+                                suma_cantidad_facturada += invoice_lin.credit
+                                suma_unidades_facturadas += invoice_lin.quantity
+                            else:
+                                suma_unidades_por_facturadas += invoice_lin.quantity
+                        if  suma_unidades_facturadas > 0:   
+                            data_line = {
+                                'product': line.product_id.display_name,
+                                'cajas': suma_unidades_facturadas,
+                                'precio_prom': (suma_cantidad_facturada/suma_unidades_facturadas),
+                                'total': suma_cantidad_facturada
+                                }
+                            tb_ventas.append(data_line)
+                        if suma_unidades_por_facturadas > 0:
+                            data_line = {
+                                'product': line.product_id.display_name,
+                                'cajas': suma_unidades_por_facturadas,
+                                'precio_prom': line.pending_invoice_price,
+                                'total': (suma_unidades_por_facturadas*line.pending_invoice_price)
+                                }
+                            tb_porfacturar.append(data_line)
+                        if stock > 0:
+                            data_line = {
+                                'product': line.product_id.display_name,
+                                'cajas': stock,
+                                'precio_prom': line.current_stock_price,
+                                'total': (stock*line.current_stock_price)
+                                }
+                            tb_stock.append(data_line)
+                        if scrap_qty > 0:
+                            data_line = {
+                                'product': line.product_id.display_name,
+                                'cajas': scrap_qty,
+                                }
+                            tb_scrap.append(data_line)
+
+
+                        #tabla de ventas final
+
+
                         display_name = line.product_id.display_name.replace(
                             ")", "").split("(")
                         variant = len(display_name) > 1 and display_name[1]
@@ -2049,6 +2118,61 @@ class XlsxUtilityReport2(models.AbstractModel):
                         sheet.write(i, 11, '', light_box)
                         sumador = sumador +3
                     
+                    #pintar tabla de ventas
+                    tb_contador = 16
+                    if len(tb_ventas) > 0:
+                        sheet.write(tabla_ventas_inicial, tb_contador, 'Ventas', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+2, 'Precio', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+3, 'Total', report_format_gray)
+                        contador = tabla_ventas_inicial + 1
+                        for linea in tb_ventas:
+                            sheet.write(contador, tb_contador, linea['product'], light_box)
+                            sheet.write(contador, tb_contador+1, linea['cajas'], light_box)
+                            sheet.write(contador, tb_contador+2, linea['precio_prom'], light_box_currency)
+                            sheet.write(contador, tb_contador+3, linea['total'], light_box_currency)
+                            contador = contador + 1
+                        tb_contador += 5
+
+                    if len(tb_porfacturar) > 0:
+                        sheet.write(tabla_ventas_inicial, tb_contador, 'Por Facturar', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+2, 'Precio', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+3, 'Total', report_format_gray)
+                        contador = tabla_ventas_inicial + 1
+                        for linea in tb_porfacturar:
+                            sheet.write(contador, tb_contador, linea['product'], light_box)
+                            sheet.write(contador, tb_contador+1, linea['cajas'], light_box)
+                            sheet.write(contador, tb_contador+2, linea['precio_prom'], light_box_currency)
+                            sheet.write(contador, tb_contador+3, linea['total'], light_box_currency)
+                            contador = contador + 1
+                        tb_contador += 5
+
+                    if len(tb_stock) > 0:
+                        sheet.write(tabla_ventas_inicial, tb_contador, 'Stock', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+2, 'Precio', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+3, 'Total', report_format_gray)
+                        contador = tabla_ventas_inicial + 1
+                        for linea in tb_stock:
+                            sheet.write(contador, tb_contador, linea['product'], light_box)
+                            sheet.write(contador, tb_contador+1, linea['cajas'], light_box)
+                            sheet.write(contador, tb_contador+2, linea['precio_prom'], light_box_currency)
+                            sheet.write(contador, tb_contador+3, linea['total'], light_box_currency)
+                            contador = contador + 1
+                        tb_contador += 5
+                    
+                    if len(tb_scrap) > 0:
+                        sheet.write(tabla_ventas_inicial, tb_contador, 'Scrap', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_gray)
+                        contador = tabla_ventas_inicial + 1
+                        for linea in tb_scrap:
+                            sheet.write(contador, tb_contador, linea['product'], light_box)
+                            sheet.write(contador, tb_contador+1, linea['cajas'], light_box)
+                            contador = contador + 1
+                        tb_contador += 5
+
+                    #finaliza tabla de ventas
                     
                     sheet.write(i+1, 0, '', light_box)
                     sheet.write(i+1, 1, '', light_box)
@@ -2202,12 +2326,82 @@ class XlsxUtilityReport2(models.AbstractModel):
                     
                     exists_st.actualizacion = True
                     liquidacion_ubicacion = i + 4
+                    tabla_ventas_inicial =  i + 5
                     i += 5
                     j = i - 1
                     inicio_i = i
                     final_i = i
+                    #activar variables para cuadro vde ventas
+                    tb_ventas = []
+                    tb_porfacturar = []
+                    tb_stock = []
+                    tb_scrap = []
+
                     #sheet.write(i - 1, 11, (-settlement_id.freight_total-settlement_id.aduana_total-settlement_id.storage_total-settlement_id.maneuvers_total-settlement_id.boxes), light_box_currency)
                     for line in settlement_id.settlements_line_ids:
+
+                        #tabla de ventas inicio
+                        line_lotes =  self.env['stock.production.lot'].search([('id', 'in', lot_ids.ids),('product_id', '=', line.product_id.id)])
+                        line_lotes += self.env['stock.production.lot'].search([('parent_lod_id', 'in', line_lotes.ids)])
+                        quant_obj = self.env["stock.quant"] 
+                        location_id = self.env["stock.location"].search([('usage', '=', 'internal')])
+                        quants1 = quant_obj.search([ ('lot_id', 'in', line_lotes.ids), ('location_id', 'in', location_id.ids)])
+                        scrap_loc_id = self.env["stock.location"].search([('scrap_location', '=', True)])
+                        quants2 = quant_obj.search([ ('lot_id', 'in', line_lotes.ids), ('location_id', 'in', scrap_loc_id.ids)])
+                        stock = sum([q.quantity for q in quants1])
+                        scrap_qty = sum([q.quantity for q in quants2])
+                        ventas_lines_lot_facturadas = self.env['sale.order.line'].search([('lot_id', 'in', line_lotes.ids),('invoice_status','=','invoiced')])
+                        invoice_line_ids = []
+                        for lin in ventas_lines_lot_facturadas:
+                            invoice_line_ids.extend(lin.invoice_lines.ids)
+                        invoice_line_ids = self.env['account.move.line'].search([('id', 'in', invoice_line_ids),('parent_state','!=', 'cancel')]) #,('parent_state','=', 'posted')
+                        suma_cantidad_facturada = 0
+                        suma_unidades_facturadas = 0
+                        suma_unidades_por_facturadas = 0
+                        ventas_lines_lot_porfacturadas = self.env['sale.order.line'].search([('lot_id', 'in', line_lotes.ids),('invoice_status','=','to invoice')])
+                        for lin in ventas_lines_lot_porfacturadas:
+                            suma_unidades_por_facturadas += lin.qty_delivered
+                        for invoice_lin in invoice_line_ids:
+                            if invoice_lin.parent_state == 'posted':
+                                suma_cantidad_facturada += invoice_lin.credit
+                                suma_unidades_facturadas += invoice_lin.quantity
+                            else:
+                                suma_unidades_por_facturadas += invoice_lin.quantity
+                        if  suma_unidades_facturadas > 0:   
+                            data_line = {
+                                'product': line.product_id.display_name,
+                                'cajas': suma_unidades_facturadas,
+                                'precio_prom': (suma_cantidad_facturada/suma_unidades_facturadas),
+                                'total': suma_cantidad_facturada
+                                }
+                            tb_ventas.append(data_line)
+                        if suma_unidades_por_facturadas > 0:
+                            data_line = {
+                                'product': line.product_id.display_name,
+                                'cajas': suma_unidades_por_facturadas,
+                                'precio_prom': line.pending_invoice_price,
+                                'total': (suma_unidades_por_facturadas*line.pending_invoice_price)
+                                }
+                            tb_porfacturar.append(data_line)
+                        if stock > 0:
+                            data_line = {
+                                'product': line.product_id.display_name,
+                                'cajas': stock,
+                                'precio_prom': line.current_stock_price,
+                                'total': (stock*line.current_stock_price)
+                                }
+                            tb_stock.append(data_line)
+                        if scrap_qty > 0:
+                            data_line = {
+                                'product': line.product_id.display_name,
+                                'cajas': scrap_qty,
+                                }
+                            tb_scrap.append(data_line)
+
+
+                        #tabla de ventas final    
+
+
                         display_name = line.product_id.display_name.replace(
                             ")", "").split("(")
                         variant = len(display_name) > 1 and display_name[1]
@@ -2240,6 +2434,63 @@ class XlsxUtilityReport2(models.AbstractModel):
                         #sheet.write(i, 10, '', light_box)
                         #sheet.write(i, 11, '', light_box)
                         sumador = sumador +3
+
+                    
+                    #pintar tabla de ventas
+                    tb_contador = 11
+                    if len(tb_ventas) > 0:
+                        sheet.write(tabla_ventas_inicial, tb_contador, 'Ventas', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+2, 'Precio', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+3, 'Total', report_format_gray)
+                        contador = tabla_ventas_inicial + 1
+                        for linea in tb_ventas:
+                            sheet.write(contador, tb_contador, linea['product'], light_box)
+                            sheet.write(contador, tb_contador+1, linea['cajas'], light_box)
+                            sheet.write(contador, tb_contador+2, linea['precio_prom'], light_box_currency)
+                            sheet.write(contador, tb_contador+3, linea['total'], light_box_currency)
+                            contador = contador + 1
+                        tb_contador += 5
+
+                    if len(tb_porfacturar) > 0:
+                        sheet.write(tabla_ventas_inicial, tb_contador, 'Por Facturar', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+2, 'Precio', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+3, 'Total', report_format_gray)
+                        contador = tabla_ventas_inicial + 1
+                        for linea in tb_porfacturar:
+                            sheet.write(contador, tb_contador, linea['product'], light_box)
+                            sheet.write(contador, tb_contador+1, linea['cajas'], light_box)
+                            sheet.write(contador, tb_contador+2, linea['precio_prom'], light_box_currency)
+                            sheet.write(contador, tb_contador+3, linea['total'], light_box_currency)
+                            contador = contador + 1
+                        tb_contador += 5
+
+                    if len(tb_stock) > 0:
+                        sheet.write(tabla_ventas_inicial, tb_contador, 'Stock', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+2, 'Precio', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+3, 'Total', report_format_gray)
+                        contador = tabla_ventas_inicial + 1
+                        for linea in tb_stock:
+                            sheet.write(contador, tb_contador, linea['product'], light_box)
+                            sheet.write(contador, tb_contador+1, linea['cajas'], light_box)
+                            sheet.write(contador, tb_contador+2, linea['precio_prom'], light_box_currency)
+                            sheet.write(contador, tb_contador+3, linea['total'], light_box_currency)
+                            contador = contador + 1
+                        tb_contador += 5
+                    
+                    if len(tb_scrap) > 0:
+                        sheet.write(tabla_ventas_inicial, tb_contador, 'Scrap', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_gray)
+                        contador = tabla_ventas_inicial + 1
+                        for linea in tb_scrap:
+                            sheet.write(contador, tb_contador, linea['product'], light_box)
+                            sheet.write(contador, tb_contador+1, linea['cajas'], light_box)
+                            contador = contador + 1
+                        tb_contador += 5
+
+                    #finaliza tabla de ventas
                     
                     
                     sheet.write(i+1, 0, '', light_box)
