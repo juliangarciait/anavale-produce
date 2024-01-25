@@ -8,7 +8,7 @@
 """,
     'author': 'ANAVALE, S. de R.L. de C.V.',
     'website': '',
-    'depends': ['sale_management', 'odoo_report_xlsx'],
+    'depends': ['base','sale_management', 'odoo_report_xlsx'],
      # always loaded
     'data': [
          'views/settlement_views.xml',

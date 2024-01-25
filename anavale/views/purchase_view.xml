@@ -105,6 +105,7 @@
                             <field name="Aduana_US" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="0"/>
                             <field name="In_out" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="0"/>
                             <field name="caja" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="0"/>
+                            <field name="Desc_fijo" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="0"/>
                             <field name="referencia" attrs="{'required': [('date_order','>','2023-03-01')]}" readonly="0"/>
                         </group>
                     </page>

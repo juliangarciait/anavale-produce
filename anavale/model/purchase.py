@@ -25,6 +25,17 @@ SiNo = [
     ('no','NO'),
 ]
 
+Flete_opciones = [
+    ('si','Se paga y se descuenta'),
+    ('no','Se paga, NO se descuenta'),
+    ('nono','No se paga')
+]
+
+InOut_opciones = [
+    ('si','SI se descuenta'),
+    ('no','NO se descuenta'),
+]
+
 class PurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
@@ -32,15 +43,17 @@ class PurchaseOrder(models.Model):
 
     porcentaje_comision = fields.Selection(porcentajes, string="% de Comision")
 
-    Flete_entrada = fields.Selection(SiNo, string='Flete de entrada?')
+    Flete_entrada = fields.Selection(Flete_opciones, string='Flete de entrada?')
 
-    Aduana_MX = fields.Selection(SiNo, string='Aduana MX?')
+    Aduana_MX = fields.Selection(Flete_opciones, string='Aduana MX?')
 
-    Aduana_US = fields.Selection(SiNo, string='Aduana US?')
+    Aduana_US = fields.Selection(Flete_opciones, string='Aduana US?')
 
-    In_out = fields.Selection(SiNo, string='In and Out?')
+    In_out = fields.Selection(InOut_opciones, string='In and Out?')
 
-    caja = fields.Selection(SiNo, string='caja?')
+    caja = fields.Selection(InOut_opciones, string='caja?')
+
+    Desc_fijo = fields.Text(string="Descuentos Fijos(especificar)")
     
     referencia = fields.Text('Referencia')
 

@@ -10,6 +10,8 @@ class ResPartner(models.Model):
         help="This field contains the information related to the numbering of the Lots purchased to this Vendor", copy=False)
     
     purchaseperson_id = fields.Many2one('res.users', string='Purchaseperson')
+
+    #Desc_fijo = fields.Char('Descuentos Fijos')
     
     _sql_constraints = [
         ('lot_code_prefix_uniq', 'unique (lot_code_prefix)', "This Lot Code Prefix is already used in another Vendor!.")

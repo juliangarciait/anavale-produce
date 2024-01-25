@@ -17,6 +17,7 @@
                         <field name="us_customs" readonly="1"/>
                         <field name="in_and_out" readonly="1"/>
                         <field name="box" readonly="1"/>
+                        <field name="Desc_fijo" readonly="1"/>
                         <field name="reference" readonly="1"/>
                     </group>
                 </page>
@@ -40,6 +41,7 @@
                         <field name="us_customs" readonly="0"/>
                         <field name="in_and_out" readonly="0"/>
                         <field name="box" readonly="0"/>
+                        <field name="Desc_fijo" readonly="1"/>
                         <field name="reference" readonly="0"/>
                     </group>
                 </page>
