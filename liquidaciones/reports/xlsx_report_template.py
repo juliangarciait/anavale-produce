@@ -2203,7 +2203,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                     sheet.write(i+1, 9, settlement_id.boxes , light_box_currency)
                     sheet.write(i+1, 10, "=sum(k{}:k{})".format(str(inicio_i+1), str(i+1)), light_box_currency)
                     sheet.write(i+1, 11, "=sum(l{}:l{})".format(str(inicio_i), str(i+1)), light_box_currency)
-                    sheet.write(loc_total_gastos_row, 11, "=g{}+h{}+i{}+j{}".format(str(i+2), str(i+2),str(i+2),str(i+2)), light_box_currency)
+                    sheet.write(loc_total_gastos_row, 11, "=-(g{}+h{}+i{}+j{})".format(str(i+2), str(i+2),str(i+2),str(i+2)), light_box_currency)
                     sheet.write(liquidacion_ubicacion, 14, "=l{}".format(str(i+2)), travels_middle_right)
                     liquidaciones.append(liquidacion_ubicacion)
                     sheet.write(liquidacion_ubicacion+9, 14, "=(o{}+o{}+o{})-sum(o{}:o{})".format(str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion),str(liquidacion_ubicacion+1),str(liquidacion_ubicacion+9)), travels_middle_right)
