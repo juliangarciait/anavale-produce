@@ -51,7 +51,7 @@
         <field name="name">pivot</field>  
         <field name="model">commision.report</field>  
         <field name="arch" type="xml">      
-            <pivot string="Pivot View">            
+            <pivot string="Reporte de comisiones">            
             </pivot>   
         </field>
     </record>

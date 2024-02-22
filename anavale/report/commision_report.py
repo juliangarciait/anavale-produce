@@ -24,14 +24,15 @@ class SaleReport(models.Model):
     invoice_date = fields.Date(string='Fecha factura', related='invoice_id.date')
     ventas_cobradas = fields.Float('Invoice pagado', readonly=True)
     vendedor_id = fields.Many2one('res.partner', 'Vendedor', readonly=True)
-    cliente_id = fields.Many2one('res.partner', 'Vendedor', readonly=True) 
+    cliente_id = fields.Many2one('res.partner', 'Cliente', readonly=True) 
+    comision = fields.Float('Comision', readonly=True)
 
     def _query(self, with_clause='', fields={}, groupby='', from_clause=''):
         with_ = ("WITH %s" % with_clause) if with_clause else ""
 
         select_ = """ ap.id as id, ap.id as payment_id,ap.amount as payment_amount, 
         amlb.move_id as invoice_id, amlb.date as invoice_date, apr.amount as ventas_cobradas, 
-        rpu.id as vendedor_id, rpaa.id as cliente_id """
+        rpu.id as vendedor_id, rpaa.id as cliente_id, (apr.amount*.005) as comision """
 
         for field in fields.values():
             select_ += field
