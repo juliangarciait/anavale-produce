@@ -1684,6 +1684,7 @@ class XlsxUtilityReport2(models.AbstractModel):
     _name = 'report.liquidaciones.xlsx_utility_report2'
     _inherit = 'report.odoo_report_xlsx.abstract'
 
+
     def _get_objs_for_report(self, docids, data):
         if docids:
             ids = docids
@@ -1696,7 +1697,7 @@ class XlsxUtilityReport2(models.AbstractModel):
         else:
             return self.env['sale.settlements'].browse(ids)
 
-    def generate_xlsx_report(self, workbook, data, objects):
+    def generate_xlsx_report(self, workbook, data, objects, sign=True):
         workbook.set_properties({
             'comments': 'Created with Python and XlsxWrite from Odoo 13.0'
         })
@@ -1858,6 +1859,17 @@ class XlsxUtilityReport2(models.AbstractModel):
         })
         currency_id = self.env.user.company_id.currency_id
         light_box_currency.num_format = currency_id.symbol + '#,##0.00'
+        light_box_percentage = workbook.add_format({
+            'font_color' : 'black',
+            'font_size'  : '14', 
+            'font_name'  : 'arial',
+            'bottom'     : 2, 
+            'right'      : 2,
+            'align'      : 'right',
+            'num_format': '0.00%',
+        })
+        light_box_percentage.num_format = '0.00%'
+        light_box_percentage.set_num_format(10)
         i = 4
         sumador = i
         inicio_i = 0
@@ -1908,6 +1920,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                     aduana_mex = move_line_ids.filtered(lambda line: line.account_id.id == 1392 and line.move_id.state == 'posted')#[]1392
                     adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
                     boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
+                    logistics = move_line_ids.filtered(lambda line: line.account_id.id == 1516 and line.move_id.state == 'posted')
                     sale_update = sum([sale.price_subtotal for sale in sales_lines])
                     sale_ajust_update = sum([sale.price_subtotal for sale in sales_ajust_lines])
                     sale_update = sale_update - sale_ajust_update
@@ -1919,7 +1932,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                     aduana_mex_update = sum([accline.price_subtotal for accline in aduana_mex])
                     boxes_update = sum([accline.debit for accline in boxes])
                     adjustment_update = sum([accline.price_subtotal for accline in adjustment])
-
+                    logistics_update = sum([accline.price_subtotal for accline in logistics])
                     exists_st.calcular_update()
 
                     #termina datos actualizables
@@ -1971,8 +1984,8 @@ class XlsxUtilityReport2(models.AbstractModel):
                     if len(procesar_object)> 1 or exists_st.actualizacion == True:
                         sheet.write(i, 13, 'Viaje', travels)
                         sheet.write(i + 1, 13, 'VENTAS', travels_title_top_left)
-                        sheet.write(i + 2, 13, 'POR FACTURAR', travels_title_top_left)
-                        sheet.write(i + 3, 13, 'STOCK', travels_title_top_left)
+                        sheet.write(i + 2, 13, 'POR FACTURAR', travels_middle_left)
+                        sheet.write(i + 3, 13, 'STOCK', travels_middle_left)
                         sheet.write(i + 4, 13, 'LIQUIDACIONES', travels_middle_left)
                         sheet.write(i + 5, 13, 'Freight In', travels_middle_left)
                         sheet.write(i + 6, 13, 'Aduana', travels_middle_left)
@@ -1981,6 +1994,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                         sheet.write(i + 9, 13, 'STORAGE', travels_middle_left_red)
                         sheet.write(i + 10, 13, 'FREIGHT OUT', travels_middle_left_red)
                         sheet.write(i + 11, 13, 'CAJAS', travels_middle_left_red)
+                        sheet.write(i + 12, 13, 'LOGISTICS', travels_middle_left_red)
                         sheet.write(i + 13, 13, 'UTILIDAD', travels_middle_left)
                         sheet.write(i, 14, po.name, name)
                         sheet.write(i + 1, 14, sale_update, travels_title_top_right)
@@ -1993,18 +2007,19 @@ class XlsxUtilityReport2(models.AbstractModel):
                         sheet.write(i + 9, 14, storage_update, travels_middle_right_red)
                         sheet.write(i + 10, 14, freight_out_update, travels_middle_right_red)
                         sheet.write(i + 11, 14, boxes_update, travels_middle_right_red)
+                        sheet.write(i + 12, 14, logistics_update, travels_middle_right_red)
                         sheet.write(i + 13, 14, settlement_id.utility, travels_middle_right)
                         sheet.write(i + 15, 14, str(float_round(settlement_id.utility_percentage, precision_digits=2)) + "%", travels_bottom_right)
                         #sheet.write(i + 2, 13, '', travels_middle_left)
                         #sheet.write(i + 3, 13, '', travels_middle_left)
                         #sheet.write(i + 11, 13, '', travels_middle_left)
-                        sheet.write(i + 12, 13, '', travels_middle_left)
+                        #sheet.write(i + 12, 13, '', travels_middle_left)
                         sheet.write(i + 14, 13, '', travels_middle_left)
                         #sheet.write(i + 2, 14, '', travels_middle_right)
                         #sheet.write(i + 3, 14, '', travels_middle_right)
                         sheet.write(i + 4, 14, settlement_id.settlement, travels_middle_right)
                         #sheet.write(i + 11, 14, '', travels_middle_right)
-                        sheet.write(i + 12, 14, '', travels_middle_right)
+                        #sheet.write(i + 12, 14, '', travels_middle_right)
                         sheet.write(i + 14, 14, '', travels_middle_right)
                         sheet.write(i + 15, 13, '', travels_bottom_left)
                     
@@ -2016,6 +2031,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                     inicio_i = i
                     final_i = i
                     sheet.write(i - 1, 11, (-settlement_id.freight_total-settlement_id.aduana_total-settlement_id.storage_total-settlement_id.maneuvers_total-settlement_id.boxes), light_box_currency)
+                    loc_total_gastos_row = i -1
                     #activar variables para cuadro vde ventas
                     tb_ventas = []
                     tb_porfacturar = []
@@ -2172,7 +2188,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                             contador = contador + 1
                         tb_contador += 5
 
-                    #finaliza tabla de ventas
+                        #finaliza tabla de ventas
                     
                     sheet.write(i+1, 0, '', light_box)
                     sheet.write(i+1, 1, '', light_box)
@@ -2180,16 +2196,18 @@ class XlsxUtilityReport2(models.AbstractModel):
                     sheet.write(i+1, 3, "", light_box)
                     sheet.write(i+1, 4, '', light_box)
                     sheet.write(i+1, 5, "=sum(f{}:f{})".format(str(inicio_i+1), str(i+1)), light_box_currency)
+                    sheet.write(i+1, 3, "=sum(d{}:d{})".format(str(inicio_i+1), str(i+1)), light_box)
                     sheet.write(i+1, 6, settlement_id.freight_total, light_box_currency)
                     sheet.write(i+1, 7, settlement_id.aduana_total, light_box_currency)
                     sheet.write(i+1, 8, settlement_id.storage_total + settlement_id.maneuvers_total , light_box_currency)
                     sheet.write(i+1, 9, settlement_id.boxes , light_box_currency)
                     sheet.write(i+1, 10, "=sum(k{}:k{})".format(str(inicio_i+1), str(i+1)), light_box_currency)
                     sheet.write(i+1, 11, "=sum(l{}:l{})".format(str(inicio_i), str(i+1)), light_box_currency)
+                    sheet.write(loc_total_gastos_row, 11, "=g{}+h{}+i{}+j{}".format(str(i+2), str(i+2),str(i+2),str(i+2)), light_box_currency)
                     sheet.write(liquidacion_ubicacion, 14, "=l{}".format(str(i+2)), travels_middle_right)
                     liquidaciones.append(liquidacion_ubicacion)
                     sheet.write(liquidacion_ubicacion+9, 14, "=(o{}+o{}+o{})-sum(o{}:o{})".format(str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion),str(liquidacion_ubicacion+1),str(liquidacion_ubicacion+9)), travels_middle_right)
-                    sheet.write(liquidacion_ubicacion+11, 14, "=(o{}/(o{}+o{}+o{}))".format(str(liquidacion_ubicacion+10),str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion)), travels_middle_right)
+                    sheet.write(liquidacion_ubicacion+11, 14, "=(o{}/(o{}+o{}+o{}))".format(str(liquidacion_ubicacion+10),str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion)), light_box_percentage)
                     i += 7
 
                     total_total += sale_update
@@ -2230,6 +2248,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                     aduana_mex = move_line_ids.filtered(lambda line: line.account_id.id == 1392 and line.move_id.state == 'posted')#[]1392
                     adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
                     boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
+                    logistics = move_line_ids.filtered(lambda line: line.account_id.id == 1516 and line.move_id.state == 'posted')
                     sale_update = sum([sale.price_subtotal for sale in sales_lines])
                     sale_ajust_update = sum([sale.price_subtotal for sale in sales_ajust_lines])
                     sale_update = sale_update - sale_ajust_update
@@ -2240,6 +2259,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                     aduana_usa_update = sum([accline.price_subtotal for accline in aduana_usa])
                     aduana_mex_update = sum([accline.price_subtotal for accline in aduana_mex])
                     boxes_update = sum([accline.debit for accline in boxes])
+                    logistics_update = sum([accline.debit for accline in logistics])
                     adjustment_update = sum([accline.price_subtotal for accline in adjustment])
 
                     exists_st.calcular_update()
@@ -2287,8 +2307,8 @@ class XlsxUtilityReport2(models.AbstractModel):
                     if len(procesar_object)> 1 or exists_st.actualizacion == True:
                         sheet.write(i, 8, 'Viaje', travels)
                         sheet.write(i + 1, 8, 'VENTAS', travels_title_top_left)
-                        sheet.write(i + 2, 8, 'POR FACTURAR', travels_title_top_left)
-                        sheet.write(i + 3, 8, 'STOCK', travels_title_top_left)
+                        sheet.write(i + 2, 8, 'POR FACTURAR', travels_middle_left)
+                        sheet.write(i + 3, 8, 'STOCK', travels_middle_left)
                         sheet.write(i + 4, 8, 'LIQUIDACIONES', travels_middle_left)
                         sheet.write(i + 5, 8, 'Freight In', travels_middle_left)
                         sheet.write(i + 6, 8, 'Aduana', travels_middle_left)
@@ -2297,6 +2317,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                         sheet.write(i + 9, 8, 'STORAGE', travels_middle_left_red)
                         sheet.write(i + 10, 8, 'FREIGHT OUT', travels_middle_left_red)
                         sheet.write(i + 11, 8, 'CAJAS', travels_middle_left_red)
+                        sheet.write(i + 12, 8, 'LOGISTICS', travels_middle_left_red)
                         sheet.write(i + 13, 8, 'UTILIDAD', travels_middle_left)
                         sheet.write(i, 9, po.name, name)
                         sheet.write(i + 1, 9, sale_update, travels_title_top_right)
@@ -2309,18 +2330,19 @@ class XlsxUtilityReport2(models.AbstractModel):
                         sheet.write(i + 9, 9, storage_update, travels_middle_right_red)
                         sheet.write(i + 10, 9, freight_out_update, travels_middle_right_red)
                         sheet.write(i + 11, 9, boxes_update, travels_middle_right_red)
+                        sheet.write(i + 12, 9, logistics_update, travels_middle_right_red)
                         sheet.write(i + 13, 9, settlement_id.utility, travels_middle_right)
                         sheet.write(i + 15, 9, str(float_round(settlement_id.utility_percentage, precision_digits=2)) + "%", travels_bottom_right)
                         #sheet.write(i + 2, 13, '', travels_middle_left)
                         #sheet.write(i + 3, 13, '', travels_middle_left)
                         #sheet.write(i + 11, 13, '', travels_middle_left)
-                        sheet.write(i + 12, 8, '', travels_middle_left)
+                        #sheet.write(i + 12, 8, '', travels_middle_left)
                         sheet.write(i + 14, 8, '', travels_middle_left)
                         #sheet.write(i + 2, 14, '', travels_middle_right)
                         #sheet.write(i + 3, 14, '', travels_middle_right)
                         sheet.write(i + 4, 9, settlement_id.settlement, travels_middle_right)
                         #sheet.write(i + 11, 14, '', travels_middle_right)
-                        sheet.write(i + 12, 9, '', travels_middle_right)
+                        #sheet.write(i + 12, 9, '', travels_middle_right)
                         sheet.write(i + 14, 9, '', travels_middle_right)
                         sheet.write(i + 15, 8, '', travels_bottom_left)
                     
@@ -2496,8 +2518,8 @@ class XlsxUtilityReport2(models.AbstractModel):
                     sheet.write(i+1, 0, '', light_box)
                     sheet.write(i+1, 1, '', light_box)
                     sheet.write(i+1, 2, '', light_box)
-                    sheet.write(i+1, 3, "", light_box)
-                    sheet.write(i+1, 4, '', light_box)
+                    sheet.write(i+1, 4, "", light_box)
+                    sheet.write(i+1, 3, "=sum(d{}:d{})".format(str(inicio_i+1), str(i+1)), light_box)
                     sheet.write(i+1, 5, "=sum(f{}:f{})".format(str(inicio_i+1), str(i+1)), light_box_currency)
                     #sheet.write(i+1, 6, settlement_id.freight_total, light_box_currency)
                     #sheet.write(i+1, 7, settlement_id.aduana_total, light_box_currency)
@@ -2508,7 +2530,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                     sheet.write(liquidacion_ubicacion, 9, "=g{}".format(str(i+2)), travels_middle_right)
                     liquidaciones.append(liquidacion_ubicacion)
                     sheet.write(liquidacion_ubicacion+9, 9, "=(j{}+j{}+j{})-sum(j{}:j{})".format(str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion),str(liquidacion_ubicacion+1),str(liquidacion_ubicacion+9)), travels_middle_right)
-                    sheet.write(liquidacion_ubicacion+11, 9, "=(j{}/(j{}+j{}+j{}))".format(str(liquidacion_ubicacion+10),str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion)), travels_middle_right)
+                    sheet.write(liquidacion_ubicacion+11, 9, "=(j{}/(j{}+j{}+j{}))".format(str(liquidacion_ubicacion+10),str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion)), light_box_percentage)
                     i += 7
 
                     total_total += sale_update
@@ -2579,6 +2601,7 @@ class XlsxUtilityReport2(models.AbstractModel):
             sheet.write(i + 10, 13, 'FREIGHT OUT', travels_middle_left_red)
             sheet.write(i + 13, 13, 'UTILIDAD', travels_middle_left)
             sheet.write(i + 11, 13, 'CAJAS', travels_middle_left)
+            sheet.write(i + 12, 13, 'LOGISTICS', travels_middle_left)
             sheet.write(i + 1, 14, total_total, travels_title_top_right)
             sheet.write(i + 2, 14, total_porfacturar , travels_middle_right)
             sheet.write(i + 3, 14, total_stock, travels_middle_right)
@@ -2591,7 +2614,7 @@ class XlsxUtilityReport2(models.AbstractModel):
             sheet.write(i + 10, 14, total_freight_out , travels_middle_right_red)
             sheet.write(i + 11, 14, total_boxes, travels_middle_right_red)
             sheet.write(i + 13, 14, "=(o{}+o{}+o{})-sum(o{}:o{})".format(str(i+2),str(i+3),str(i+4),str(i+5),str(i+13)), travels_middle_right)
-            sheet.write(i + 15, 14, "=(o{}/(o{}+o{}+o{}))".format(str(i+14),str(i+2),str(i+3),str(i+4)), travels_middle_right)
+            sheet.write(i + 15, 14, "=(o{}/(o{}+o{}+o{}))".format(str(i+14),str(i+2),str(i+3),str(i+4)), light_box_percentage)
 
             #sheet.write(i + 2, 13, '', travels_middle_left)
             #sheet.write(i + 3, 13, '', travels_middle_left)
@@ -2607,7 +2630,7 @@ class XlsxUtilityReport2(models.AbstractModel):
             #sheet.write(i + 15, 14, '', travels_bottom_left)
 
 
-class XlsxUtilityReport_firma(models.AbstractModel): 
+class XlsxUtilityReport_firma(models.AbstractModel):    
     _name = 'report.liquidaciones.xlsx_utility_report_firma'
     _inherit = 'report.odoo_report_xlsx.abstract'
 
@@ -2856,6 +2879,9 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                     lang = self.env.user.lang
                     lang_id = self.env['res.lang'].search([('code', '=', lang)])
                     datestring = fields.Date.from_string(str(po.date_order)).strftime(lang_id.date_format)
+
+                    crear_tabla_ziquierda(sheet, i, settlement_id)
+                    #inicia tabla liquidacion izquiersa
                     sheet.write(i, 0, 'NOTA', report_format_gray)
                     sheet.write(i, 1, 'VIAJE', report_format_gray)
                     
@@ -3341,7 +3367,7 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                     sheet.write(liquidacion_ubicacion, 9, "=g{}".format(str(i+2)), travels_middle_right)
                     liquidaciones.append(liquidacion_ubicacion)
                     sheet.write(liquidacion_ubicacion+9, 9, "=(j{}+j{}+j{})-sum(j{}:j{})".format(str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion),str(liquidacion_ubicacion+1),str(liquidacion_ubicacion+9)), travels_middle_right)
-                    sheet.write(liquidacion_ubicacion+11, 9, "=(j{}/(j{}+j{}+j{}))".format(str(liquidacion_ubicacion+10),str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion)), travels_middle_right)
+                    sheet.write(liquidacion_ubicacion+11, 9, "=(j{}/(j{}+j{}+j{}))".format(str(liquidacion_ubicacion+10),str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion)), light_box_percentage)
                     i += 7
 
                     total_total += sale_update
@@ -3392,6 +3418,708 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                 sheet.write(i+1, 9, '', light_header_bottom)
                 sheet.write(i+2, 0, 'Sin liquidación', report_format)
                 i += 3
+
+    # def crear_tabla_ziquierda(self, workbook, po, sheet, i, settlement_id):
+    #     travels = workbook.add_format({
+    #         'font_color' : 'black',
+    #         'font_size'  : '14',  
+    #         'font_name'  : 'arial',
+    #         'align'      : 'left',
+    #         'bold'       : True
+    #     })
+    #     name = workbook.add_format({
+    #         'font_color' : 'black',
+    #         'font_size'  : '14',  
+    #         'font_name'  : 'arial',
+    #         'align'      : 'right',
+    #         'bold'       : True
+    #     })
+    #     travels_title_top_left = workbook.add_format({
+    #         'font_color' : 'black', 
+    #         'font_size'  : '14', 
+    #         'font_name'  : 'arial', 
+    #         'align'      : 'left', 
+    #         'top'        : 2, 
+    #         'left'       : 2,
+    #         'bold'       : True
+    #     })
+    #     travels_middle_left = workbook.add_format({
+    #         'font_color' : 'black',
+    #         'font_size'  : '14', 
+    #         'font_name'  : 'arial', 
+    #         'align'      : 'left', 
+    #         'left'       : 2,
+    #         'bold'       : True
+    #     })
+    #     travels_bottom_left = workbook.add_format({
+    #         'font_color' : 'black',
+    #         'font_size'  : '14', 
+    #         'font_name'  : 'arial', 
+    #         'align'      : 'left', 
+    #         'left'       : 2,
+    #         'bottom'     : 2,
+    #         'bold'       : True
+    #     })
+    #     travels_middle_left_red = workbook.add_format({
+    #         'font_color' : 'white',
+    #         'font_size'  : '14', 
+    #         'font_name'  : 'arial', 
+    #         'align'      : 'left', 
+    #         'left'       : 2, 
+    #         'bg_color'   : 'red',
+    #         'bold'       : True
+    #     })
+    #     travels_title_top_right = workbook.add_format({
+    #         'font_color' : 'black', 
+    #         'font_size'  : '14', 
+    #         'font_name'  : 'arial', 
+    #         'align'      : 'right', 
+    #         'top'        : 2, 
+    #         'right'      : 2,
+    #         'bold'       : True,
+    #         'num_format': '#,##0.00'
+    #     })
+    #     travels_middle_right = workbook.add_format({
+    #         'font_color' : 'black',
+    #         'font_size'  : '14', 
+    #         'font_name'  : 'arial', 
+    #         'align'      : 'right', 
+    #         'right'      : 2,
+    #         'bold'       : True,
+    #         'num_format': '#,##0.00'
+    #     })
+    #     travels_middle_right_red = workbook.add_format({
+    #         'font_color' : 'white',
+    #         'font_size'  : '14', 
+    #         'font_name'  : 'arial', 
+    #         'align'      : 'right', 
+    #         'right'      : 2, 
+    #         'bg_color'   : 'red',
+    #         'bold'       : True,
+    #         'num_format': '#,##0.00'
+    #     })
+    #     travels_bottom_right = workbook.add_format({
+    #         'font_color' : 'black',
+    #         'font_size'  : '14', 
+    #         'font_name'  : 'arial', 
+    #         'align'      : 'right', 
+    #         'right'      : 2,
+    #         'bottom'     : 2,
+    #         'bold'       : True,
+    #         'num_format': '#,##0.00'
+    #     })
+    #     report_format = workbook.add_format({
+    #         'font_size'  : '10',
+    #         'font_name'  : 'arial',
+    #         'border'     : 2,
+    #         'bold'       : True,
+    #         'align'      : 'center',
+    #     })
+    #     light_header_top = workbook.add_format({
+    #         'font_size'  : '14',
+    #         'font_name'  : 'arial',
+    #         'top'        : 2,
+    #         'right'      : 1,
+    #         'left'       : 1,
+    #         'bottom'     : 1,
+    #         'align'      : 'center',
+    #     })
+    #     light_header_bottom = workbook.add_format({
+    #         'font_size'  : '14',
+    #         'font_name'  : 'arial',
+    #         'bottom'     : 2,
+    #         'top'        : 1,
+    #         'right'      : 1,
+    #         'left'       : 1,
+    #         'align'      : 'center',
+    #     })
+    #     bold_header = workbook.add_format({
+    #         'font_size'  : '14', 
+    #         'font_name'  : 'arial',
+    #         'bottom'     : 2,
+    #         'bold'       : True,
+    #         'align'      : 'center',
+    #     })
+    #     light_box = workbook.add_format({
+    #         'font_size'  : '14', 
+    #         'font_name'  : 'arial',
+    #         'bottom'     : 1,
+    #         'top'        : 1, 
+    #         'right'      : 1,
+    #         'left'       : 1,
+    #         'align'      : 'center',
+    #     })
+    #     light_box_currency = workbook.add_format({
+    #         'font_size'  : '14', 
+    #         'font_name'  : 'arial',
+    #         'bottom'     : 1,
+    #         'top'        : 1, 
+    #         'right'      : 1,
+    #         'left'       : 1,
+    #         'align'      : 'center',
+    #     })
+    #     report_format_gray = workbook.add_format({
+    #         'font_size'  : '10',
+    #         'font_name'  : 'arial',
+    #         'border'     : 2,
+    #         'bold'       : True,
+    #         'align'      : 'center',
+    #         'bg_color'   : 'gray',
+    #     })
+        
+    #     exists_st = self.env['sale.settlements'].search([('order_id', '=', po.id)], limit=1)
+    #     if exists_st.price_type == 'open':
+    #         #codigo para determinar datos actualizables
+    #         po_product_ids = [line.product_id for line in po.order_line]
+    #         fecha = po.date_order
+    #         picking_ids = po.picking_ids.filtered(lambda picking: picking.state == 'done') # Se obtinenen pickings de la orden de compra
+    #         lot_ids = self.env["stock.production.lot"]
+    #         for sml in picking_ids.move_line_ids:
+    #             lot_ids += sml.lot_id
+    #         analytic_tag_ids = self.env['account.analytic.tag']
+    #         for lot in lot_ids:
+    #             tag = lot.analytic_tag_ids.filtered(lambda tag: len(tag.name)>5)
+    #             if not tag in analytic_tag_ids:
+    #                 analytic_tag_ids += tag
+    #         move_line_ids = self.env['account.move.line'].search([('analytic_tag_ids', 'in', analytic_tag_ids.ids), ('move_id.state', '=', 'posted')])
+    #         sales_lines = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.move_id.state == 'posted')
+    #         sales_ajust_lines = move_line_ids.filtered(lambda line: line.account_id.id in (1377, 1379) and line.move_id.state == 'posted')
+    #         freight_in = move_line_ids.filtered(lambda line: line.account_id.id == 1387 and line.move_id.state == 'posted')
+    #         freight_out = move_line_ids.filtered(lambda line: line.account_id.id == 1394 and line.move_id.state == 'posted')
+    #         maneuvers = move_line_ids.filtered(lambda line: line.account_id.id == 1390 and line.move_id.state == 'posted')
+    #         storage = move_line_ids.filtered(lambda line: line.account_id.id == 1395 and line.move_id.state == 'posted')
+    #         aduana_usa = move_line_ids.filtered(lambda line: line.account_id.id == 1393 and line.move_id.state == 'posted')
+    #         aduana_mex = move_line_ids.filtered(lambda line: line.account_id.id == 1392 and line.move_id.state == 'posted')#[]1392
+    #         adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
+    #         boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
+    #         sale_update = sum([sale.price_subtotal for sale in sales_lines])
+    #         sale_ajust_update = sum([sale.price_subtotal for sale in sales_ajust_lines])
+    #         sale_update = sale_update - sale_ajust_update
+    #         freight_in_update = sum([accline.price_subtotal for accline in freight_in])
+    #         freight_out_update = sum([accline.price_subtotal for accline in freight_out])
+    #         maneuvers_update = sum([accline.price_subtotal for accline in maneuvers])
+    #         storage_update = sum([accline.price_subtotal for accline in storage])
+    #         aduana_usa_update = sum([accline.price_subtotal for accline in aduana_usa])
+    #         aduana_mex_update = sum([accline.price_subtotal for accline in aduana_mex])
+    #         boxes_update = sum([accline.debit for accline in boxes])
+    #         adjustment_update = sum([accline.price_subtotal for accline in adjustment])
+
+    #         exists_st.calcular_update()
+
+    #         #termina datos actualizables
+
+    #         #aqui poner el if para open close
+    #         settlement_id = exists_st
+    #         lang = self.env.user.lang
+    #         lang_id = self.env['res.lang'].search([('code', '=', lang)])
+    #         datestring = fields.Date.from_string(str(po.date_order)).strftime(lang_id.date_format)
+    #         #inicia tabla liquidacion izquiersa
+    #         sheet.write(i, 0, 'NOTA', report_format_gray)
+    #         sheet.write(i, 1, 'VIAJE', report_format_gray)
+            
+    #         sheet.write(i+1, 0, settlement_id.note, report_format_gray)
+    #         sheet.write(i+1, 1, settlement_id.journey, report_format_gray)
+
+    #         sheet.write(i+2, 0, '', report_format)
+    #         sheet.write(i+2, 1, '', report_format)
+    #         sheet.write(i+2, 2, '', light_header_top)
+    #         # sheet.write(6, 3, 'Cajas', light_header_top)
+    #         sheet.write(i+2, 3, 'Cajas', light_header_top)
+    #         sheet.write(i+2, 4, '$', light_header_top)
+    #         sheet.write(i+2, 5, '$', light_header_top)
+    #         sheet.write(i+2, 6, '(-)Flete', light_header_top)
+    #         sheet.write(i+2, 7, 'Aduana', light_header_top)
+    #         sheet.write(i+2, 8, 'In&Out', light_header_top)
+    #         sheet.write(i+2, 9, 'Boxes', light_header_top)
+    #         sheet.write(i+2, 10, '(-)Comision', light_header_top)
+    #         sheet.write(i+2, 11, '', light_header_top)
+            
+    #         sheet.write(i+3, 0, 'Fecha', bold_header)
+    #         sheet.write(i+3, 1, 'Producto', light_header_bottom)
+    #         sheet.write(i+3, 2, 'Medida', light_header_bottom)
+    #         # sheet.write(7, 3, 'Emb.', light_header_bottom)
+    #         sheet.write(i+3, 3, 'Rec.', light_header_bottom)
+    #         sheet.write(i+3, 4, 'P.Unit.', light_header_bottom)
+    #         sheet.write(i+3, 5, 'Importe.', light_header_bottom)
+    #         sheet.write(i+3, 6, '', light_header_bottom)
+    #         sheet.write(i+3, 7, '', light_header_bottom)
+    #         sheet.write(i+3, 8, '', light_header_bottom)
+    #         sheet.write(i+3, 9, '', light_header_bottom)
+    #         sheet.write(
+    #             i+3, 10,
+    #             "%d %%" % settlement_id.commission_percentage,
+    #             light_header_bottom)
+    #         sheet.write(i+3, 11, 'Total', light_header_bottom)
+
+    #         sheet.write(i+5, 0, datestring, light_box)
+            
+    #         exists_st.actualizacion = True
+    #         tabla_ventas_inicial =  i + 5
+    #         liquidacion_ubicacion = i + 4
+    #         i += 5
+    #         j = i - 1
+    #         inicio_i = i
+    #         final_i = i
+    #         sheet.write(i - 1, 11, (-settlement_id.freight_total-settlement_id.aduana_total-settlement_id.storage_total-settlement_id.maneuvers_total-settlement_id.boxes), light_box_currency)
+    #         #activar variables para cuadro vde ventas
+    #         tb_ventas = []
+    #         tb_porfacturar = []
+    #         tb_stock = []
+    #         tb_scrap = []
+
+    #         for line in settlement_id.settlements_line_ids:
+    #             #tabla de ventas inicio
+    #             line_lotes =  self.env['stock.production.lot'].search([('id', 'in', lot_ids.ids),('product_id', '=', line.product_id.id)])
+    #             line_lotes += self.env['stock.production.lot'].search([('parent_lod_id', 'in', line_lotes.ids)])
+    #             quant_obj = self.env["stock.quant"] 
+    #             location_id = self.env["stock.location"].search([('usage', '=', 'internal')])
+    #             quants1 = quant_obj.search([ ('lot_id', 'in', line_lotes.ids), ('location_id', 'in', location_id.ids)])
+    #             scrap_loc_id = self.env["stock.location"].search([('scrap_location', '=', True)])
+    #             quants2 = quant_obj.search([ ('lot_id', 'in', line_lotes.ids), ('location_id', 'in', scrap_loc_id.ids)])
+    #             stock = sum([q.quantity for q in quants1])
+    #             scrap_qty = sum([q.quantity for q in quants2])
+    #             ventas_lines_lot_facturadas = self.env['sale.order.line'].search([('lot_id', 'in', line_lotes.ids),('invoice_status','=','invoiced')])
+    #             invoice_line_ids = []
+    #             for lin in ventas_lines_lot_facturadas:
+    #                 invoice_line_ids.extend(lin.invoice_lines.ids)
+    #             invoice_line_ids = self.env['account.move.line'].search([('id', 'in', invoice_line_ids),('parent_state','!=', 'cancel')]) #,('parent_state','=', 'posted')
+    #             suma_cantidad_facturada = 0
+    #             suma_unidades_facturadas = 0
+    #             suma_unidades_por_facturadas = 0
+    #             ventas_lines_lot_porfacturadas = self.env['sale.order.line'].search([('lot_id', 'in', line_lotes.ids),('invoice_status','=','to invoice')])
+    #             for lin in ventas_lines_lot_porfacturadas:
+    #                 suma_unidades_por_facturadas += lin.qty_delivered
+    #             for invoice_lin in invoice_line_ids:
+    #                 if invoice_lin.parent_state == 'posted':
+    #                     suma_cantidad_facturada += invoice_lin.credit
+    #                     suma_unidades_facturadas += invoice_lin.quantity
+    #                 else:
+    #                     suma_unidades_por_facturadas += invoice_lin.quantity
+    #             if  suma_unidades_facturadas > 0:   
+    #                 data_line = {
+    #                     'product': line.product_id.display_name,
+    #                     'cajas': suma_unidades_facturadas,
+    #                     'precio_prom': (suma_cantidad_facturada/suma_unidades_facturadas),
+    #                     'total': suma_cantidad_facturada
+    #                     }
+    #                 tb_ventas.append(data_line)
+    #             if suma_unidades_por_facturadas > 0:
+    #                 data_line = {
+    #                     'product': line.product_id.display_name,
+    #                     'cajas': suma_unidades_por_facturadas,
+    #                     'precio_prom': line.pending_invoice_price,
+    #                     'total': (suma_unidades_por_facturadas*line.pending_invoice_price)
+    #                     }
+    #                 tb_porfacturar.append(data_line)
+    #             if stock > 0:
+    #                 data_line = {
+    #                     'product': line.product_id.display_name,
+    #                     'cajas': stock,
+    #                     'precio_prom': line.current_stock_price,
+    #                     'total': (stock*line.current_stock_price)
+    #                     }
+    #                 tb_stock.append(data_line)
+    #             if scrap_qty > 0:
+    #                 data_line = {
+    #                     'product': line.product_id.display_name,
+    #                     'cajas': scrap_qty,
+    #                     }
+    #                 tb_scrap.append(data_line)
+
+
+    #             #tabla de ventas final
+
+
+    #             display_name = line.product_id.display_name.replace(
+    #                 ")", "").split("(")
+    #             variant = len(display_name) > 1 and display_name[1]
+    #             i += 1
+    #             sheet.write(i, 0, '', light_box)
+    #             sheet.write(i, 1, line.product_id.name, light_box)
+    #             sheet.write(i, 2, variant, light_box)
+    #             sheet.write(i, 3, line.box_rec, light_box)
+    #             sheet.write(i, 4, line.price_unit, light_box_currency)
+    #             sheet.write(i, 5, "=d{}*e{}".format(str(i+1), str(i+1)), light_box_currency)
+    #             sheet.write(i, 6, "", light_box_currency)
+    #             sheet.write(i, 7, "", light_box_currency)
+    #             sheet.write(i, 8, "", light_box_currency)
+    #             sheet.write(i, 9, "", light_box_currency)
+    #             sheet.write(i, 10, "=f{}*k{}".format(str(i+1), str(j)), light_box_currency)
+    #             sheet.write(i, 11, "=f{}-k{}".format(str(i+1), str(i+1)), light_box_currency)
+    #             final_i = i
+    #         for jj in range(9-(final_i - inicio_i)):
+    #             i += 1
+    #             sheet.write(i, 0, '', light_box)
+    #             sheet.write(i, 1, '', light_box)
+    #             sheet.write(i, 2, '', light_box)
+    #             sheet.write(i, 3, '', light_box)
+    #             sheet.write(i, 4, '', light_box)
+    #             sheet.write(i, 5, '', light_box)
+    #             sheet.write(i, 6, '', light_box)
+    #             sheet.write(i, 7, '', light_box)
+    #             sheet.write(i, 8, '', light_box)
+    #             sheet.write(i, 9, '', light_box)
+    #             sheet.write(i, 10, '', light_box)
+    #             sheet.write(i, 11, '', light_box)
+    #             sumador = sumador +3
+            
+            
+            
+    #         sheet.write(i+1, 0, '', light_box)
+    #         sheet.write(i+1, 1, '', light_box)
+    #         sheet.write(i+1, 2, '', light_box)
+    #         sheet.write(i+1, 3, "", light_box)
+    #         sheet.write(i+1, 4, '', light_box)
+    #         sheet.write(i+1, 5, "=sum(f{}:f{})".format(str(inicio_i+1), str(i+1)), light_box_currency)
+    #         sheet.write(i+1, 6, settlement_id.freight_total, light_box_currency)
+    #         sheet.write(i+1, 7, settlement_id.aduana_total, light_box_currency)
+    #         sheet.write(i+1, 8, settlement_id.storage_total + settlement_id.maneuvers_total , light_box_currency)
+    #         sheet.write(i+1, 9, settlement_id.boxes , light_box_currency)
+    #         sheet.write(i+1, 10, "=sum(k{}:k{})".format(str(inicio_i+1), str(i+1)), light_box_currency)
+    #         sheet.write(i+1, 11, "=sum(l{}:l{})".format(str(inicio_i), str(i+1)), light_box_currency)
+    #         sheet.write(liquidacion_ubicacion, 14, "=l{}".format(str(i+2)), travels_middle_right)
+    #         liquidaciones.append(liquidacion_ubicacion)
+    #         sheet.write(liquidacion_ubicacion+9, 14, "=(o{}+o{}+o{})-sum(o{}:o{})".format(str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion),str(liquidacion_ubicacion+1),str(liquidacion_ubicacion+9)), travels_middle_right)
+    #         sheet.write(liquidacion_ubicacion+11, 14, "=(o{}/(o{}+o{}+o{}))".format(str(liquidacion_ubicacion+10),str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion)), travels_middle_right)
+    #         i += 7
+
+    #         total_total += sale_update
+    #         total_porfacturar += exists_st.pending_invoice_value
+    #         total_stock += exists_st.stock_value
+    #         total_freight_in += freight_in_update
+    #         total_aduana_total += aduana_usa_update + aduana_mex_update
+    #         total_maneuvers_total += maneuvers_update
+    #         total_adjustment += adjustment_update
+    #         total_storage += storage_update
+    #         total_freight_out += freight_out_update
+    #         total_utility += settlement_id.utility
+    #         total_boxes += boxes_update
+
+    #         total_utility_percentage = float_round(settlement_id.utility_percentage, precision_digits=2)
+    #         utility_per_qty += 1
+    #         sumador = sumador + 15
+    #     else:
+    #         po_product_ids = [line.product_id for line in po.order_line]
+    #         fecha = po.date_order
+    #         picking_ids = po.picking_ids.filtered(lambda picking: picking.state == 'done') # Se obtinenen pickings de la orden de compra
+    #         lot_ids = self.env["stock.production.lot"]
+    #         for sml in picking_ids.move_line_ids:
+    #             lot_ids += sml.lot_id
+    #         analytic_tag_ids = self.env['account.analytic.tag']
+    #         for lot in lot_ids:
+    #             tag = lot.analytic_tag_ids.filtered(lambda tag: len(tag.name)>5)
+    #             if not tag in analytic_tag_ids:
+    #                 analytic_tag_ids += tag
+    #         move_line_ids = self.env['account.move.line'].search([('analytic_tag_ids', 'in', analytic_tag_ids.ids), ('move_id.state', '=', 'posted')])
+    #         sales_lines = move_line_ids.filtered(lambda line: line.account_id.id == 38 and line.move_id.state == 'posted')
+    #         sales_ajust_lines = move_line_ids.filtered(lambda line: line.account_id.id in (1377, 1379) and line.move_id.state == 'posted')
+    #         freight_in = move_line_ids.filtered(lambda line: line.account_id.id == 1387 and line.move_id.state == 'posted')
+    #         freight_out = move_line_ids.filtered(lambda line: line.account_id.id == 1394 and line.move_id.state == 'posted')
+    #         maneuvers = move_line_ids.filtered(lambda line: line.account_id.id == 1390 and line.move_id.state == 'posted')
+    #         storage = move_line_ids.filtered(lambda line: line.account_id.id == 1395 and line.move_id.state == 'posted')
+    #         aduana_usa = move_line_ids.filtered(lambda line: line.account_id.id == 1393 and line.move_id.state == 'posted')
+    #         aduana_mex = move_line_ids.filtered(lambda line: line.account_id.id == 1392 and line.move_id.state == 'posted')#[]1392
+    #         adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
+    #         boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
+    #         sale_update = sum([sale.price_subtotal for sale in sales_lines])
+    #         sale_ajust_update = sum([sale.price_subtotal for sale in sales_ajust_lines])
+    #         sale_update = sale_update - sale_ajust_update
+    #         freight_in_update = sum([accline.price_subtotal for accline in freight_in])
+    #         freight_out_update = sum([accline.price_subtotal for accline in freight_out])
+    #         maneuvers_update = sum([accline.price_subtotal for accline in maneuvers])
+    #         storage_update = sum([accline.price_subtotal for accline in storage])
+    #         aduana_usa_update = sum([accline.price_subtotal for accline in aduana_usa])
+    #         aduana_mex_update = sum([accline.price_subtotal for accline in aduana_mex])
+    #         boxes_update = sum([accline.debit for accline in boxes])
+    #         adjustment_update = sum([accline.price_subtotal for accline in adjustment])
+
+    #         exists_st.calcular_update()
+
+    #         settlement_id = exists_st
+    #         lang = self.env.user.lang
+    #         lang_id = self.env['res.lang'].search([('code', '=', lang)])
+    #         datestring = fields.Date.from_string(str(po.date_order)).strftime(lang_id.date_format)
+    #         sheet.write(i, 0, 'NOTA', report_format_gray)
+    #         sheet.write(i, 1, 'VIAJE', report_format_gray)
+            
+    #         sheet.write(i+1, 0, settlement_id.note, report_format_gray)
+    #         sheet.write(i+1, 1, settlement_id.journey, report_format_gray)
+
+    #         sheet.write(i+2, 0, '', report_format)
+    #         sheet.write(i+2, 1, '', report_format)
+    #         sheet.write(i+2, 2, '', light_header_top)
+    #         # sheet.write(6, 3, 'Cajas', light_header_top)
+    #         sheet.write(i+2, 3, 'Cajas', light_header_top)
+    #         sheet.write(i+2, 4, '$', light_header_top)
+    #         sheet.write(i+2, 5, '$', light_header_top)
+    #         #sheet.write(i+2, 6, '(-)Flete', light_header_top)
+    #         #sheet.write(i+2, 7, 'Aduana', light_header_top)
+    #         #sheet.write(i+2, 8, 'In&Out', light_header_top)
+    #         #sheet.write(i+2, 9, 'Boxes', light_header_top)
+    #         #sheet.write(i+2, 10, '(-)Comision', light_header_top)
+    #         sheet.write(i+2, 6, '', light_header_top)
+            
+    #         sheet.write(i+3, 0, 'Fecha', bold_header)
+    #         sheet.write(i+3, 1, 'Producto', light_header_bottom)
+    #         sheet.write(i+3, 2, 'Medida', light_header_bottom)
+    #         # sheet.write(7, 3, 'Emb.', light_header_bottom)
+    #         sheet.write(i+3, 3, 'Rec.', light_header_bottom)
+    #         sheet.write(i+3, 4, 'P.Unit.', light_header_bottom)
+    #         sheet.write(i+3, 5, 'Importe.', light_header_bottom)
+    #         #sheet.write(i+3, 6, '', light_header_bottom)
+    #         #sheet.write(i+3, 7, '', light_header_bottom)
+    #         #sheet.write(i+3, 8, '', light_header_bottom)
+    #         #sheet.write(i+3, 9, '', light_header_bottom)
+    #         #sheet.write(i+3, 10,"%d %%" % settlement_id.commission_percentage, light_header_bottom)
+    #         sheet.write(i+3, 6, 'Total', light_header_bottom)
+
+    #         sheet.write(i+5, 0, datestring, light_box)
+            
+    #         if len(procesar_object)> 1 or exists_st.actualizacion == True:
+    #             sheet.write(i, 8, 'Viaje', travels)
+    #             sheet.write(i + 1, 8, 'VENTAS', travels_title_top_left)
+    #             sheet.write(i + 2, 8, 'POR FACTURAR', travels_title_top_left)
+    #             sheet.write(i + 3, 8, 'STOCK', travels_title_top_left)
+    #             sheet.write(i + 4, 8, 'LIQUIDACIONES', travels_middle_left)
+    #             sheet.write(i + 5, 8, 'Freight In', travels_middle_left)
+    #             sheet.write(i + 6, 8, 'Aduana', travels_middle_left)
+    #             sheet.write(i + 7, 8, 'MANIOBRAS', travels_middle_left_red)
+    #             sheet.write(i + 8, 8, 'AJUSTE', travels_middle_left_red)
+    #             sheet.write(i + 9, 8, 'STORAGE', travels_middle_left_red)
+    #             sheet.write(i + 10, 8, 'FREIGHT OUT', travels_middle_left_red)
+    #             sheet.write(i + 11, 8, 'CAJAS', travels_middle_left_red)
+    #             sheet.write(i + 13, 8, 'UTILIDAD', travels_middle_left)
+    #             sheet.write(i, 9, po.name, name)
+    #             sheet.write(i + 1, 9, sale_update, travels_title_top_right)
+    #             sheet.write(i + 2, 9, exists_st.pending_invoice_value, travels_middle_right)
+    #             sheet.write(i + 3, 9, exists_st.stock_value, travels_middle_right)
+    #             sheet.write(i + 5, 9, freight_in_update, travels_middle_right)
+    #             sheet.write(i + 6, 9, aduana_usa_update+aduana_mex_update, travels_middle_right)
+    #             sheet.write(i + 7, 9, maneuvers_update, travels_middle_right_red)
+    #             sheet.write(i + 8, 9, adjustment_update, travels_middle_right_red)
+    #             sheet.write(i + 9, 9, storage_update, travels_middle_right_red)
+    #             sheet.write(i + 10, 9, freight_out_update, travels_middle_right_red)
+    #             sheet.write(i + 11, 9, boxes_update, travels_middle_right_red)
+    #             sheet.write(i + 13, 9, settlement_id.utility, travels_middle_right)
+    #             sheet.write(i + 15, 9, str(float_round(settlement_id.utility_percentage, precision_digits=2)) + "%", travels_bottom_right)
+    #             #sheet.write(i + 2, 13, '', travels_middle_left)
+    #             #sheet.write(i + 3, 13, '', travels_middle_left)
+    #             #sheet.write(i + 11, 13, '', travels_middle_left)
+    #             sheet.write(i + 12, 8, '', travels_middle_left)
+    #             sheet.write(i + 14, 8, '', travels_middle_left)
+    #             #sheet.write(i + 2, 14, '', travels_middle_right)
+    #             #sheet.write(i + 3, 14, '', travels_middle_right)
+    #             sheet.write(i + 4, 9, settlement_id.settlement, travels_middle_right)
+    #             #sheet.write(i + 11, 14, '', travels_middle_right)
+    #             sheet.write(i + 12, 9, '', travels_middle_right)
+    #             sheet.write(i + 14, 9, '', travels_middle_right)
+    #             sheet.write(i + 15, 8, '', travels_bottom_left)
+            
+    #         exists_st.actualizacion = True
+    #         liquidacion_ubicacion = i + 4
+    #         tabla_ventas_inicial =  i + 5
+    #         i += 5
+    #         j = i - 1
+    #         inicio_i = i
+    #         final_i = i
+    #         #activar variables para cuadro vde ventas
+    #         tb_ventas = []
+    #         tb_porfacturar = []
+    #         tb_stock = []
+    #         tb_scrap = []
+
+    #         #sheet.write(i - 1, 11, (-settlement_id.freight_total-settlement_id.aduana_total-settlement_id.storage_total-settlement_id.maneuvers_total-settlement_id.boxes), light_box_currency)
+    #         for line in settlement_id.settlements_line_ids:
+
+    #             #tabla de ventas inicio
+    #             line_lotes =  self.env['stock.production.lot'].search([('id', 'in', lot_ids.ids),('product_id', '=', line.product_id.id)])
+    #             line_lotes += self.env['stock.production.lot'].search([('parent_lod_id', 'in', line_lotes.ids)])
+    #             quant_obj = self.env["stock.quant"] 
+    #             location_id = self.env["stock.location"].search([('usage', '=', 'internal')])
+    #             quants1 = quant_obj.search([ ('lot_id', 'in', line_lotes.ids), ('location_id', 'in', location_id.ids)])
+    #             scrap_loc_id = self.env["stock.location"].search([('scrap_location', '=', True)])
+    #             quants2 = quant_obj.search([ ('lot_id', 'in', line_lotes.ids), ('location_id', 'in', scrap_loc_id.ids)])
+    #             stock = sum([q.quantity for q in quants1])
+    #             scrap_qty = sum([q.quantity for q in quants2])
+    #             ventas_lines_lot_facturadas = self.env['sale.order.line'].search([('lot_id', 'in', line_lotes.ids),('invoice_status','=','invoiced')])
+    #             invoice_line_ids = []
+    #             for lin in ventas_lines_lot_facturadas:
+    #                 invoice_line_ids.extend(lin.invoice_lines.ids)
+    #             invoice_line_ids = self.env['account.move.line'].search([('id', 'in', invoice_line_ids),('parent_state','!=', 'cancel')]) #,('parent_state','=', 'posted')
+    #             suma_cantidad_facturada = 0
+    #             suma_unidades_facturadas = 0
+    #             suma_unidades_por_facturadas = 0
+    #             ventas_lines_lot_porfacturadas = self.env['sale.order.line'].search([('lot_id', 'in', line_lotes.ids),('invoice_status','=','to invoice')])
+    #             for lin in ventas_lines_lot_porfacturadas:
+    #                 suma_unidades_por_facturadas += lin.qty_delivered
+    #             for invoice_lin in invoice_line_ids:
+    #                 if invoice_lin.parent_state == 'posted':
+    #                     suma_cantidad_facturada += invoice_lin.credit
+    #                     suma_unidades_facturadas += invoice_lin.quantity
+    #                 else:
+    #                     suma_unidades_por_facturadas += invoice_lin.quantity
+    #             if  suma_unidades_facturadas > 0:   
+    #                 data_line = {
+    #                     'product': line.product_id.display_name,
+    #                     'cajas': suma_unidades_facturadas,
+    #                     'precio_prom': (suma_cantidad_facturada/suma_unidades_facturadas),
+    #                     'total': suma_cantidad_facturada
+    #                     }
+    #                 tb_ventas.append(data_line)
+    #             if suma_unidades_por_facturadas > 0:
+    #                 data_line = {
+    #                     'product': line.product_id.display_name,
+    #                     'cajas': suma_unidades_por_facturadas,
+    #                     'precio_prom': line.pending_invoice_price,
+    #                     'total': (suma_unidades_por_facturadas*line.pending_invoice_price)
+    #                     }
+    #                 tb_porfacturar.append(data_line)
+    #             if stock > 0:
+    #                 data_line = {
+    #                     'product': line.product_id.display_name,
+    #                     'cajas': stock,
+    #                     'precio_prom': line.current_stock_price,
+    #                     'total': (stock*line.current_stock_price)
+    #                     }
+    #                 tb_stock.append(data_line)
+    #             if scrap_qty > 0:
+    #                 data_line = {
+    #                     'product': line.product_id.display_name,
+    #                     'cajas': scrap_qty,
+    #                     }
+    #                 tb_scrap.append(data_line)
+
+
+    #             #tabla de ventas final    
+
+
+    #             display_name = line.product_id.display_name.replace(
+    #                 ")", "").split("(")
+    #             variant = len(display_name) > 1 and display_name[1]
+    #             i += 1
+    #             sheet.write(i, 0, '', light_box)
+    #             sheet.write(i, 1, line.product_id.name, light_box)
+    #             sheet.write(i, 2, variant, light_box)
+    #             sheet.write(i, 3, line.box_rec, light_box)
+    #             sheet.write(i, 4, line.price_unit, light_box_currency) #buscar precio original
+    #             sheet.write(i, 5, "=d{}*e{}".format(str(i+1), str(i+1)), light_box_currency)
+    #             #sheet.write(i, 6, "", light_box_currency)
+    #             #sheet.write(i, 7, "", light_box_currency)
+    #             #sheet.write(i, 8, "", light_box_currency)
+    #             #sheet.write(i, 9, "", light_box_currency)
+    #             #sheet.write(i, 10, "=f{}*k{}".format(str(i+1), str(j)), light_box_currency)
+    #             sheet.write(i, 6, "=f{}".format(str(i+1)), light_box_currency)
+    #             final_i = i
+    #         for jj in range(9-(final_i - inicio_i)):
+    #             i += 1
+    #             sheet.write(i, 0, '', light_box)
+    #             sheet.write(i, 1, '', light_box)
+    #             sheet.write(i, 2, '', light_box)
+    #             sheet.write(i, 3, '', light_box)
+    #             sheet.write(i, 4, '', light_box)
+    #             sheet.write(i, 5, '', light_box)
+    #             sheet.write(i, 6, '', light_box)
+    #             #sheet.write(i, 7, '', light_box)
+    #             #sheet.write(i, 8, '', light_box)
+    #             #sheet.write(i, 9, '', light_box)
+    #             #sheet.write(i, 10, '', light_box)
+    #             #sheet.write(i, 11, '', light_box)
+    #             sumador = sumador +3
+
+            
+    #         #pintar tabla de ventas
+    #         tb_contador = 11
+    #         if len(tb_ventas) > 0:
+    #             sheet.write(tabla_ventas_inicial, tb_contador, 'Ventas', report_format_gray)
+    #             sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_gray)
+    #             sheet.write(tabla_ventas_inicial, tb_contador+2, 'Precio', report_format_gray)
+    #             sheet.write(tabla_ventas_inicial, tb_contador+3, 'Total', report_format_gray)
+    #             contador = tabla_ventas_inicial + 1
+    #             for linea in tb_ventas:
+    #                 sheet.write(contador, tb_contador, linea['product'], light_box)
+    #                 sheet.write(contador, tb_contador+1, linea['cajas'], light_box)
+    #                 sheet.write(contador, tb_contador+2, linea['precio_prom'], light_box_currency)
+    #                 sheet.write(contador, tb_contador+3, linea['total'], light_box_currency)
+    #                 contador = contador + 1
+    #             tb_contador += 5
+
+    #         if len(tb_porfacturar) > 0:
+    #             sheet.write(tabla_ventas_inicial, tb_contador, 'Por Facturar', report_format_gray)
+    #             sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_gray)
+    #             sheet.write(tabla_ventas_inicial, tb_contador+2, 'Precio', report_format_gray)
+    #             sheet.write(tabla_ventas_inicial, tb_contador+3, 'Total', report_format_gray)
+    #             contador = tabla_ventas_inicial + 1
+    #             for linea in tb_porfacturar:
+    #                 sheet.write(contador, tb_contador, linea['product'], light_box)
+    #                 sheet.write(contador, tb_contador+1, linea['cajas'], light_box)
+    #                 sheet.write(contador, tb_contador+2, linea['precio_prom'], light_box_currency)
+    #                 sheet.write(contador, tb_contador+3, linea['total'], light_box_currency)
+    #                 contador = contador + 1
+    #             tb_contador += 5
+
+    #         if len(tb_stock) > 0:
+    #             sheet.write(tabla_ventas_inicial, tb_contador, 'Stock', report_format_gray)
+    #             sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_gray)
+    #             sheet.write(tabla_ventas_inicial, tb_contador+2, 'Precio', report_format_gray)
+    #             sheet.write(tabla_ventas_inicial, tb_contador+3, 'Total', report_format_gray)
+    #             contador = tabla_ventas_inicial + 1
+    #             for linea in tb_stock:
+    #                 sheet.write(contador, tb_contador, linea['product'], light_box)
+    #                 sheet.write(contador, tb_contador+1, linea['cajas'], light_box)
+    #                 sheet.write(contador, tb_contador+2, linea['precio_prom'], light_box_currency)
+    #                 sheet.write(contador, tb_contador+3, linea['total'], light_box_currency)
+    #                 contador = contador + 1
+    #             tb_contador += 5
+            
+    #         if len(tb_scrap) > 0:
+    #             sheet.write(tabla_ventas_inicial, tb_contador, 'Scrap', report_format_gray)
+    #             sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_gray)
+    #             contador = tabla_ventas_inicial + 1
+    #             for linea in tb_scrap:
+    #                 sheet.write(contador, tb_contador, linea['product'], light_box)
+    #                 sheet.write(contador, tb_contador+1, linea['cajas'], light_box)
+    #                 contador = contador + 1
+    #             tb_contador += 5
+
+    #         #finaliza tabla de ventas
+            
+            
+    #         sheet.write(i+1, 0, '', light_box)
+    #         sheet.write(i+1, 1, '', light_box)
+    #         sheet.write(i+1, 2, '', light_box)
+    #         sheet.write(i+1, 3, "", light_box)
+    #         sheet.write(i+1, 4, '', light_box)
+    #         sheet.write(i+1, 5, "=sum(f{}:f{})".format(str(inicio_i+1), str(i+1)), light_box_currency)
+    #         #sheet.write(i+1, 6, settlement_id.freight_total, light_box_currency)
+    #         #sheet.write(i+1, 7, settlement_id.aduana_total, light_box_currency)
+    #         #sheet.write(i+1, 8, settlement_id.storage_total + settlement_id.maneuvers_total , light_box_currency)
+    #         #sheet.write(i+1, 9, settlement_id.boxes , light_box_currency)
+    #         #sheet.write(i+1, 10, "=sum(k{}:k{})".format(str(inicio_i+1), str(i+1)), light_box_currency)
+    #         sheet.write(i+1, 6, "=sum(g{}:g{})".format(str(inicio_i), str(i+1)), light_box_currency)
+    #         sheet.write(liquidacion_ubicacion, 9, "=g{}".format(str(i+2)), travels_middle_right)
+    #         liquidaciones.append(liquidacion_ubicacion)
+    #         sheet.write(liquidacion_ubicacion+9, 9, "=(j{}+j{}+j{})-sum(j{}:j{})".format(str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion),str(liquidacion_ubicacion+1),str(liquidacion_ubicacion+9)), travels_middle_right)
+    #         sheet.write(liquidacion_ubicacion+11, 9, "=(j{}/(j{}+j{}+j{}))".format(str(liquidacion_ubicacion+10),str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion)), travels_middle_right)
+    #         i += 7
+
+    #         total_total += sale_update
+    #         total_porfacturar += exists_st.pending_invoice_value
+    #         total_stock += exists_st.stock_value
+    #         total_freight_in += freight_in_update
+    #         total_aduana_total += aduana_usa_update + aduana_mex_update
+    #         total_maneuvers_total += maneuvers_update
+    #         total_adjustment += adjustment_update
+    #         total_storage += storage_update
+    #         total_freight_out += freight_out_update
+    #         total_utility += settlement_id.utility
+    #         total_boxes += boxes_update
+
+    #         total_utility_percentage = float_round(settlement_id.utility_percentage, precision_digits=2)
+    #         utility_per_qty += 1
+    #         sumador = sumador + 15
+
+    #             #aqui va a terminar el if de tipo de liquidacion
+
                 
         # formula_liquidacion = "=("
         # for liq in liquidaciones:

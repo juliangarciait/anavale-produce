@@ -55,6 +55,14 @@ class AccountMove(models.Model):
 
                 self.lot_reference = "{}{}-{}".format(self.partner_id.lot_code_prefix, year, reference[1]) 
 
+    def action_post(self):
+        #si la factura proviene de una venta, revisar fecha de salida del producto
+        if self.invoice_origin:
+            fecha_salida = self.invoice_line_ids[0].sale_line_ids[0].move_ids[0].date.date() or False
+            if not self.date == fecha_salida and fecha_salida:
+                raise ValidationError("La fecha de la factura no coincide con la salida del producto.   La fecha correcta es   {}".format(str(fecha_salida)))
+        res = super(AccountMove, self).action_post()
+
 
     #@api.onchange('invoice_line_ids')
     #def onchange_invoice_line_ids(self):
