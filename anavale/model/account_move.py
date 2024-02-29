@@ -59,8 +59,12 @@ class AccountMove(models.Model):
         #si la factura proviene de una venta, revisar fecha de salida del producto
         if self.invoice_line_ids[0].sale_line_ids:
             fecha_salida = self.invoice_line_ids[0].sale_line_ids[0].move_ids[0].date.date() or False
-            if not self.date == fecha_salida and fecha_salida:
-                raise ValidationError("La fecha de la factura no coincide con la salida del producto.   La fecha correcta es   {}".format(str(fecha_salida)))
+            if fecha_salida and not self.date.month == fecha_salida.month:
+                raise ValidationError("El mes de la factura no coincide con la salida del producto.   La fecha de salida es   {}".format(str(fecha_salida)))
+        if self.invoice_line_ids[0].purchase_line_id:
+            fecha_salida = self.invoice_line_ids[0].purchase_line_id[0].date_order or False
+            if fecha_salida and not self.date.month == fecha_salida.month:
+                raise ValidationError("El mes de la bill no coincide con la llegada del producto.   La fecha de llegada es   {}".format(str(fecha_salida)))
         res = super(AccountMove, self).action_post()
 
 

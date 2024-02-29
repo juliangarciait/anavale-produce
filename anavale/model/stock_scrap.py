@@ -22,7 +22,7 @@ class StockCrap(models.Model):
         for scrap in self:
             scrap.name = self.env['ir.sequence'].next_by_code('stock.scrap') or _('New')
             scrap_date = scrap._prepare_move_values()
-            move = self.env['stock.move'].create(scrap_date)
+            move = self.env['stock.move'].sudo().create(scrap_date)
             # master: replace context by cancel_backorder
             move.with_context(is_scrap=True)._action_done()
             if self.date_move:
@@ -40,6 +40,17 @@ class StockCrap(models.Model):
                             if invoice_line.account_id.internal_group == 'expense':
                                 if not invoice_line.analytic_tag_ids:
                                     invoice_line.analytic_tag_ids = self.tag_ids
+            #actualizar valuacion de cajas
+            if self.product_id.id == 561:
+                movimiento_recepcion = self.env['stock.move.line'].search([('location_id','=',4), ('lot_id','=',self.lot_id.id)])
+                precio_lote = movimiento_recepcion.move_id.price_unit
+                for line in move:
+                    for acc_move in line.account_move_ids:
+                        for invoice_line in acc_move.invoice_line_ids:
+                            if invoice_line.balance < 0:
+                                invoice_line.with_context(check_move_validity=False).write({'credit':(abs(invoice_line.quantity) * precio_lote), 'balance':(invoice_line.quantity * precio_lote)})
+                            if invoice_line.balance > 0:
+                                invoice_line.with_context(check_move_validity=False).write({'debit':(abs(invoice_line.quantity) * precio_lote), 'balance':(invoice_line.quantity * precio_lote)})
             scrap.write({'move_id': move.id, 'state': 'done'})
             if self.date_move:
                 scrap.date_done = self.date_move
