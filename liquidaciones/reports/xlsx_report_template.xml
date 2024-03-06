@@ -19,6 +19,15 @@
         file="liquidaciones.xlsx_utility_report"
     />
 
+        <report 
+        id="xlsx_utlity_report_firma"
+        model="purchase.order"
+        string="Reporte para entrega proveedor"
+        report_type="xlsx"
+        name="liquidaciones.xlsx_utility_report_firma"
+        file="liquidaciones.xlsx_utility_report"
+    />
+
     <report 
         id="xlsx_utlity_report1"
         model="sale.settlements"
