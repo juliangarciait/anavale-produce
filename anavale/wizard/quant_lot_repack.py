@@ -35,6 +35,10 @@ class QuantLotRepackWizard(models.TransientModel):
 
     @api.onchange('lot_id')
     def _onchange_lot_id(self):
+        internal_location = self.env['stock.location'].search([('usage', '=', 'internal')])
+        quants_lot = self.env['stock.quant'].search([('lot_id', '=', self.lot_id.id),('location_id', 'in', internal_location.ids),('quantity', '>', 0)])
+        if len(quants_lot)>1:
+            raise UserError('El lote tiene cantidades en transito')
         if self.lot_id and not self.lot_id.child_lot_ids:
             self.scrap_qty = 0.0
             self.lines_ids = False

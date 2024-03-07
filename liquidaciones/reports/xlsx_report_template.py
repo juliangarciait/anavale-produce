@@ -1860,10 +1860,54 @@ class XlsxUtilityReport2(models.AbstractModel):
             'align'      : 'center',
             'bg_color'   : 'gray',
         })
+        report_format_green = workbook.add_format({
+            'font_size'  : '10',
+            'font_name'  : 'arial',
+            'border'     : 2,
+            'bold'       : True,
+            'align'      : 'center',
+            'bg_color'   : 'green',
+        })
+        report_format_yellow = workbook.add_format({
+            'font_size'  : '10',
+            'font_name'  : 'arial',
+            'border'     : 2,
+            'bold'       : True,
+            'align'      : 'center',
+            'bg_color'   : 'yellow',
+        })
+        report_format_red = workbook.add_format({
+            'font_size'  : '10',
+            'font_name'  : 'arial',
+            'border'     : 2,
+            'bold'       : True,
+            'align'      : 'center',
+            'bg_color'   : 'red',
+        })
         report_format_header_yellow = workbook.add_format({
             'font_size'  : '10',
             'font_name'  : 'arial',
             'border'     : 2,
+            'bold'       : True,
+            'align'      : 'center',
+            'bg_color'   : 'yellow',
+        })
+        report_format_header_yellow_upper = workbook.add_format({
+            'font_size'  : '10',
+            'font_name'  : 'arial',
+            'top'     : 2,
+            'left'  : 2,
+            'right' : 2,
+            'bold'       : True,
+            'align'      : 'center',
+            'bg_color'   : 'yellow',
+        })
+        report_format_header_yellow_lower = workbook.add_format({
+            'font_size'  : '10',
+            'font_name'  : 'arial',
+            'bottom'     : 2,
+            'left'  : 2,
+            'right' : 2,
             'bold'       : True,
             'align'      : 'center',
             'bg_color'   : 'yellow',
@@ -1965,42 +2009,42 @@ class XlsxUtilityReport2(models.AbstractModel):
                     sheet.write(i+1, 3, datestring, report_format_header_yellow)
                     sheet.write(i+1, 4, settlement_id.order_id.partner_id.name, report_format_header_yellow)
 
-                    sheet.write(i+2, 0, 'Producto', report_format_header_yellow)
-                    sheet.write(i+2, 1, 'Medida', report_format_header_yellow)
+                    sheet.write(i+2, 0, 'Producto', report_format_header_yellow_upper)
+                    sheet.write(i+2, 1, 'Medida', report_format_header_yellow_upper)
                     #sheet.write(i+2, 2, '', light_header_top)
                     # sheet.write(6, 3, 'Cajas', light_header_top)
-                    sheet.write(i+2, 2, 'Cajas Rec.', report_format_header_yellow)
-                    sheet.write(i+2, 3, 'P.Unit.', report_format_header_yellow)
-                    sheet.write(i+2, 4, 'Importe', report_format_header_yellow)
-                    sheet.write(i+2, 5, '(-)Flete', report_format_header_yellow)
-                    sheet.write(i+2, 6, 'Aduana', report_format_header_yellow)
-                    sheet.write(i+2, 7, 'In&Out', report_format_header_yellow)
-                    sheet.write(i+2, 8, 'Boxes', report_format_header_yellow)
-                    sheet.write(i+2, 9, '(-)Comision', report_format_header_yellow)
-                    sheet.write(i+2, 10, 'Total', report_format_header_yellow)
+                    sheet.write(i+2, 2, 'Cajas Rec.', report_format_header_yellow_upper)
+                    sheet.write(i+2, 3, 'P.Unit.', report_format_header_yellow_upper)
+                    sheet.write(i+2, 4, 'Importe', report_format_header_yellow_upper)
+                    sheet.write(i+2, 5, '(-)Flete', report_format_header_yellow_upper)
+                    sheet.write(i+2, 6, 'Aduana', report_format_header_yellow_upper)
+                    sheet.write(i+2, 7, 'In&Out', report_format_header_yellow_upper)
+                    sheet.write(i+2, 8, 'Boxes', report_format_header_yellow_upper)
+                    sheet.write(i+2, 9, '(-)Comision', report_format_header_yellow_upper)
+                    sheet.write(i+2, 10, 'Total', report_format_header_yellow_upper)
                     
                     #sheet.write(i+3, 0, '', bold_header)
-                    sheet.write(i+3, 0, '', report_format_header_yellow)
-                    sheet.write(i+3, 1, '', report_format_header_yellow)
+                    sheet.write(i+3, 0, '', report_format_header_yellow_lower)
+                    sheet.write(i+3, 1, '', report_format_header_yellow_lower)
                     # sheet.write(7, 3, 'Emb.', light_header_bottom)
-                    sheet.write(i+3, 2, '', report_format_header_yellow)
-                    sheet.write(i+3, 3, '', report_format_header_yellow)
-                    sheet.write(i+3, 4, '', report_format_header_yellow)
-                    sheet.write(i+3, 5, '', report_format_header_yellow)
-                    sheet.write(i+3, 6, '', report_format_header_yellow)
-                    sheet.write(i+3, 7, '', report_format_header_yellow)
-                    sheet.write(i+3, 8, '', report_format_header_yellow)
+                    sheet.write(i+3, 2, '', report_format_header_yellow_lower)
+                    sheet.write(i+3, 3, '', report_format_header_yellow_lower)
+                    sheet.write(i+3, 4, '', report_format_header_yellow_lower)
+                    sheet.write(i+3, 5, '', report_format_header_yellow_lower)
+                    sheet.write(i+3, 6, '', report_format_header_yellow_lower)
+                    sheet.write(i+3, 7, '', report_format_header_yellow_lower)
+                    sheet.write(i+3, 8, '', report_format_header_yellow_lower)
                     sheet.write(
                         i+3, 9,
                         "%d %%" % settlement_id.commission_percentage,
-                        report_format_header_yellow)
-                    sheet.write(i+3, 10, '', report_format_header_yellow)
+                        report_format_header_yellow_lower)
+                    sheet.write(i+3, 10, '', report_format_header_yellow_lower)
 
                     #sheet.write(i+5, 0, datestring, light_box)
                     
                     if len(procesar_object)> 1 or exists_st.actualizacion == True:
                         sheet.write(i, 13, 'Viaje', travels)
-                        sheet.write(i + 1, 13, 'VENTAS', travels_title_top_left)
+                        # sheet.write(i + 1, 13, 'VENTAS', travels_title_top_left)
                         sheet.write(i + 2, 13, 'POR FACTURAR', travels_middle_left)
                         sheet.write(i + 3, 13, 'STOCK', travels_middle_left)
                         sheet.write(i + 4, 13, 'LIQUIDACIONES', travels_middle_left)
@@ -2154,10 +2198,10 @@ class XlsxUtilityReport2(models.AbstractModel):
                     #pintar tabla de ventas
                     tb_contador = 16
                     if len(tb_ventas) > 0:
-                        sheet.write(tabla_ventas_inicial, tb_contador, 'Ventas', report_format_gray)
-                        sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_gray)
-                        sheet.write(tabla_ventas_inicial, tb_contador+2, 'Precio', report_format_gray)
-                        sheet.write(tabla_ventas_inicial, tb_contador+3, 'Total', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador, 'Ventas', report_format_yellow)
+                        sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_yellow)
+                        sheet.write(tabla_ventas_inicial, tb_contador+2, 'Precio', report_format_yellow)
+                        sheet.write(tabla_ventas_inicial, tb_contador+3, 'Total', report_format_yellow)
                         contador = tabla_ventas_inicial + 1
                         for linea in tb_ventas:
                             sheet.write(contador, tb_contador, linea['product'], light_box)
@@ -2168,10 +2212,10 @@ class XlsxUtilityReport2(models.AbstractModel):
                         tb_contador += 5
 
                     if len(tb_porfacturar) > 0:
-                        sheet.write(tabla_ventas_inicial, tb_contador, 'Por Facturar', report_format_gray)
-                        sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_gray)
-                        sheet.write(tabla_ventas_inicial, tb_contador+2, 'Precio', report_format_gray)
-                        sheet.write(tabla_ventas_inicial, tb_contador+3, 'Total', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador, 'Por Facturar', report_format_green)
+                        sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_green)
+                        sheet.write(tabla_ventas_inicial, tb_contador+2, 'Precio', report_format_green)
+                        sheet.write(tabla_ventas_inicial, tb_contador+3, 'Total', report_format_green)
                         contador = tabla_ventas_inicial + 1
                         for linea in tb_porfacturar:
                             sheet.write(contador, tb_contador, linea['product'], light_box)
@@ -2182,10 +2226,10 @@ class XlsxUtilityReport2(models.AbstractModel):
                         tb_contador += 5
 
                     if len(tb_stock) > 0:
-                        sheet.write(tabla_ventas_inicial, tb_contador, 'Stock', report_format_gray)
-                        sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_gray)
-                        sheet.write(tabla_ventas_inicial, tb_contador+2, 'Precio', report_format_gray)
-                        sheet.write(tabla_ventas_inicial, tb_contador+3, 'Total', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador, 'Stock', report_format_green)
+                        sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_green)
+                        sheet.write(tabla_ventas_inicial, tb_contador+2, 'Precio', report_format_green)
+                        sheet.write(tabla_ventas_inicial, tb_contador+3, 'Total', report_format_green)
                         contador = tabla_ventas_inicial + 1
                         for linea in tb_stock:
                             sheet.write(contador, tb_contador, linea['product'], light_box)
@@ -2196,8 +2240,8 @@ class XlsxUtilityReport2(models.AbstractModel):
                         tb_contador += 5
                     
                     if len(tb_scrap) > 0:
-                        sheet.write(tabla_ventas_inicial, tb_contador, 'Scrap', report_format_gray)
-                        sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_gray)
+                        sheet.write(tabla_ventas_inicial, tb_contador, 'Scrap', report_format_red)
+                        sheet.write(tabla_ventas_inicial, tb_contador+1, 'Cajas', report_format_red)
                         contador = tabla_ventas_inicial + 1
                         for linea in tb_scrap:
                             sheet.write(contador, tb_contador, linea['product'], light_box)
@@ -2220,7 +2264,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                     sheet.write(i+1, 8, settlement_id.boxes , light_box_currency)
                     sheet.write(i+1, 9, "=sum(j{}:j{})".format(str(inicio_i+1), str(i+1)), light_box_currency)
                     sheet.write(i+1, 10, "=sum(k{}:k{})".format(str(inicio_i), str(i+1)), light_box_currency)
-                    sheet.write(loc_total_gastos_row, 10, "=-(g{}+h{}+i{}+j{})".format(str(i+2), str(i+2),str(i+2),str(i+2)), light_box_currency)
+                    sheet.write(loc_total_gastos_row, 10, "=-(f{}+g{}+h{}+i{})".format(str(i+2), str(i+2),str(i+2),str(i+2)), light_box_currency)
                     sheet.write(liquidacion_ubicacion, 14, "=k{}".format(str(i+2)), travels_middle_right)
                     liquidaciones.append(liquidacion_ubicacion)
                     sheet.write(liquidacion_ubicacion+9, 14, "=(o{}+o{}+o{})-sum(o{}:o{})".format(str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion),str(liquidacion_ubicacion+1),str(liquidacion_ubicacion+9)), travels_middle_right)
@@ -2679,6 +2723,19 @@ class XlsxUtilityReport_firma(models.AbstractModel):
 
         clean_cell_format = workbook.add_format()
 
+        clean_cell__underline_format = workbook.add_format(
+            {
+                'bottom' : 2
+            }
+        )
+
+        clean_header_format = workbook.add_format({
+            'font_color' : 'black',
+            'font_size'  : '14',
+            'bold'       : True,  
+            'align'      : 'center'
+        })
+
         travels = workbook.add_format({
             'font_color' : 'black',
             'font_size'  : '14',  
@@ -2833,6 +2890,26 @@ class XlsxUtilityReport_firma(models.AbstractModel):
             'align'      : 'center',
             'bg_color'   : 'yellow',
         })
+        report_format_header_yellow_upper = workbook.add_format({
+            'font_size'  : '10',
+            'font_name'  : 'arial',
+            'top'     : 2,
+            'left'  : 2,
+            'right' : 2,
+            'bold'       : True,
+            'align'      : 'center',
+            'bg_color'   : 'yellow',
+        })
+        report_format_header_yellow_lower = workbook.add_format({
+            'font_size'  : '10',
+            'font_name'  : 'arial',
+            'bottom'     : 2,
+            'left'  : 2,
+            'right' : 2,
+            'bold'       : True,
+            'align'      : 'center',
+            'bg_color'   : 'yellow',
+        })
         currency_id = self.env.user.company_id.currency_id
         light_box_currency.num_format = currency_id.symbol + '#,##0.00'
         light_box_percentage = workbook.add_format({
@@ -2875,6 +2952,12 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                 raise UserError('Purchase {} no tiene liquidacion'.format(po.name))
             if not exists_st.price_type == 'open':
                 raise UserError('Purchase {} no es Open price'.format(po.name))
+            
+        url = (
+                "https://raw.githubusercontent.com/juliangarciait/anavale-jpg/main/anavale.jpg"
+                )
+        context = ssl._create_unverified_context()
+        image_data = BytesIO(urlopen(url,context=context).read())
 
         for po in procesar_object:
             i = 8
@@ -2951,62 +3034,80 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                     lang = self.env.user.lang
                     lang_id = self.env['res.lang'].search([('code', '=', lang)])
                     datestring = fields.Date.from_string(str(po.date_order)).strftime(lang_id.date_format)
-                    context = ssl._create_unverified_context()
-                    url = (
-                            "https://raw.githubusercontent.com/juliangarciait/anavale-jpg/main/anavale.jpg"
-                            )
 
-                    image_data = BytesIO(urlopen(url,context=context).read())
 
                     sheet.insert_image("A2", url, {"image_data": image_data, "x_scale": 0.8, "y_scale": 0.8})
 
-                    sheet.write(1, 3, ' ANAVALE PRODUCE CORP', clean_cell_format)
-                    sheet.write(2, 3, ' 801 Bona Terra dr. UNIT 150', clean_cell_format)
-                    sheet.write(3, 3, ' Pharr, TX 78577', clean_cell_format)
+                    sheet.merge_range("A2:J2", ' ANAVALE PRODUCE CORP', clean_header_format)
+                    sheet.merge_range("A3:J3", ' 801 Bona Terra dr. UNIT 150', clean_header_format)
+                    sheet.merge_range("A4:J4", ' Pharr, TX 78577', clean_header_format)
 
 
                     sheet.write(i, 0, 'LOTE', report_format_gray)
                     sheet.write(i, 1, 'VIAJE', report_format_gray)
                     sheet.write(i, 2, 'FACTURA', report_format_gray)
                     sheet.write(i, 3, 'FECHA', report_format_gray)
-                    sheet.write(i, 4, 'PROVEEDOR', report_format_gray)
+                    sheet.merge_range("E9:K9", 'PROVEEDOR', report_format_gray)
+
                     #po.date_order
                     sheet.write(i+1, 0, settlement_id.order_id.lot, report_format_header_yellow)
                     sheet.write(i+1, 1, settlement_id.journey, report_format_header_yellow)
                     sheet.write(i+1, 2, settlement_id.order_id.name, report_format_header_yellow)
                     sheet.write(i+1, 3, datestring, report_format_header_yellow)
-                    sheet.write(i+1, 4, settlement_id.order_id.partner_id.name, report_format_header_yellow)
+                    sheet.merge_range("E10:K10", settlement_id.order_id.partner_id.name, report_format_header_yellow)
 
-                    sheet.write(i+2, 0, 'Producto', report_format_header_yellow)
-                    sheet.write(i+2, 1, 'Medida', report_format_header_yellow)
+                    sheet.write(i+2, 0, 'Producto', report_format_header_yellow_upper)
+                    sheet.write(i+2, 1, 'Medida', report_format_header_yellow_upper)
                     #sheet.write(i+2, 2, '', light_header_top)
                     # sheet.write(6, 3, 'Cajas', light_header_top)
-                    sheet.write(i+2, 2, 'Cajas Rec.', report_format_header_yellow)
-                    sheet.write(i+2, 3, 'P.Unit.', report_format_header_yellow)
-                    sheet.write(i+2, 4, 'Importe', report_format_header_yellow)
-                    sheet.write(i+2, 5, '(-)Flete', report_format_header_yellow)
-                    sheet.write(i+2, 6, 'Aduana', report_format_header_yellow)
-                    sheet.write(i+2, 7, 'In&Out', report_format_header_yellow)
-                    sheet.write(i+2, 8, 'Boxes', report_format_header_yellow)
-                    sheet.write(i+2, 9, '(-)Comision', report_format_header_yellow)
-                    sheet.write(i+2, 10, 'Total', report_format_header_yellow)
+                    sheet.write(i+2, 2, 'Cajas Rec.', report_format_header_yellow_upper)
+                    sheet.write(i+2, 3, 'P.Unit.', report_format_header_yellow_upper)
+                    sheet.write(i+2, 4, 'Importe', report_format_header_yellow_upper)
+                    sheet.write(i+2, 5, '(-)Flete', report_format_header_yellow_upper)
+                    sheet.write(i+2, 6, 'Aduana', report_format_header_yellow_upper)
+                    sheet.write(i+2, 7, 'In&Out', report_format_header_yellow_upper)
+                    sheet.write(i+2, 8, 'Boxes', report_format_header_yellow_upper)
+                    sheet.write(i+2, 9, '(-)Comision', report_format_header_yellow_upper)
+                    sheet.write(i+2, 10, 'Total', report_format_header_yellow_upper)
                     
                     #sheet.write(i+3, 0, '', bold_header)
-                    sheet.write(i+3, 0, '', report_format_header_yellow)
-                    sheet.write(i+3, 1, '', report_format_header_yellow)
+                    sheet.write(i+3, 0, '', report_format_header_yellow_lower)
+                    sheet.write(i+3, 1, '', report_format_header_yellow_lower)
                     # sheet.write(7, 3, 'Emb.', light_header_bottom)
-                    sheet.write(i+3, 2, '', report_format_header_yellow)
-                    sheet.write(i+3, 3, '', report_format_header_yellow)
-                    sheet.write(i+3, 4, '', report_format_header_yellow)
-                    sheet.write(i+3, 5, '', report_format_header_yellow)
-                    sheet.write(i+3, 6, '', report_format_header_yellow)
-                    sheet.write(i+3, 7, '', report_format_header_yellow)
-                    sheet.write(i+3, 8, '', report_format_header_yellow)
+                    sheet.write(i+3, 2, '', report_format_header_yellow_lower)
+                    sheet.write(i+3, 3, '', report_format_header_yellow_lower)
+                    sheet.write(i+3, 4, '', report_format_header_yellow_lower)
+                    sheet.write(i+3, 5, '', report_format_header_yellow_lower)
+                    sheet.write(i+3, 6, '', report_format_header_yellow_lower)
+                    sheet.write(i+3, 7, '', report_format_header_yellow_lower)
+                    sheet.write(i+3, 8, '', report_format_header_yellow_lower)
                     sheet.write(
                         i+3, 9,
                         "%d %%" % settlement_id.commission_percentage,
-                        report_format_header_yellow)
-                    sheet.write(i+3, 10, '', report_format_header_yellow)
+                        report_format_header_yellow_lower)
+                    sheet.write(i+3, 10, '', report_format_header_yellow_lower)
+
+                    sheet.write(i+4, 0, '', light_box)
+                    sheet.write(i+4, 1, '', light_box)
+                    sheet.write(i+4, 2, '', light_box)
+                    sheet.write(i+4, 3, '', light_box)
+                    sheet.write(i+4, 4, '', light_box)
+                    sheet.write(i+4, 5, '', light_box)
+                    sheet.write(i+4, 6, '', light_box)
+                    sheet.write(i+4, 7, '', light_box)
+                    sheet.write(i+4, 8, '', light_box)
+                    sheet.write(i+4, 9, '', light_box)
+                    sheet.write(i+5, 0, '', light_box)
+                    sheet.write(i+5, 1, '', light_box)
+                    sheet.write(i+5, 2, '', light_box)
+                    sheet.write(i+5, 3, '', light_box)
+                    sheet.write(i+5, 4, '', light_box)
+                    sheet.write(i+5, 5, '', light_box)
+                    sheet.write(i+5, 6, '', light_box)
+                    sheet.write(i+5, 7, '', light_box)
+                    sheet.write(i+5, 8, '', light_box)
+                    sheet.write(i+5, 9, '', light_box)
+                    sheet.write(i+5, 10, '', light_box)
 
                     #sheet.write(i+5, 0, datestring, light_box)
                     
@@ -3055,12 +3156,12 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                     exists_st.actualizacion = True
                     tabla_ventas_inicial =  i + 5
                     liquidacion_ubicacion = i + 4
-                    i += 5
+                    i += 4
                     j = i - 1
                     inicio_i = i
                     final_i = i
                     #sheet.write(i - 1, 11, (-settlement_id.freight_total-settlement_id.aduana_total-settlement_id.storage_total-settlement_id.maneuvers_total-settlement_id.boxes), light_box_currency)
-                    loc_total_gastos_row = i -1
+                    loc_total_gastos_row = i
                     #activar variables para cuadro vde ventas
                     tb_ventas = []
                     tb_porfacturar = []
@@ -3144,7 +3245,7 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                         sheet.write(i, 6, "", light_box_currency)
                         sheet.write(i, 7, "", light_box_currency)
                         sheet.write(i, 8, "", light_box_currency)
-                        sheet.write(i, 9, "=e{}*j{}".format(str(i+1), str(j)), light_box_currency)
+                        sheet.write(i, 9, "=e{}*j{}".format(str(i+1), str(j+1)), light_box_currency)
                         sheet.write(i, 10, "=e{}-j{}".format(str(i+1), str(i+1)), light_box_currency)
                         final_i = i
                     for jj in range(9-(final_i - inicio_i)):
@@ -3231,21 +3332,21 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                     sheet.write(i+1, 7, settlement_id.storage_total + settlement_id.maneuvers_total , light_box_currency)
                     sheet.write(i+1, 8, settlement_id.boxes , light_box_currency)
                     sheet.write(i+1, 9, "=sum(j{}:j{})".format(str(inicio_i+1), str(i+1)), light_box_currency)
-                    sheet.write(i+1, 10, "=sum(k{}:k{})".format(str(inicio_i), str(i+1)), light_box_currency)
+                    sheet.write(i+1, 10, "=sum(k{}:k{})".format(str(inicio_i+1), str(i+1)), light_box_currency)
 
-                    sheet.write(i+3, 0, "Comprador", light_box_currency)
-                    sheet.write(i+3, 1, "", light_box_currency)
-                    sheet.write(i+3, 2, "", light_box_currency)
-                    sheet.write(i+4, 1, "{}".format(po.user_id.name), light_box_currency)
-                    sheet.write(i+6, 0, "Gerente", light_box_currency)
-                    sheet.write(i+6, 1, "", light_box_currency)
-                    sheet.write(i+6, 2, "", light_box_currency)
-                    sheet.write(i+6, 1, "Salvador Godoy", light_box_currency)
-                    sheet.write(i+3, 7, "Fecha", light_box_currency)
-                    sheet.write(i+3, 8, "", light_box_currency)
-                    sheet.write(i+3, 9, "", light_box_currency)
+                    sheet.write(i+3, 0, "Comprador", clean_header_format)
+                    sheet.write(i+3, 1, "", clean_cell__underline_format)
+                    sheet.write(i+3, 2, "", clean_cell__underline_format)
+                    sheet.write(i+4, 1, "{}".format(po.user_id.name), clean_header_format)
+                    sheet.write(i+6, 0, "Gerente", clean_header_format)
+                    sheet.write(i+6, 1, "", clean_cell__underline_format)
+                    sheet.write(i+6, 2, "", clean_cell__underline_format)
+                    sheet.write(i+7, 1, "Salvador Godoy", clean_header_format)
+                    sheet.write(i+3, 7, "Fecha", clean_header_format)
+                    sheet.write(i+3, 8, "", clean_cell__underline_format)
+                    sheet.write(i+3, 9, "", clean_cell__underline_format)
 
-                    sheet.write(loc_total_gastos_row, 10, "=-(g{}+h{}+i{}+j{})".format(str(i+2), str(i+2),str(i+2),str(i+2)), light_box_currency)
+                    sheet.write(loc_total_gastos_row, 10, "=-(f{}+g{}+h{}+i{})".format(str(i+2), str(i+2),str(i+2),str(i+2)), light_box_currency)
                     sheet.write(liquidacion_ubicacion, 14, "=k{}".format(str(i+2)), travels_middle_right)
                     liquidaciones.append(liquidacion_ubicacion)
                     sheet.write(liquidacion_ubicacion+9, 14, "=(o{}+o{}+o{})-sum(o{}:o{})".format(str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion),str(liquidacion_ubicacion+1),str(liquidacion_ubicacion+9)), travels_middle_right)
