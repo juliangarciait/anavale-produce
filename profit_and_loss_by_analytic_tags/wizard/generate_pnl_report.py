@@ -14,7 +14,9 @@ class ProfitNLossWizard(models.TransientModel):
     filter_by = fields.Selection([('product', 'Product'),
         ('lot', 'Lot'),
         ('supplier', 'Supplier'),
-        ('lot_by_supplier', 'Lot by supplier')])
+        ('lot_by_supplier', 'Lot by supplier'),
+        ('supplier_closed_lot', 'Supplier Closed Lot'),
+        ('product_closed_lot', 'Product Closed Lot')])
     tag_ids = fields.Many2many("account.analytic.tag")
     partner_id = fields.Many2one("res.partner")
     tag_domain_ids = fields.Many2many("account.analytic.tag", "tag_domain_rel")
@@ -47,6 +49,16 @@ class ProfitNLossWizard(models.TransientModel):
             for tag in tag_ids:
                 if self.text_lot and self.text_lot in tag[1]:
                     tag_domain_ids.append(tag[0])
+        if self.filter_by == "supplier_closed_lot":
+            self._cr.execute("select id from account_analytic_tag where name similar to '[A-Z]+';")
+            tag_ids = self._cr.fetchall()
+            for tag in tag_ids:
+                tag_domain_ids.append(tag[0])   
+        if self.filter_by == "product_closed_lot":
+            self._cr.execute("select id from account_analytic_tag where name similar to 'P([0-9]*[.])?[0-9]+';")
+            tag_ids = self._cr.fetchall()
+            for tag in tag_ids:
+                tag_domain_ids.append(tag[0])     
         query_tags = """
 select DISTINCT tag.account_analytic_tag_id as id from account_analytic_tag_account_move_line_rel as tag where tag.account_move_line_id in (select id from account_move_line where date <= '%s' and date >= '%s')
         """ % (self.end_date, self.start_date)

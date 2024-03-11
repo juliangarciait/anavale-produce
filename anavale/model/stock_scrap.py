@@ -43,7 +43,10 @@ class StockCrap(models.Model):
             #actualizar valuacion de cajas
             if self.product_id.id == 561:
                 precio_lote = 0
-                movimiento_recepcion = self.env['stock.move.line'].sudo().search([('location_id','=',4), ('lot_id','=',self.lot_id.id)])
+                lote = self.lot_id.id
+                if self.lot_id.parent_lod_id.id:
+                    lote = self.lot_id.parent_lod_id.id
+                movimiento_recepcion = self.env['stock.move.line'].sudo().search([('location_id','=',4), ('lot_id','=',lote)])
                 for mov in movimiento_recepcion:
                     if mov.move_id.purchase_line_id:
                         precio_lote = mov.move_id.purchase_line_id.price_unit

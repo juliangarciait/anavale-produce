@@ -51,6 +51,13 @@ class XlsxReport(models.AbstractModel):
         if obj_wizard.start_date_filter and obj_wizard.end_date_filter:
             domain += " AND aml.date >= '%s' AND aml.date <= '%s'"%(obj_wizard.start_date_filter, obj_wizard.end_date_filter)
         domain += " AND am.state = 'posted'"
+        if obj_wizard.filter_by == 'supplier_closed_lot':
+            domain += " AND aml.id in (select aml1.id from account_move_line as aml1 join account_analytic_tag_account_move_line_rel as aatamlr1 on aml1.id = aatamlr1.account_move_line_id join account_analytic_tag as aat1 on aatamlr1.account_analytic_tag_id = aat1.id where aatamlr1.account_move_line_id in (select aml.id from account_move_line as aml join account_analytic_tag_account_move_line_rel as aatamlr on aml.id = aatamlr.account_move_line_id  where aatamlr.account_analytic_tag_id in (select distinct aat.id from purchase_order as po join purchase_order_line as pol on po.id = pol.order_id join stock_production_lot as spl on pol.purchase_lot = spl.id join account_analytic_tag_stock_production_lot_rel as aatsp on spl.id = aatsp.stock_production_lot_id join account_analytic_tag as aat on aatsp.account_analytic_tag_id = aat.id where po.invoice_status = 'invoiced' and po.date_order > '%s' and length(aat.name) > 8) and aml.parent_state = 'posted') "%(obj_wizard.start_date_filter)
+            domain += "and length(aat1.name) < 6)"
+        if obj_wizard.filter_by == 'product_closed_lot':
+            domain += " AND aml.id in (select aml1.id from account_move_line as aml1 join account_analytic_tag_account_move_line_rel as aatamlr1 on aml1.id = aatamlr1.account_move_line_id join account_analytic_tag as aat1 on aatamlr1.account_analytic_tag_id = aat1.id where aatamlr1.account_move_line_id in (select aml.id from account_move_line as aml join account_analytic_tag_account_move_line_rel as aatamlr on aml.id = aatamlr.account_move_line_id  where aatamlr.account_analytic_tag_id in (select distinct aat.id from purchase_order as po join purchase_order_line as pol on po.id = pol.order_id join stock_production_lot as spl on pol.purchase_lot = spl.id join account_analytic_tag_stock_production_lot_rel as aatsp on spl.id = aatsp.stock_production_lot_id join account_analytic_tag as aat on aatsp.account_analytic_tag_id = aat.id where po.invoice_status = 'invoiced' and po.date_order > '%s' and length(aat.name) > 8) and aml.parent_state = 'posted') "%(obj_wizard.start_date_filter)
+            domain += "and length(aat1.name) < 6)"
+            print('test')
         return domain
     
     def generate_xlsx_report(self, workbook, data, objects): 
