@@ -132,18 +132,19 @@ class SettlementsSaleOrder(models.Model):
                         var_price_unit_hidden = line.qty_received and suma_cantidad_facturada/suma_unidades_facturadas or 0
                     else:
                         var_price_unit_hidden = 0
-                    new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
-                                "product_uom": line.product_uom.id, "price_unit": var_price_unit_hidden, "price_unit_origin_rel": var_price_unit_hidden, "price_unit_origin": var_price_unit_hidden,
-                                "box_emb":line.product_qty, "box_rec": line.qty_received, "box_sale": suma_unidades_facturadas,
-                                "amount": float(suma_cantidad_facturada), "amount_calc": float(suma_cantidad_facturada),
-                                "current_stock": stock, "pending_invoice":suma_unidades_por_facturadas, "lot_id":line_lotes[0].id}))
-                    product_line.append(line.product_id.id)
+                    if line.qty_received > 0:
+                        new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
+                                    "product_uom": line.product_uom.id, "price_unit": var_price_unit_hidden, "price_unit_origin_rel": var_price_unit_hidden, "price_unit_origin": var_price_unit_hidden,
+                                    "box_emb":line.product_qty, "box_rec": line.qty_received, "box_sale": suma_unidades_facturadas,
+                                    "amount": float(suma_cantidad_facturada), "amount_calc": float(suma_cantidad_facturada),
+                                    "current_stock": stock, "pending_invoice":suma_unidades_por_facturadas, "lot_id":line_lotes[0].id}))
+                        product_line.append(line.product_id.id)
             else:
                 subtotal = 0
                 for line in purchase_rec.order_line:
                     subtotal += subAmount.get(line.product_id.id, False)
                 for line in purchase_rec.order_line: #3
-                    if line.product_id.type == 'product':
+                    if line.product_id.type == 'product' and line.qty_received > 0:
                         line_lotes =  self.env['stock.production.lot'].search([('id', 'in', lot_ids.ids),('product_id', '=', line.product_id.id)])
                         line_lotes += self.env['stock.production.lot'].search([('parent_lod_id', 'in', line_lotes.ids)])
 
@@ -172,7 +173,9 @@ class SettlementsSaleOrder(models.Model):
 
                         stock = 0
                         quants = quant_obj.search([('lot_id', 'in', line_lotes.ids), ('location_id', 'in', location_id.ids)])
-                        stock = sum([q.quantity for q in quants])
+                        stock_sum = sum([q.quantity for q in quants])
+                        if stock_sum > 0:
+                            stock = stock_sum
                         new_lines.append((0, 0,  {"date": fecha, "product_id": line.product_id.id,
                                     "product_uom": line.product_uom.id, "price_unit": line.price_unit, "price_unit_origin_rel": line.price_unit,
                                     "box_emb": line.product_qty, "box_rec": line.qty_received, "box_sale": line.qty_received-stock,
