@@ -5,6 +5,7 @@ import time
 from odoo.exceptions import ValidationError
 import logging
 import re
+import pytz
 
 _logger = logging.getLogger(__name__)
 
@@ -56,13 +57,15 @@ class AccountMove(models.Model):
                 self.lot_reference = "{}{}-{}".format(self.partner_id.lot_code_prefix, year, reference[1]) 
 
     def action_post(self):
+        
         #si la factura proviene de una venta, revisar fecha de salida del producto
+        user_tz = self.env.user.tz or pytz.utc
         if self.invoice_line_ids[0].sale_line_ids:
-            fecha_salida = self.invoice_line_ids[0].sale_line_ids[0].move_ids[0].date.date() or False
+            fecha_salida = self.invoice_line_ids[0].sale_line_ids[0].move_ids[0].date.astimezone(pytz.timezone(self.env.user.tz)) or False
             if fecha_salida and not self.date.month == fecha_salida.month:
                 raise ValidationError("El mes de la factura no coincide con la salida del producto.   La fecha de salida es   {}".format(str(fecha_salida)))
         if self.invoice_line_ids[0].purchase_line_id:
-            fecha_salida = self.invoice_line_ids[0].purchase_line_id[0].date_order or False
+            fecha_salida = self.invoice_line_ids[0].purchase_line_id[0].date_orderastimezone(pytz.timezone(self.env.user.tz)) or False
             if fecha_salida and not self.date.month == fecha_salida.month:
                 raise ValidationError("El mes de la bill no coincide con la llegada del producto.   La fecha de llegada es   {}".format(str(fecha_salida)))
         res = super(AccountMove, self).action_post()
