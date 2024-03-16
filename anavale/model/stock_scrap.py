@@ -57,7 +57,7 @@ class StockCrap(models.Model):
                                 if invoice_line.balance < 0:
                                     invoice_line.with_context(check_move_validity=False).write({'credit':(abs(invoice_line.quantity) * precio_lote), 'balance':(invoice_line.quantity * precio_lote)})
                                 if invoice_line.balance > 0:
-                                    invoice_line.with_context(check_move_validity=False).write({'debit':(abs(invoice_line.quantity) * precio_lote), 'balance':(invoice_line.quantity * precio_lote)})
+                                    invoice_line.with_context(check_move_validity=False).write({'debit':(abs(invoice_line.quantity) * precio_lote), 'balance':(abs(invoice_line.quantity) * precio_lote)})
             scrap.write({'move_id': move.id, 'state': 'done'})
             if self.date_move:
                 scrap.date_done = self.date_move
