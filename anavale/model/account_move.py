@@ -65,7 +65,7 @@ class AccountMove(models.Model):
             if fecha_salida and not self.date.month == fecha_salida.month:
                 raise ValidationError("El mes de la factura no coincide con la salida del producto.   La fecha de salida es   {}".format(str(fecha_salida)))
         if self.invoice_line_ids[0].purchase_line_id:
-            fecha_salida = self.invoice_line_ids[0].purchase_line_id[0].date_order.astimezone(pytz.timezone(self.env.user.tz)) or False
+            fecha_salida = self.invoice_line_ids[0].purchase_line_id[0].move_ids[0].date.astimezone(pytz.timezone(self.env.user.tz)) or False
             if fecha_salida and not self.date.month == fecha_salida.month:
                 raise ValidationError("El mes de la bill no coincide con la llegada del producto.   La fecha de llegada es   {}".format(str(fecha_salida)))
         res = super(AccountMove, self).action_post()

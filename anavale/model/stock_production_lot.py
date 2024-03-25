@@ -30,3 +30,9 @@ class StockProductionLot(models.Model):
             self.available_to_choose = True
         else:
             self.available_to_choose = False
+
+    def _product_qty(self):
+        res = super(StockProductionLot, self)._product_qty()
+        for lot in self:
+            if lot.product_qty > 0:
+                lot.available_to_choose = True
