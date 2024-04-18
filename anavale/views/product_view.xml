@@ -7,7 +7,7 @@
         <field name="inherit_id" ref="stock.view_template_property_form"/>
         <field name="arch" type="xml">        
             <!-- Lot code -->            
-            <xpath expr="//field[@name='tracking']" position="after">
+            <xpath expr="//group[@name='bill']" position="after">
 				<field name="lot_code_prefix" attrs="{'invisible': [('tracking', '!=', 'lot')], 'required': [('tracking', '=', 'lot')]}"/>
                 <field name="account_tag_id"/>
 			</xpath>
