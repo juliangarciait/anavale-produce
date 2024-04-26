@@ -66,4 +66,28 @@
         </field>
     </record>
 
+    <record model="ir.ui.view" id="view_box_search">
+            <field name="name">stock.quant.search.box</field>
+            <field name="model">stock.quant</field>
+            <field name="arch" type="xml">
+                <search string="Cajas">
+                    <filter string="Normal" name="normal" domain="[('on_hand','=',True)]"  />
+                </search>
+            </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="location_open_quants_box"> <!-- Used in location -->
+        <field name="context">{'search_default_Lot_Serial_number': 1}</field>
+        <field name="domain">[('location_id', 'child_of', 23)]</field>
+        <field name="name">Stock Cajas</field>
+        <field name="view_mode">pivot</field>
+        <field name="res_model">stock.quant</field>
+    </record>
+
+    <menuitem id="menu_stock_cajas" name="Inventario Cajas"
+            parent="stock.menu_warehouse_report" sequence="110"
+            action="location_open_quants_box"/>
+
+
+
 </odoo>

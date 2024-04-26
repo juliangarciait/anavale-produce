@@ -2952,6 +2952,8 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                 raise UserError('Purchase {} no tiene liquidacion'.format(po.name))
             if not exists_st.price_type == 'open':
                 raise UserError('Purchase {} no es Open price'.format(po.name))
+            if not exists_st.status == 'close':
+                 raise UserError('La liquidacion de  la Purchase {} no esta cerrada'.format(po.name))
             
         url = (
                 "https://raw.githubusercontent.com/juliangarciait/anavale-jpg/main/anavale.jpg"
