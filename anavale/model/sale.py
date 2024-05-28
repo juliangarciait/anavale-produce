@@ -239,7 +239,7 @@ class SaleOrderLine(models.Model):
             so_domain += [('id', '!=', sale_order_line)]
             
         # Quants already in stock
-        for quant in self.env['stock.quant'].search(domain + [('location_id', 'child_of', self.order_id.warehouse_id.lot_stock_id.id)]):
+        for quant in self.env['stock.quant'].search(domain + [('location_id', 'in', [8,25,26])]): #'child_of', self.order_id.warehouse_id.lot_stock_id.id)]):
             avail.setdefault(quant.lot_id.id, {'lot': quant.lot_id.id, 'qty': 0.0})
             avail[quant.lot_id.id]['qty'] += quant.quantity 
         

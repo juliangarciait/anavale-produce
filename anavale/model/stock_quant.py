@@ -48,7 +48,7 @@ class StockQuant(models.Model):
         self._cr.execute("""
                             SELECT id 
                                 FROM stock_quant
-                            WHERE create_date > %s and location_id in (8, 9) and quantity > 0
+                            WHERE create_date > %s and location_id in (8, 9, 25, 26) and quantity > 0
                         """, (date, ))
         ids = [item.get('id') for item in self._cr.dictfetchall()]
         self.sudo().browse(ids)._compute_sale_order_qty()
