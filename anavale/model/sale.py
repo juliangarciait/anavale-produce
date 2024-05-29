@@ -225,7 +225,7 @@ class SaleOrderLine(models.Model):
         quantity = 0.0        
         rounding = self.product_id.uom_id.rounding
         
-        domain = [('product_id', '=', self.product_id.id), ('quantity', '>', 0)]
+        domain = [('product_id', '=', self.product_id.id)]
         so_domain = [('product_id', '=', self.product_id.id),
             # ('qty_to_deliver', '>', 0),
             ('order_id.state', '=', 'sale')]
@@ -233,7 +233,7 @@ class SaleOrderLine(models.Model):
             domain += [('lot_id', '=', lot_id)]
             so_domain += [('lot_id', '=', lot_id)]
         else:
-            domain += [('lot_id', '!=', False)]
+            domain += [('quantity', '>', 0), ('lot_id', '!=', False)]
             so_domain += [('lot_id', '!=', False)]
         if sale_order_line:
             so_domain += [('id', '!=', sale_order_line)]
