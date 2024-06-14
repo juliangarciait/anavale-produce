@@ -1,0 +1,40 @@
+<odoo>
+    <record id="view_inventoryatdate_pivot_report_tree" model="ir.ui.view">
+        <field name="name">inventoryatdatepivot.report.tree</field>
+        <field name="model">inventoryatdate.report</field>
+        <field name="arch" type="xml">
+            <tree string="Reporte Pivot">
+                <field name="product_id"/>
+                <field name="lot_id"/>
+                <field name="quantity"/>
+                <field name="price"/>
+                <field name="total"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_inventoryatdate_pivot_report_pivot" model="ir.ui.view">
+        <field name="name">inventoryatdate.pivot.report.pivot</field>
+        <field name="model">inventoryatdate.report</field>
+        <field name="arch" type="xml">
+            <pivot string="Reporte Pivot">
+                <field name="product_id" type="row"/>
+                <field name="lot_id" type="row"/>
+                <field name="quantity" type="measure"/>
+                <field name="price" type="measure"/>
+                <field name="total" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_inventoryatdate_report_wizard" model="ir.actions.act_window">
+        <field name="name">Generar Reporte de inventario a la fecha</field>
+        <field name="res_model">inventoryatdate.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_inventoryatdate_pivot_report_wizard" parent="stock.menu_warehouse_report" name="Generar Reporte Inventario a fecha" action="action_inventoryatdate_report_wizard" sequence="10"/>
+
+
+</odoo>

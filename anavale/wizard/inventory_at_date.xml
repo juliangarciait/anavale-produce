@@ -1,0 +1,17 @@
+<odoo>
+    <record id="view_pivot_report_wizard_form" model="ir.ui.view">
+        <field name="name">pivot.inventoryatdate.wizard.form</field>
+        <field name="model">inventoryatdate.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Generar Reporte de Inventario a Fecha">
+                <group>
+                    <field name="report_date" required="1"/>
+                </group>
+                <footer>
+                    <button string="Generar Reporte" type="object" name="generate_report" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

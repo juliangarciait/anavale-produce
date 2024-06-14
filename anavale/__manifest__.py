@@ -49,7 +49,9 @@
             'views/account_move_line_view.xml',
             'views/stock_scrap_view.xml',
             'views/account_analytic_tag.xml',
-            'views/stock_barcode_template.xml'
+            'views/stock_barcode_template.xml',
+            'wizard/inventory_at_date.xml',
+            'report/inventory_at_date_view.xml'
              ],
     'demo': [],
     'test': [],

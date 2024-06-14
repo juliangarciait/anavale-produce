@@ -6,5 +6,6 @@ from . import sale_report_avg_wz
 from . import quant_product_repack
 from . import aged_receivable
 from . import print_labels
+from . import inventory_at_date
 #from . import account_report
 

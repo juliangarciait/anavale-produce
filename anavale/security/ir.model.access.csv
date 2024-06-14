@@ -10,3 +10,6 @@ access_commission_report,commision.report,anavale.model_commision_report,base.gr
 access_stock_production_lot_tag,stock.production.lot.tag,anavale.model_stock_production_lot_tag,base.group_user,1,1,1,1
 access_print_labels,print.labels,anavale.model_print_labels,,1,1,1,1
 access_print_labels_line,print.labels.line,anavale.model_print_labels_line,,1,1,1,1
+access_print_labels_line,print.labels.line,anavale.model_print_labels_line,,1,1,1,1
+
+access_inventoryatdate_report_user,access.inventoryatdate.report,model_inventoryatdate_report,,1,0,0,0
