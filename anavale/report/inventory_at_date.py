@@ -69,6 +69,7 @@ stock_quant where location_id = 8 and lot_id in (SELECT id FROM public.stock_pro
    lote.id = dat.id ) as sub        
    where sub.suma > 0 and product_id <> 561)
         """.format(fecha_inicial.strftime("%Y-%m-%d %H:%M:%S"), fecha_final.strftime("%Y-%m-%d %H:%M:%S"))
+
         self.env.cr.execute(query)
 
     # def init(self):

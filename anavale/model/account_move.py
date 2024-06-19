@@ -61,7 +61,7 @@ class AccountMove(models.Model):
         #si la factura proviene de una venta, revisar fecha de salida del producto
         user_tz = self.env.user.tz or pytz.utc
         if self.invoice_line_ids[0].sale_line_ids:
-            fecha_salida = self.invoice_line_ids[0].sale_line_ids[0].move_ids[-1].date.astimezone(pytz.timezone(self.env.user.tz)) or False
+            fecha_salida = self.invoice_line_ids[0].sale_line_ids[0].move_ids.filtered(lambda move: move.state == "done")[-1].date.astimezone(pytz.timezone(self.env.user.tz)) or False
             if fecha_salida and not self.date.month == fecha_salida.month:
                 raise ValidationError("El mes de la factura no coincide con la salida del producto.   La fecha de salida es   {}".format(str(fecha_salida)))
         if self.invoice_line_ids[0].purchase_line_id:
