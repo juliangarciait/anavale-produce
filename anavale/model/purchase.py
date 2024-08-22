@@ -236,8 +236,7 @@ class PurchaseOrder(models.Model):
                     for line in rec.line_ids:
                         _logger.info("%"*900)
                         _logger.info(line.analytic_tag_ids)
-                    line_ids = rec.invoice_line_ids.filtered(lambda line: line.analytic_tag_ids in tag_ids)
-                    
+                    line_ids = rec.invoice_line_ids.filtered(lambda line: line.analytic_tag_ids in tag_ids)                    
                 for line_ac in line_ids:
                     if line_ac.product_id.id in product_ids:
                         if line_ac.credit != 0:
@@ -247,6 +246,7 @@ class PurchaseOrder(models.Model):
                 if prepare_ids:
                     rec.sudo().invoice_line_ids = prepare_ids
                 rec.action_post()
+        print("termina _update_account_move")
     
     def _update_stock_valuation_by_lot(self, move, product_id, price_unit):
         for line in move.move_line_ids:
@@ -264,7 +264,10 @@ class PurchaseOrder(models.Model):
                                     aline.sudo().with_context({'check_move_validity': False}).write({'credit': price_unit * abs(aline.quantity)})
                                 else:
                                     aline.sudo().with_context({'check_move_validity': False}).write({'debit': price_unit * abs(aline.quantity)})
+                            print(accmove)
+                            print(line)
                             accmove.action_post()
+        print("termina update_stock_valuation_by_lot") 
                     #mline.move_id.account_move_ids.action_post()
 
     def action_update_valuation(self):
@@ -283,6 +286,7 @@ class PurchaseOrder(models.Model):
                             if move_sale.lot_id:
                                 self._update_account_move_from_sale(move_sale, line.product_id, line.price_unit)
             record.calc_purchase_analytics()
+        print("termina uaction_update_valuation") 
 
     @api.model
     def create(self, vals):

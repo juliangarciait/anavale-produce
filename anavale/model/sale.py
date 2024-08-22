@@ -103,6 +103,9 @@ class SaleOrder(models.Model):
         if invoice_date != 0:
             res.invoice_date = invoice_date
             res.date = invoice_date
+        for line in res.line_ids:
+            if line.sale_line_ids:
+                line.lot_id = line.sale_line_ids[0].lot_id  
 
         #self._onchange_lot_id(self.product_uom_qty, self._origin.id)
         #if self.product_id and self.lot_id and self.product_uom_qty > self.lot_available_sell:
