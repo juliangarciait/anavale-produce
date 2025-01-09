@@ -1,0 +1,31 @@
+<!-- <odoo>
+    <record id="view_ir_sequence_form_inherit" model="ir.ui.view">
+        <field name="name">ir.sequence.form.inherit</field>
+        <field name="model">ir.sequence</field>
+        <field name="inherit_id" ref="base.sequence_view"/>
+        <field name="arch" type="xml">
+            <button name="action_reset_next_number" position="after">
+                <button name="action_reset_next_number"
+                        type="object"
+                        string="Reset Next Number"
+                        class="oe_highlight"
+                        icon="fa-refresh"/>
+            </button>
+        </field>
+    </record>
+</odoo> -->
+
+<odoo>
+    <data noupdate="1">
+        <record id="execute_reset_next_number_action" model="ir.actions.server">
+            <field name="name">Reset Next Number</field>
+            <field name="model_id" ref="base.model_ir_sequence"/>
+            <field name="binding_model_id" ref="base.model_ir_sequence"/>
+            <field name="state">code</field>
+            <field name="code">
+                if records:
+                    records.action_reset_next_number()
+            </field>
+        </record>
+    </data>
+</odoo>

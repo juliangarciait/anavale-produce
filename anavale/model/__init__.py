@@ -18,3 +18,4 @@ from . import account_move
 from . import stock_production_lot
 from . import stock_scrap
 from . import account_analytic_tag
+from . import ir_sequence

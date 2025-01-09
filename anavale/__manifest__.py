@@ -11,7 +11,7 @@
     'sequence': 1,
     "email": 'mayte@eadminpro.com',
     "website":'http://eadminpro.com/',
-    'depends': ['sale_stock', 'percent_field', 'sale', 'stock','purchase', 'liquidaciones', 'account'],
+    'depends': ['sale_stock', 'percent_field', 'sale', 'stock','purchase', 'liquidaciones', 'account', 'base'],
     'data': [
             'security/ir.model.access.csv',
             'views/sale_view.xml',
@@ -51,7 +51,8 @@
             'views/account_analytic_tag.xml',
             'views/stock_barcode_template.xml',
             'wizard/inventory_at_date.xml',
-            'report/inventory_at_date_view.xml'
+            'report/inventory_at_date_view.xml',
+            'views/ir_sequence_view.xml'
              ],
     'demo': [],
     'test': [],

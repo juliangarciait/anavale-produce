@@ -57,7 +57,7 @@ class SaleReport(models.Model):
              %s
         """ % (groupby)
 
-        return """%s (SELECT %s FROM %s WHERE amlb.date > '12/31/23' )""" % (with_, select_, from_)
+        return """%s (SELECT %s FROM %s WHERE amlb.date > '2024-12-31' )""" % (with_, select_, from_)
 
     def init(self):
         self._table = 'commision_report'
