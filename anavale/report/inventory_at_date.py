@@ -30,44 +30,130 @@ class InventoryatdateReport(models.Model):
         fecha_final = datetime.combine(fecha, mytime)
         mytime = time(18,0,0)
         fecha_inicial = datetime.combine(fecha, mytime) - relativedelta(months=3)
+        fecha_final = fecha_final + relativedelta(hours=18)
+        print(fecha_inicial)
+        print(fecha_final)
         tools.drop_view_if_exists(self.env.cr, "inventoryatdate_report")
         #fecha_inicial = fecha.replace(hour=18, minute=0, second=0) - relativedelta(months=3)
-        query = """CREATE or REPLACE VIEW inventoryatdate_report as (
-            select ROW_NUMBER() OVER ( order by product_id ) AS id, id as lot_id, 
-product_id, suma as quantity, precio_comparado as price, 
-ROUND((COALESCE(suma,0) * COALESCE(precio_comparado,0))::numeric, 2) as total 
-from         (            select lote.id, lote.product_id, sale.qty_ventas, 
-scrap.qty_scrap, repack.qty_repack, stock.qty_stock,        
-COALESCE(sale.qty_ventas,0) + COALESCE(scrap.qty_scrap,0) + 
-COALESCE(repack.qty_repack,0) + COALESCE(stock.qty_stock,0 ) as suma,
-        GREATEST(dat.price_unit, 1) AS precio_comparado       
-from        (SELECT id, product_id FROM public.stock_production_lot        
-WHERE create_date between '{0}' and '{1}') as lote left 
-join        (SELECT lot_id, sum(qty_done) as qty_ventas FROM public.stock_move_line        
-where date > '{1}' and lot_id in 
-(SELECT id FROM public.stock_production_lot        WHERE create_date between 
-'{0}' and '{1}') and location_dest_id = 5        
-group by lot_id) as sale on lote.id = sale.lot_id left join (        
-SELECT lot_id, sum(scrap_qty) as qty_scrap FROM public.stock_scrap         
-where date_done > '{1}' and lot_id in 
-(SELECT id FROM public.stock_production_lot        
-WHERE create_date between '{0}' and '{1}')        
-group by lot_id) as scrap on lote.id = scrap.lot_id         
-left join (SELECT lot_id, sum(qty_done) as qty_repack FROM public.stock_move_line         
-where lot_id in (SELECT id FROM public.stock_production_lot        
-WHERE create_date between '{0}' and '{1}')  and date > 
-'{1}' and location_dest_id = 14        group by lot_id) as repack 
-on lote.id = repack.lot_id         left join (select lot_id, quantity as qty_stock from 
-stock_quant where location_id = 8 and lot_id in (SELECT id FROM public.stock_production_lot     
-   WHERE create_date between '{0}' and '{1}')        ) as stock 
-   on lote.id = stock.lot_id left join         (   select spl.id, spl.name, 
-   pol.price_unit as price_unit from stock_production_lot as spl join 
-   (select distinct on(lot_id)  sml.id, sm.purchase_line_id, sml.lot_id from stock_move_line sml join stock_move sm on sml.move_id = sm.id
-   where sm.location_id = 4 and sm.location_dest_id = 9) as sm on spl.id = sm.lot_id
-   join purchase_order_line pol on sm.purchase_line_id = pol.id        
-   where spl.create_date between '{0}' and '{1}' ) as dat on 
-   lote.id = dat.id ) as sub        
-   where sub.suma > 0 and product_id <> 561)
+        query = """CREATE OR REPLACE VIEW inventoryatdate_report AS (
+    SELECT 
+        ROW_NUMBER() OVER (ORDER BY product_id) AS id,
+        id AS lot_id, 
+        product_id, 
+        suma AS quantity, 
+        precio_comparado AS price, 
+        ROUND((COALESCE(suma, 0) * COALESCE(precio_comparado, 0))::numeric, 2) AS total
+    FROM (
+        SELECT 
+            lote.id, 
+            lote.product_id, 
+            sale.qty_ventas, 
+            scrap.qty_scrap, 
+            repack.qty_repack, 
+            stock.qty_stock,
+            COALESCE(sale.qty_ventas, 0) + COALESCE(scrap.qty_scrap, 0) + 
+            COALESCE(repack.qty_repack, 0) + COALESCE(stock.qty_stock, 0) AS suma,
+            GREATEST(dat.price_unit, datp.price_unit) AS precio_comparado
+        FROM (
+            SELECT id, product_id, parent_lod_id 
+            FROM public.stock_production_lot 
+            WHERE create_date BETWEEN '{0}' AND '{1}'
+        ) AS lote
+        LEFT JOIN (
+            SELECT 
+                lot_id, 
+                SUM(qty_done) AS qty_ventas
+            FROM public.stock_move_line
+            WHERE date > '{1}' 
+              AND lot_id IN (
+                  SELECT id 
+                  FROM public.stock_production_lot 
+                  WHERE create_date BETWEEN '{0}' AND '{1}'
+              ) 
+              AND location_dest_id = 5
+            GROUP BY lot_id
+        ) AS sale ON lote.id = sale.lot_id
+        LEFT JOIN (
+            SELECT 
+                lot_id, 
+                SUM(scrap_qty) AS qty_scrap
+            FROM public.stock_scrap
+            WHERE date_done > '{1}' 
+              AND lot_id IN (
+                  SELECT id 
+                  FROM public.stock_production_lot 
+                  WHERE create_date BETWEEN '{0}' AND '{1}'
+              )
+            GROUP BY lot_id
+        ) AS scrap ON lote.id = scrap.lot_id
+        LEFT JOIN (
+            SELECT 
+                lot_id, 
+                SUM(qty_done) AS qty_repack
+            FROM public.stock_move_line
+            WHERE lot_id IN (
+                  SELECT id 
+                  FROM public.stock_production_lot 
+                  WHERE create_date BETWEEN '{0}' AND '{1}'
+              )
+              AND date > '{1}' 
+              AND location_dest_id = 14
+            GROUP BY lot_id
+        ) AS repack ON lote.id = repack.lot_id
+        LEFT JOIN (
+            SELECT 
+                lot_id, 
+                quantity AS qty_stock
+            FROM stock_quant
+            WHERE location_id = 8 
+              AND lot_id IN (
+                  SELECT id 
+                  FROM public.stock_production_lot 
+                  WHERE create_date BETWEEN '{0}' AND '{1}'
+              )
+        ) AS stock ON lote.id = stock.lot_id
+        LEFT JOIN (
+            SELECT 
+                spl.id, 
+                spl.name, 
+                pol.price_unit AS price_unit
+            FROM stock_production_lot AS spl
+            JOIN (
+                SELECT DISTINCT ON (lot_id) 
+                    sml.id, 
+                    sm.purchase_line_id, 
+                    sml.lot_id
+                FROM stock_move_line sml
+                JOIN stock_move sm ON sml.move_id = sm.id
+                WHERE sm.location_id = 4 
+                  AND sm.location_dest_id = 9
+            ) AS sm ON spl.id = sm.lot_id
+            JOIN purchase_order_line pol ON sm.purchase_line_id = pol.id
+            WHERE spl.create_date BETWEEN '{0}' AND '{1}'
+        ) AS dat ON lote.id = dat.id
+        LEFT JOIN (
+            SELECT 
+                spl1.id, 
+                spl1.name, 
+                pol1.price_unit AS price_unit
+            FROM stock_production_lot AS spl1
+            JOIN (
+                SELECT DISTINCT ON (lot_id) 
+                    sml.id, 
+                    sm.purchase_line_id, 
+                    sml.lot_id
+                FROM stock_move_line sml
+                JOIN stock_move sm ON sml.move_id = sm.id
+                WHERE sm.location_id = 4 
+                  AND sm.location_dest_id = 9
+            ) AS sm1 ON spl1.id = sm1.lot_id
+            JOIN purchase_order_line pol1 ON sm1.purchase_line_id = pol1.id
+            WHERE spl1.create_date BETWEEN '{0}' AND '{1}'
+        ) AS datp ON lote.parent_lod_id = datp.id
+    ) AS sub
+    WHERE sub.suma > 0 
+      AND product_id <> 561
+)
         """.format(fecha_inicial.strftime("%Y-%m-%d %H:%M:%S"), fecha_final.strftime("%Y-%m-%d %H:%M:%S"))
 
         self.env.cr.execute(query)

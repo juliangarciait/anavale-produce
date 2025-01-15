@@ -367,6 +367,13 @@ class PurchaseOrderLine(models.Model):
 
     total_invoiced = fields.Float(compute='_compute_total_invoiced', string="Billed Total", store=True)
     purchase_lot = fields.Many2one('stock.production.lot', 'Lote')
+    pallets = fields.Integer(string='Pallets', help="Número de pallets asociados a esta línea de pedido.")
+
+    @api.constrains('pallets')
+    def _check_pallets_positive(self):
+        for record in self:
+            if record.pallets <= 0:
+                raise ValidationError("El número de pallets debe ser mayor que cero.")
 
     @api.model
     def create(self, vals):
@@ -395,9 +402,11 @@ class PurchaseReport(models.Model):
 
     purchase_lot = fields.Many2one('stock.production.lot', 'Lote', readonly=True)
 
+    pallets = fields.Integer(string='Pallets', readonly=True)
+
 
     def _select(self):
-        return super(PurchaseReport, self)._select() + ", sum(l.total_invoiced) as total_invoiced, l.purchase_lot as purchase_lot"
+        return super(PurchaseReport, self)._select() + ", sum(l.pallets) as pallets ,sum(l.total_invoiced) as total_invoiced, l.purchase_lot as purchase_lot"
 
     def _group_by(self):
-        return super(PurchaseReport,self)._group_by() + ", l.purchase_lot"
+        return super(PurchaseReport,self)._group_by() + ", l.pallets , l.purchase_lot"
