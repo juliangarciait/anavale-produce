@@ -2002,12 +2002,17 @@ class XlsxUtilityReport2(models.AbstractModel):
                     sheet.write(i, 2, 'FACTURA', report_format_gray)
                     sheet.write(i, 3, 'FECHA', report_format_gray)
                     sheet.write(i, 4, 'PROVEEDOR', report_format_gray)
+                    sheet.write(i, 5, 'REFERENCIA', report_format_gray)
                     #po.date_order
                     sheet.write(i+1, 0, settlement_id.order_id.lot, report_format_header_yellow)
                     sheet.write(i+1, 1, settlement_id.journey, report_format_header_yellow)
                     sheet.write(i+1, 2, settlement_id.order_id.name, report_format_header_yellow)
                     sheet.write(i+1, 3, datestring, report_format_header_yellow)
                     sheet.write(i+1, 4, settlement_id.order_id.partner_id.name, report_format_header_yellow)
+                    if settlement_id.order_id.partner_ref:
+                        sheet.write(i+1, 5, settlement_id.order_id.partner_ref, report_format_header_yellow)
+                    else:
+                        sheet.write(i+1, 5, "", report_format_header_yellow)
 
                     sheet.write(i+2, 0, 'Producto', report_format_header_yellow_upper)
                     sheet.write(i+2, 1, 'Medida', report_format_header_yellow_upper)

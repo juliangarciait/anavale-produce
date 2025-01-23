@@ -40,12 +40,19 @@ class ReportAccountAgedPartner(models.AbstractModel):
 
         # Agregar el campo `comment` del partner
         for line in lines:
-            if line.get('partner_id'):
-                partner = self.env['res.partner'].browse(line['partner_id'])
-                comment = partner.comment or ''
-                line.update({"comment":comment})
-                payment = self.env['account.payment'].search([('partner_id', '=', partner.id)], order='payment_date desc', limit=1)
-                line.update({"ultimo_pago":str(payment.payment_date)})
-                #line['comment'] += f" ({comment})" if comment else ""
+            if self._description == 'Aged Receivable':
+                if line.get('partner_id'):
+                    partner = self.env['res.partner'].browse(line['partner_id'])
+                    comment = partner.comment or ''
+                    line.update({"comment":comment})
+                    payment = self.env['account.payment'].search([('partner_id', '=', partner.id)], order='payment_date desc', limit=1)
+                    line.update({"ultimo_pago":str(payment.payment_date)})
+                    if 'columns' in line:
+                        line['columns'][0] = {'name':comment}
+                        line['columns'][1] = {'name':str(payment.payment_date)}
+                    #line['comment'] += f" ({comment})" if comment else "
+                elif line.get('caret_options')=='account.invoice.out':
+                    line['columns'][1] = {'name':''}
+                    line['columns'][2] = {'name':''}
 
         return lines

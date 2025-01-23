@@ -1,12 +1,22 @@
 <odoo>
     <template id="report_account_agedpartnerbalance_inherit" inherit_id="account_reports.line_template">
-        <xpath expr="//span[hasclass('account_report_line_name')]" position="after">
+        <!-- <xpath expr="//span[hasclass('account_report_line_name')]" position="after">
             <t t-if="line.get('comment')">
                 <span t-esc="' (' + line['comment'] + ')'" class="text-muted"/>
             </t>
             <t t-if="line.get('ultimo_pago')">
                 <span t-esc="' (' + line['ultimo_pago'] + ')'" class="text-muted"/>
             </t>
-        </xpath>
+        </xpath> -->
+        <!-- <xpath expr="//span[hasclass('o_account_report_column_value')][1]" position="after">
+                <t t-if="line.get('comment')">
+                    <span t-esc="' (' + line['comment'] + ')'" class="text-muted"/>
+                </t>
+        </xpath> -->
+        <!-- <xpath expr="//span[hasclass('o_account_report_column_value')][1]" position="inside">
+                <t t-if="line.get('ultimo_pago')">
+                    <span t-esc="' (' + line['ultimo_pago'] + ')'" class="text-muted"/>
+                </t>
+        </xpath> -->
     </template>
 </odoo>
