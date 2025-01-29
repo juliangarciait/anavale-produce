@@ -37,8 +37,8 @@ class ReportAccountAgedPartner(models.AbstractModel):
     def _get_columns_name(self, options):
         columns = super(ReportAccountAgedPartner, self)._get_columns_name(options)
         if self._description == 'Aged Receivable':
-            columns[1].update({'name':'Comments//Due date'})
-            columns[2].update({'name':'Last payment'})
+            columns[1].update({'name':'Last Payment//Due date'})
+            columns[2].update({'name':'Comments'})
             columns[3].update({'name':''})
             columns[4].update({'name':'Pay Terms'})
         return columns
@@ -99,15 +99,15 @@ class ReportAccountAgedPartner(models.AbstractModel):
                     payment = self.env['account.payment'].search([('partner_id', '=', partner.id)], order='payment_date desc', limit=1)
                     line.update({"ultimo_pago":str(payment.payment_date)})
                     if 'columns' in line:
-                        line['columns'][0] = {'name':comment}
-                        line['columns'][1] = {'name':str(payment.payment_date or '')}
+                        line['columns'][1] = {'name':comment}
+                        line['columns'][0] = {'name':str(payment.payment_date or '')}
                         
 
                     #line['comment'] += f" ({comment})" if comment else "
                 elif line.get('caret_options')=='account.invoice.out':
-                    line['columns'][1] = {'name':''}
+                    line['columns'][2] = {'name':''}
                     term = self.env['account.move'].search([('name','=',line['name'])], limit=1)
-                    line['columns'][2] = {'name':str(term.payment_comments or '')}
+                    line['columns'][1] = {'name':str(term.payment_comments or '')}
                     
                     line['columns'][3] = {'name':term.invoice_payment_term_id.name}
 
