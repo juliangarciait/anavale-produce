@@ -19,4 +19,22 @@
                 </t>
         </xpath> -->
     </template>
+
+    <!-- <template id="line_template_aged_receivable_report_partnercomment" inherit_id="account_reports.line_template_aged_receivable_report">
+        <xpath expr="""//a[@t-if="'partner_id' in line and line.get('unfolded')"]""" position="replace">
+            &amp;nbsp;<a t-if="'partner_id' in line and line.get('unfolded')" t-att-data-partner_id="line.get('partner_id')" action="action_partner_reconcile" class="no_print oe_link_reports">Comments</a>
+        </xpath>
+    </template> -->
+
+
+    <record id="view_account_move_form_inherit_payment_comments" model="ir.ui.view">
+        <field name="name">account.move.form.payment.comments</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='payments_info_group']" position="inside">
+                <field name="payment_comments" placeholder="agrega un comentario de la factura" />
+            </xpath>
+        </field>
+    </record>
 </odoo>
