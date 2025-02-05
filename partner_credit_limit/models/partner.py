@@ -11,6 +11,14 @@ class ResPartner(models.Model):
     credit_manual = fields.Float(string='Manual')
     credit_available = fields.Float(string='Credit Available',compute='_compute_credit_available')
 
+    @api.onchange('over_credit')
+    def onchange_over_credit(self):
+        for rec in self:
+            msg = ""
+            if rec.over_credit:
+                msg = "Over credit activado\n"
+                rec._origin.message_post(body=msg)
+
     @api.onchange('credit_insured', 'credit_manual')
     def onchange_credito(self):
         for rec in self:
