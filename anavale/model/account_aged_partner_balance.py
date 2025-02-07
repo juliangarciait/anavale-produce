@@ -39,7 +39,7 @@ class ReportAccountAgedPartner(models.AbstractModel):
         if self._description == 'Aged Receivable':
             columns[1].update({'name':'Last Payment//Due date'})
             columns[2].update({'name':'Comments'})
-            columns[3].update({'name':''})
+            #columns[3].update({'name':'Asegurado'})
             columns[4].update({'name':'Pay Terms'})
         return columns
     
