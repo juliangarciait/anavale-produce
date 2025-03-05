@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Configuración de parámetros en Settings -->
+    <!-- <record id="view_bid_manager_settings" model="ir.ui.view">
+        <field name="name">bid.manager.settings.view</field>
+        <field name="model">res.config.settings</field>
+        <field name="arch" type="xml">
+            <form string="Bid Manager Settings">
+                <group>
+                    <field name="freight_in_cost"/>
+                    <field name="freight_out_cost"/>
+                    <field name="in_out_cost"/>
+                    <field name="days_calculo_ultimos_dias"/>
+                    <field name="commission_buyer_percent"/>
+                    <field name="commission_seller_percent"/>
+                </group>
+                <footer>
+                    <button string="Guardar" type="object" name="execute" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record> -->
+
+      <record id="view_bid_manager_settings" model="ir.ui.view">
+    <field name="name">bid.manager.settings.view</field>
+    <field name="model">res.config.settings</field>
+    <field name="priority" eval="55"/>
+	<field name="inherit_id" ref="purchase.res_config_settings_view_form_purchase"/>
+    <field name="arch" type="xml">
+      <xpath expr="//div[@data-key='purchase']" position="inside">
+
+      <h2>Logistics</h2>
+            <div class="mt16 row">
+                    <label for="freight_in_cost" class="o_form_label col-lg-2 o_light_label"/>
+                    <input type="text" name="freight_in_cost" class="o_field_char o_field_widget o_input oe_inline" id="freight_in_cost" />		
+            </div>
+            <div class="mt16 row">
+                    <label for="freight_out_cost" class="o_form_label col-lg-2 o_light_label"/>
+                    <input type="text" name="freight_out_cost" class="o_field_char o_field_widget o_input oe_inline" id="freight_out_cost" />		
+            </div>
+            <div class="mt16 row">
+                    <label for="in_out_cost" class="o_form_label col-lg-2 o_light_label"/>
+                    <input type="text" name="in_out_cost" class="o_field_char o_field_widget o_input oe_inline" id="in_out_cost"/>		
+            </div>
+            <div class="mt16 row">
+                    <label for="days_calculo_ultimos_dias" class="o_form_label col-lg-2 o_light_label"/>
+                    <input type="text" name="days_calculo_ultimos_dias" class="o_field_char o_field_widget o_input oe_inline" id="days_calculo_ultimos_dias"/>		
+            </div>
+            <div class="mt16 row">
+                    <label for="commission_buyer_percent" class="o_form_label col-lg-2 o_light_label"/>
+                    <input type="text" name="commission_buyer_percent" class="o_field_char o_field_widget o_input oe_inline" id="commission_buyer_percent"/>		
+            </div>
+            <div class="mt16 row">
+                    <label for="commission_seller_percent" class="o_form_label col-lg-2 o_light_label"/>
+                    <input type="text" name="commission_seller_percent" class="o_field_char o_field_widget o_input oe_inline" id="commission_seller_percente"/>		
+            </div>
+
+       </xpath>
+    </field>
+  </record>
+    </odoo>

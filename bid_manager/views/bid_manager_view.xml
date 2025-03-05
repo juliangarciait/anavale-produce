@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Vista de formulario para Bid Manager -->
+    <record id="view_bid_manager_form" model="ir.ui.view">
+        <field name="name">bid.manager.form</field>
+        <field name="model">bid.manager</field>
+        <field name="arch" type="xml">
+            <form string="Calculadora de Cotización">
+                <sheet>
+                    <group>
+                        <field name="price_type"/>
+                        <field name="commission" attrs="{'invisible': [('price_type', '=', 'closed')]}"/>
+                        <field name="freight_in" readonly="1"/>
+                        <field name="freight_out" readonly="1"/>
+                        <field name="customs"/>
+                        <field name="boxes_cost" readonly="1"/>
+                        <field name="in_out" readonly="1"/>
+                        <field name="commission_buyer" invisible="1"/>
+                        <field name="commission_seller" invisible="1"/>
+                        <field name="others"/>
+                    </group>
+                    <notebook>
+                        <page string="Products">
+                            <field name="line_ids" widget="section_and_note_one2many" mode="tree" >
+                                <tree string="Lines" editable="bottom">
+                                    <control>
+                                        <create name="add_product_control" string="Add a product"/>
+                                        <create name="add_section_control" string="Add a section" context="{'default_display_type': 'line_section'}"/>
+                                        <create name="add_note_control" string="Add a note" context="{'default_display_type': 'line_note'}"/>
+                                    </control>
+                                    <field name="bid_manager_id" invisible="1" />
+                                    <field name="bid_manager_price_type" invisible="1" />
+                                    <field name="product_variant_id"/>
+                                    <field name="quantity"/>
+                                    <field name="pallets"/>
+                                    <field name="last_prices" readonly="1"/>
+                                    <field name="last_year_price" readonly="1"/>
+                                    <field name="price_unit" attrs="{'invisible': [('bid_manager_price_type', '=', 'open')]}"/>
+                                </tree>  
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button string="Guardar" type="object" name="save" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_bid_manager" model="ir.actions.act_window">
+        <field name="name">Calculadora de Cotización</field>
+        <field name="res_model">bid.manager</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_bid_manager_form"/>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Menú principal en el módulo de Compras -->
+    <menuitem id="menu_bid_manager" name="Calculadora de Cotización" parent="purchase.menu_procurement_management" action="action_bid_manager" sequence="5"/>
+</odoo>
