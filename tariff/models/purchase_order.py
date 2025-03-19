@@ -8,7 +8,6 @@ class PurchaseOrder(models.Model):
     importacion = fields.Selection([
         ('Si', 'Si'),
         ('No', 'No')
-    ], string='Es Importacion?', required=True, default='Si')
+    ], string='Es Importacion?', required=True)
 
     entry_summary = fields.Char(string="Entry Summary", readonly=True)
-    

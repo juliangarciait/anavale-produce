@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Vista tipo lista (tree) para el modelo purchase.budget -->
+    <record id="view_purchase_budget_tree" model="ir.ui.view">
+        <field name="name">purchase.budget.tree</field>
+        <field name="model">purchase.budget</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="product_id"/>
+                <field name="month"/>
+                <field name="year"/>
+                <field name="quantity"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Acción para abrir la vista de presupuesto de compra -->
+    <record id="action_purchase_budget" model="ir.actions.act_window">
+        <field name="name">Presupuesto de Compra</field>
+        <field name="res_model">purchase.budget</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_purchase_budget_tree"/>
+        <field name="domain">[]</field>
+    </record>
+
+    <!-- Menú en Purchase > Products -->
+    <menuitem id="menu_purchase_budget_root" 
+              name="Presupuestos de Compra" 
+              parent="purchase.menu_procurement_management" 
+              action="action_purchase_budget" sequence="25"/>
+</odoo>

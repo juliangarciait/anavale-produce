@@ -1,5 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_bid_manager_user,Bid Manager User,bid_manager.model_bid_manager,base.group_user,1,0,0,0
-access_bid_manager_manager,Bid Manager Manager,bid_manager.model_bid_manager,base.group_system,1,1,1,1
-access_bid_manager_line_user,Bid Manager Line User,bid_manager.model_bid_manager_line,base.group_user,1,0,0,0
-access_bid_manager_line_manager,Bid Manager Line Manager,bid_manager.model_bid_manager_line,base.group_system,1,1,1,1
+access_tariff_manager_user,Tariff Manager User,tariff.model_tariff_manager,base.group_user,1,1,1,1
+access_tariff_manager_manager,Tariff Manager Manager,tariff.model_tariff_manager,base.group_system,1,1,1,1

@@ -2,94 +2,81 @@
 from odoo import models, fields, api, tools
 from datetime import timedelta
 
-class BidManagerLine(models.Model):
-    _name = 'bid.manager.line'
-    _description = 'Bid Manager Line'
+class TariffManager(models.Model):
+    _name = 'tariff.manager'
+    _description = 'Tariff Manager'
 
-    bid_manager_id = fields.Many2one('bid.manager', string='Bid ID', required=True, ondelete='cascade')
-    bid_manager_price_type = fields.Selection([
-        ('open', 'Abierto'),
-        ('closed', 'Cerrado')
-    ], related="bid_manager_id.price_type")
-    product_variant_id = fields.Many2one('product.product', string='Producto', required=True)
-    quantity = fields.Float(string='Cantidad', required=True)
-    pallets = fields.Integer(string='Pallets', required=True)
-    last_prices = fields.Float(string='Últimos Precios', compute='_compute_price')
-    last_year_price = fields.Float(string='Precio Año Anterior', compute='_compute_price')
-    price_unit = fields.Float(string='Precio Unitario', required=False)
+    
+    purchase_order = fields.Many2one('purchase.order', string='Purchase Order', required=True, ondelete='cascade')
+    amount_payable_to_importer = fields.Float(string="Amount Payable From Buyer to Seller", compute="_compute_amount_payable", store=True)
+    sale_price_mx  = fields.Float(string="Sale Price of MX Produce", compute="_compute_amount_payable")
+    surcharge_to_buyer = fields.Float(string="Surcharge to Buyer for Duty", compute="_compute_amount_payable")
+    sales_commission = fields.Float(string="Sales Commission", compute="_compute_amount_payable")
+    us_freight = fields.Float(string="U.S. Freight & Insurance")
+    loading_unloading = fields.Float(string="Loading and unloading costs at the port")
+    inspection_costs = fields.Float(string="USDA Inspection Costs")
+    repack = fields.Float(string="Repack, Recondition, Grading Costs (Box & Labor)")
+    dump = fields.Float(string="Dump or Donation Costs")
+    expense_allocation = fields.Float(string="Profit and General Operating Expense Allocation")
+    foreign_inland_freight = fields.Float(string="Foreign-inland freight (Requires Through-Bill of Lading)")
+    us_custom_brokers = fields.Float(string="U.S. Customs Broker's Fees (No Foreign Brokers Fees Accepted)")
+    custom_duties = fields.Float(string="Customs duties, taxes and fees (Other than Antidumping Duty)")
+    total_costs_subtracted = fields.Float(string="Total Costs Subtracted from Produce Sales Price")
+    assists = fields.Float(string="Packing Costs , if paid by Importer")
+    total_costs_added = fields.Float(string="Total Costs Added to Produce Sales Price")
+    duties_value = fields.Float(string="(Dutiable Value Including Duties) Adjusted Produce Sales Price")
+    duty_payable = fields.Float(string="Duty Paid or Payable")
 
 
-    @api.depends('product_variant_id')
-    def _compute_price(self):
-        days = int(self.env['ir.config_parameter'].sudo().get_param('bid_manager.days_calculo_ultimos_dias', 60))
+    @api.depends('purchase_order')
+    def _compute_amount_payable(self):
         for record in self:
-            #calculo ultimos precios
-            fecha_calculo = fields.Date.today() - timedelta(days=days)
-            prices = self.env['purchase.order.line'].search([
-                ('product_id', '=', record.product_variant_id.id),
-                ('create_date', '>=', fecha_calculo)
-            ]).mapped('price_unit')
-            record.last_prices = sum(prices) / len(prices) if prices else 0.0
-
-            #calculo anio pasado
-            fecha_calculo_inicio_ly = fields.Date.today() - timedelta(days=days+365)
-            fecha_calculo_final_ly = fields.Date.today() - timedelta(days=365)
-            purchase_lines = self.env['purchase.order.line'].search([
-                ('product_id', '=', record.product_variant_id.id),
-                ('create_date', '>', fecha_calculo_inicio_ly),
-                ('create_date', '<', fecha_calculo_final_ly)
-            ])
-            price_units = purchase_lines.mapped('price_unit')
-            qty = purchase_lines.mapped('product_qty')
-            # Calcular el precio promedio ponderado
-            total_cost = sum(p * q for p, q in zip(price_units, qty))
-            total_quantity = sum(qty)
-            weighted_avg_price = total_cost / total_quantity if total_quantity else 0.0
-            record.last_year_price = weighted_avg_price 
+            if record.purchase_order:
+                #variables de errores
+                sales_no_invoiced = False
+                has_stock = False
+                No_liquidacion = False
+                #obtener datos necesarios para calculos
+                picking_ids = record.purchase_order.picking_ids.filtered(lambda picking: picking.state == 'done') # Se obtinenen pickings de la orden de compra
+                lot_ids = self.env["stock.production.lot"]
+                for sml in picking_ids.move_line_ids:
+                    lot_ids += sml.lot_id
+                sale_lines = self.env['sale.order.line'].search([
+                    ('lot_id', 'in', lot_ids.ids),('state', '=', 'sale' )
+                ])
+                # Obtener la lista de cantidades y precios unitarios
+                sales_data = [(line.order_id.display_name, line.qty_delivered, line.qty_invoiced, line.price_unit, line.invoice_status) for line in sale_lines]
 
 
-class BidManager(models.Model):
-    _name = 'bid.manager'
-    _description = 'Bid Manager'
+                # Calcular amount_payable_to_importer
+                aggregated_data = {}
+                for name, qty, qty_invoiced, price, status in sales_data:
+                    if price in aggregated_data:
+                        aggregated_data[price] += qty
+                    else:
+                        aggregated_data[price] = qty
+                max_price, max_qty = max(aggregated_data.items(), key=lambda x: x[1])
+                record.amount_payable_to_importer = sum(qty for price, qty in aggregated_data.items()) * max_price
 
-    line_ids = fields.One2many('bid.manager.line', 'bid_manager_id', string='Líneas de Productos')
-    pallets = fields.Integer(string='Pallets', compute='_compute_pallets')
-    price_type = fields.Selection([
-        ('open', 'Abierto'),
-        ('closed', 'Cerrado')
-    ], string='Tipo de Precio', required=True, default='open')
-    commission = fields.Float(string='Comisión', required=False)
-    freight_in = fields.Float(string='Freight In', compute='_compute_freight_in', store=True)
-    freight_out = fields.Float(string='Freight Out', compute='_compute_freight_out', store=True)
-    customs = fields.Float(string='Aduanas', required=False)
-    boxes_cost = fields.Float(string='Cajas', compute='_calculate_boxes_cost', store=True)
-    in_out = fields.Float(string='In/Out', compute='_compute_in_out', store=True)
-    commission_buyer = fields.Float(string='Comisión Comprador', compute='_calc_commission_buyer', store=True)
-    commission_seller = fields.Float(string='Comisión Vendedor', compute='_calc_commission_seller', store=True)
-    others = fields.Float(string='Otros Costos', required=False)
+                # Calcular sale_price_mx
+                purchase_order_value = sum(line.qty_received* line.price_unit for line in record.purchase_order.order_line)
+                record.sale_price_mx = purchase_order_value
 
+                #Calcula sales_commission
+                sales_commission = 0
+                for name, qty, qty_invoiced, price, status in sales_data:
+                    sales_commission += qty_invoiced * price
+                sales_commission * 0.02
+                record.sales_commission = sales_commission
 
-    @api.depends('pallets')
-    def _compute_freight_in(self):
-        freight_cost = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.freight_in_cost', 10))
-        for record in self:
-            record.freight_in = freight_cost * record.pallets
-
-    @api.depends('pallets')
-    def _compute_freight_out(self):
-        freight_cost = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.freight_out_cost', 10))
-        for record in self:
-            record.freight_out = freight_cost * record.pallets
-
-    @api.depends('pallets')
-    def _compute_in_out(self):
-        in_out_cost = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.in_out_cost', 10))
-        for record in self:
-            record.in_out = in_out_cost * record.pallets
+                #calcular us_freight
 
 
-    @api.depends('line_ids.pallets')
-    def _compute_pallets(self):
-        for record in self:
-            record.pallets = sum(record.line_ids.mapped('pallets'))
 
+
+            else:
+                record.amount_payable_to_importer = 0
+                record.sale_price_mx = 0
+
+    
+ 

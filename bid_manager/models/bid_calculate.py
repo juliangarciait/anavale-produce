@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, tools
 from datetime import timedelta
+import json
 
 class BidManagerLine(models.Model):
     _name = 'bid.manager.line'
     _description = 'Bid Manager Line'
 
-    bid_manager_id = fields.Many2one('bid.manager', string='Bid ID', required=True, ondelete='cascade')
+    bid_manager_id = fields.Many2one('bid.manager', string='Bid ID')
     bid_manager_price_type = fields.Selection([
         ('open', 'Abierto'),
         ('closed', 'Cerrado')
@@ -16,7 +17,23 @@ class BidManagerLine(models.Model):
     pallets = fields.Integer(string='Pallets', required=True)
     last_prices = fields.Float(string='Últimos Precios', compute='_compute_price')
     last_year_price = fields.Float(string='Precio Año Anterior', compute='_compute_price')
-    price_unit = fields.Float(string='Precio Unitario', required=False)
+    price_unit = fields.Float(string='Costo Unitario', required=False)
+    price_sale_estimate = fields.Float(string='Precio Venta estimado', required=False)
+
+    @api.model
+    def write(self, vals):
+        res = super(BidManagerLine, self).write(vals)
+        if 'pallets' in vals and self.bid_manager_id:
+            self.bid_manager_id._compute_lines_ids()
+        return res
+
+    
+    @api.model
+    def create(self, vals):
+        res = super(BidManagerLine, self).create(vals)
+        if 'pallets' in vals and self.bid_manager_id:
+            self.bid_manager_id._compute_lines_ids()
+        return res
 
 
     @api.depends('product_variant_id')
@@ -53,43 +70,297 @@ class BidManager(models.Model):
     _description = 'Bid Manager'
 
     line_ids = fields.One2many('bid.manager.line', 'bid_manager_id', string='Líneas de Productos')
-    pallets = fields.Integer(string='Pallets', compute='_compute_pallets')
+    partner_id = fields.Many2one('res.partner', string='Proveedor')
+    partner_new =  fields.Boolean(string='Nuevo Proveedor')
+    partner_is_mx =  fields.Boolean(string='Proveedor es Mexicano')
     price_type = fields.Selection([
         ('open', 'Abierto'),
         ('closed', 'Cerrado')
-    ], string='Tipo de Precio', required=True, default='open')
-    commission = fields.Float(string='Comisión', required=False)
-    freight_in = fields.Float(string='Freight In', compute='_compute_freight_in', store=True)
-    freight_out = fields.Float(string='Freight Out', compute='_compute_freight_out', store=True)
-    customs = fields.Float(string='Aduanas', required=False)
-    boxes_cost = fields.Float(string='Cajas', compute='_calculate_boxes_cost', store=True)
-    in_out = fields.Float(string='In/Out', compute='_compute_in_out', store=True)
+    ], string='Tipo de Precio', default='open')
+    commission = fields.Float(string='Comisión', default=15)
+    freight_in_check = fields.Boolean(string='Manual?')
+    freight_in = fields.Float(string='Freight In', compute="_compute_calc_based_partner", store=True)
+    
+    freight_out_check = fields.Boolean(string='Manual?', store=True)
+    freight_out = fields.Float(string='Freight Out', compute="_compute_freight_out", store=True)
+
+    custom_check = fields.Boolean(string='Manual?', store=True)
+    customs = fields.Float(string='Aduanas', compute='_compute_calc_based_partner', store=True)
+
+    boxes_check = fields.Boolean(string='Manual?', store=True)
+    boxes_cost = fields.Float(string='Cajas', compute='_compute_calc_based_partner', store=True)
+
+    in_out_check = fields.Boolean(string='Manual?', store=True)
+    in_out = fields.Float(string='In/Out', compute='_compute_calc_based_partner', store=True)
+
     commission_buyer = fields.Float(string='Comisión Comprador', compute='_calc_commission_buyer', store=True)
-    commission_seller = fields.Float(string='Comisión Vendedor', compute='_calc_commission_seller', store=True)
+    commission_anavale = fields.Float(string='Comisión Anavale', compute='_calc_commission_buyer', store=True)
+    commission_saler = fields.Float(string='Comisión Vendedor', compute='_calc_commission_saler',store=True)
     others = fields.Float(string='Otros Costos', required=False)
 
+    lines_amount_calc = fields.Float(string='costo producto', compute='_compute_lines_ids', required=False)
+    quantity = fields.Integer(string='Cantidad', compute='_compute_lines_ids')
+    pallets = fields.Integer(string='Pallets', compute='_compute_lines_ids')
 
-    @api.depends('pallets')
+    hidden_cost = fields.Float(string='Costos ocultos', compute='_calc_hidden_cost', required=False)
+    freight_in_calculate = fields.Float(string='Freight In', compute="_compute_freight_in", store=True)
+
+    gross_profit = fields.Float(string='Ganacia bruta', compute='_calc_gross_profit', store=True)
+    net_profit = fields.Float(string='Ganacia neta', compute='_calc_gross_profit', store=True)
+    price_unit_calc = fields.Float(string='Costo unitario calculado', compute='_calc_gross_profit', store=True)
+    profit_percentage = fields.Float(string='Porcentaje de Ganancia', compute='_calc_commission_buyer', store=True)
+
+    @api.onchange('partner_new')
+    def _partner_new(self):
+        for record in self:
+            if record.partner_new:
+                record.partner_id = None
+                record.partner_is_mx = True
+
+    @api.onchange('boxes_check')
+    def _boxes_check_change(self):
+        for record in self:
+            if record.boxes_check == False:
+                record.boxes_cost = 0
+
+    @api.depends('line_ids.pallets', 'line_ids.quantity', 'line_ids.price_unit', 'line_ids.price_sale_estimate', 'price_type')
+    def _compute_lines_ids(self):
+            for record in self:
+                record.pallets = sum(record.line_ids.mapped('pallets'))
+                record.quantity = sum(record.line_ids.mapped('quantity'))
+                calc = 0
+                for line in record.line_ids:
+                    calc += line.quantity * line.price_sale_estimate
+                record.lines_amount_calc = calc
+                
+
+    @api.depends('pallets', 'quantity', 'lines_amount_calc', 'partner_id', 'partner_is_mx', 'freight_in_check', 'freight_out_check', 'in_out_check', 'boxes_check')
+    def _compute_calc_based_partner(self):
+        mexico_id = self.env['res.country'].search([('code', '=', 'MX')],limit=1).id
+        aduana = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.aduana', 600))
+        boxes_prom = 1.8
+        in_out_cost = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.in_out_cost', 1.9))
+        for record in self:
+            #no es partner nuevo y ya seleccionamos partner
+            if record.partner_id and record.partner_new == False:
+                if record.freight_in_check == False:
+                    partner_tag_text = record.partner_id.lot_code_prefix
+                    partner_tag = self.env['account.analytic.tag'].sudo().search([('name', '=', partner_tag_text)]).ids
+                    freight_cost_calc = self.env['account.move.line'].sudo().search([('analytic_tag_ids','in',partner_tag ),('account_id', '=', 1387)], order="id desc", limit=5)
+                    freight_in = 0
+                    if len(freight_cost_calc)>0:
+                        for freight in freight_cost_calc:
+                            freight_in += freight.balance
+                        freight_in = freight_in / len(freight_cost_calc)
+                        record.freight_in = freight_in
+                if record.custom_check == False:
+                    if record.partner_id.country_id.id == mexico_id:
+                        record.customs = aduana
+                    else:
+                        record.customs = 0
+                if record.boxes_check == False:
+                    record.boxes_cost == record.quantity * boxes_prom
+                if record.in_out_check == False:
+                    record.in_out = in_out_cost * record.pallets
+            #es partner nuevo y es mexicano
+            elif record.partner_new and record.partner_is_mx:
+                if record.freight_in_check == False:
+                    # partner_tag_text = record.partner_id.lot_code_prefix
+                    # partner_tag = self.env['account.analytic.tag'].sudo().search([('name', '=', partner_tag_text)]).ids
+                    freight_cost_calc = self.env['account.move.line'].sudo().search([('account_id', '=', 1387),('balance','>',500)], order="id desc", limit=10)
+                    freight_in = 0
+                    if len(freight_cost_calc)>0:
+                        for freight in freight_cost_calc:
+                            freight_in += freight.balance
+                        freight_in = freight_in / len(freight_cost_calc)
+                        record.freight_in = freight_in
+                if record.custom_check == False:   
+                    record.customs = aduana
+                if record.boxes_check == False:
+                    record.boxes_cost == record.quantity * boxes_prom
+                if record.in_out_check == False:
+                    record.in_out = in_out_cost * record.pallets   
+            #partner nuevo y no es mexicano         
+            elif record.partner_new and record.partner_is_mx == False:
+                if record.freight_in_check == False:
+                    record.freight_in = 0
+                if record.custom_check == False:   
+                    record.customs = 0
+                if record.boxes_check == False:
+                    record.boxes_cost == 0
+                if record.in_out_check == False:
+                    record.in_out = in_out_cost * record.pallets
+
+
+    @api.depends('lines_amount_calc')
+    def _calc_commission_saler(self):            
+        commision_saler_percentage = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.commission_saler_percent', .5)) / 100
+        for record in self:
+            venta_calculada = record.lines_amount_calc * commision_saler_percentage
+            record.commission_saler = venta_calculada
+
+    
+    @api.depends('lines_amount_calc','freight_in', 'freight_out', 'boxes_cost', 'customs', 'in_out', 'others', 'hidden_cost', 'price_type')
+    def _calc_gross_profit(self):
+        for record in self:
+            if record.price_type == 'open':
+                record.gross_profit = record.lines_amount_calc - record.freight_in - record.freight_out 
+                record.gross_profit = record.gross_profit - record.boxes_cost - record.customs - record.in_out
+                record.gross_profit = record.gross_profit - record.others - record.hidden_cost - record.commission_saler
+            else:
+                cost = float(sum(line.price_unit * line.quantity for line in record.line_ids))
+                record.gross_profit = record.lines_amount_calc - record.freight_in - record.freight_out 
+                record.gross_profit = record.gross_profit - record.boxes_cost - record.customs - record.in_out
+                record.gross_profit = record.gross_profit - record.others - record.hidden_cost - cost - record.commission_saler
+
+    @api.depends('gross_profit')
+    def _calc_commission_buyer(self):
+            commision_buyer_percentage = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.commission_buyer_percent', 15)) / 100
+            commision_anavale_percentage = .15
+            admin_fee_percentage = 0.05
+            for record in self:
+                if record.price_type == 'open':
+                    commision_anavale_percentage = record.commission / 100
+                    record.commission_buyer = record.gross_profit * commision_buyer_percentage
+                    record.commission_anavale = record.gross_profit * commision_anavale_percentage
+                    admin_fee = record.gross_profit * admin_fee_percentage
+                    record.net_profit = record.gross_profit - record.commission_buyer - record.commission_anavale - admin_fee
+                    if record.net_profit > 0 and record.quantity > 0:
+                        record.price_unit_calc = record.net_profit / record.quantity
+                    else: record.price_unit_calc = 0
+                else:
+                    record.commission_buyer = record.gross_profit * commision_buyer_percentage
+                    admin_fee = record.gross_profit * admin_fee_percentage
+                    record.net_profit = record.gross_profit - record.commission_buyer - admin_fee
+                    record.profit_percentage = record.net_profit / record.lines_amount_calc
+                    #porcentaje de ganancia
+
+
+    @api.depends('partner_id', 'line_ids')
+    def _calc_hidden_cost(self):
+        for record in self:
+            record.hidden_cost
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+    # @api.depends('line_ids.pallets')
+    # def _compute_pallets(self):
+    #     for record in self:
+    #         record.pallets = sum(record.line_ids.mapped('pallets'))
+
+    # @api.depends('line_ids.quantity')
+    # def _compute_quantity(self):
+    #     for record in self:
+    #         record.quantity = sum(record.line_ids.mapped('quantity'))
+
+
+"""     @api.depends('partner_id')
     def _compute_freight_in(self):
-        freight_cost = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.freight_in_cost', 10))
         for record in self:
-            record.freight_in = freight_cost * record.pallets
+            if record.partner_id:
+                partner_tag_text = record.partner_id.lot_code_prefix
+                partner_tag = self.env['account.analytic.tag'].sudo().search([('name', '=', partner_tag_text)]).ids
+                freight_cost_calc = self.env['account.move.line'].sudo().search([('analytic_tag_ids','in',partner_tag ),('account_id', '=', 1387)], order="id desc", limit=5)
+                freight_in = 0
+                if len(freight_cost_calc)>0:
+                    for freight in freight_cost_calc:
+                        freight_in += freight.balance
+                    freight_in = freight_in / len(freight_cost_calc)
+                    record.freight_in = freight_in
 
-    @api.depends('pallets')
+    @api.depends('partner_id')
     def _compute_freight_out(self):
-        freight_cost = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.freight_out_cost', 10))
+        freight_cost = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.freight_out_cost', 220))
         for record in self:
-            record.freight_out = freight_cost * record.pallets
+            record.freight_out = freight_cost
 
     @api.depends('pallets')
     def _compute_in_out(self):
-        in_out_cost = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.in_out_cost', 10))
+        in_out_cost = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.in_out_cost', 19))
         for record in self:
             record.in_out = in_out_cost * record.pallets
 
 
-    @api.depends('line_ids.pallets')
-    def _compute_pallets(self):
+    @api.depends('partner_id')
+    def _compute_aduanas(self):            
+            mexico_id = self.env['res.country'].search([('code', '=', 'MX')],limit=1).id
+            #aduana = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.aduana', 600))
+            aduana = 600
+            for record in self:
+                if record.partner_id: 
+                    if record.partner_id.country_id.id == mexico_id:
+                        record.customs = aduana
+
+    
+    @api.depends('line_ids')
+    def _calc_commission_buyer(self):            
+        commision_buyer_percentage = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.commission_buyer_percent', 15)) / 100
+        commision_saler_percentage = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.commission_saler_percent', .5)) / 100
         for record in self:
-            record.pallets = sum(record.line_ids.mapped('pallets'))
+            if record.price_type == 'close':
+                record.commission_buyer = (sum(line.price_unit * line.quantity for line in record.line_ids))*commision_buyer_percentage
+            else:
+                ventas_calculadas = sum(line.price_sale_estimate * line.quantity for line in record.line_ids)
+                if ventas_calculadas > 0:
+                    ganancias_calculadas = ventas_calculadas - (ventas_calculadas * record.commission)
+                    ganancias_calculadas = ganancias_calculadas - (ventas_calculadas*commision_saler_percentage)
+                    ganancias_calculadas = ganancias_calculadas - record.hidden_cost - record.others - record.in_out - record.boxes_cost - record.customs - record.freight_in - record.freight_out
+                    record.commission_buyer = ganancias_calculadas * commision_buyer_percentage
+
+    
+
+    
+    @api.depends('partner_id', 'line_ids')
+    def _calc_hidden_cost(self):
+        get_param = self.env['ir.config_parameter'].sudo().get_param
+        expenses_json = get_param('bid_manager.additional_expense_ids', '[]')
+        expense_ids = json.loads(expenses_json)
+
+        # Recuperar los registros desde la base de datos
+        expenses = self.env['additional.expense'].browse(expense_ids)
+
+        for record in self:
+            if record.quantity > 0 and record.partner_id:
+                base_amount = sum(line.price_unit * line.quantity for line in record.line_ids)
+                total_extra_costs = sum((base_amount * expense.percentage / 100) for expense in expenses)
+
+                record.hidden_cost = total_extra_costs """
+
+
+    # @api.depends('partner_id', 'line_ids.quantity')
+    # def _compute_boxes_cost(self):
+    #     pass
+                
+
+
+
+
+
+
+# comission vendedores  .005 de la venta
+# comission comprador  15
+## freight in   en base a la zona costo promedio por zona
+## freight out 220 estatico
+## aduanas 600 dependiendo si viene mexico y agregar % de inspeccion
+## in/out  19 * pallet
+
+# armar una campo para vaciado de costos ocultos extra
+# 2% de merma
+
+
 

@@ -12,4 +12,26 @@
         </field>
     </record>
 
+    <record id="inherited_view_purchase_order_tree_tariff" model="ir.ui.view">
+            <field name="name">inherited.view.purchase.order.tree.tariff</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree/field[@name='origin']" position="after">
+                    <field name="entry_summary" optional="show"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="inherited_view_purchase_order_filter_tariff" model="ir.ui.view">
+            <field name="name">inherited.view.purchase.order.filter.tariff</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.view_purchase_order_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="/search/field[@name='product_id']" position="after">
+                    <field name="entry_summary"/>
+                </xpath>
+            </field>
+        </record>
+
 </odoo>

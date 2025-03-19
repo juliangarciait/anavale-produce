@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Vista de formulario para Tariff Manager -->
+    <record id="view_tariff_manager_form" model="ir.ui.view">
+        <field name="name">tariff.manager.form</field>
+        <field name="model">tariff.manager</field>
+        <field name="arch" type="xml">
+            <form string="Tariff Manager">
+                <sheet>
+                    <group>
+                        <field name="purchase_order" readonly="0"/>
+                        <field name="amount_payable_to_importer" readonly="0"/>
+                        <field name="sale_price_mx" readonly="0"/>
+                        <field name="surcharge_to_buyer"/>
+                        <field name="sales_commission"/>
+                        <field name="us_freight"/>
+                        <field name="loading_unloading"/>
+                        <field name="inspection_costs"/>
+                        <field name="repack"/>
+                        <field name="dump"/>
+                        <field name="expense_allocation"/>
+                        <field name="foreign_inland_freight"/>
+                        <field name="us_custom_brokers"/>
+                        <field name="custom_duties"/>
+                        <field name="total_costs_subtracted"/>
+                        <field name="assists"/>
+                        <field name="total_costs_added"/>
+                        <field name="duties_value"/>
+                        <field name="duty_payable"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button string="Guardar" type="object" name="save" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción para abrir el formulario de Tariff Manager -->
+    <record id="action_tariff_manager" model="ir.actions.act_window">
+        <field name="name">Tariff Manager</field>
+        <field name="res_model">tariff.manager</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_tariff_manager_form"/>
+        <field name="target">new</field>
+        <field name="context">{"default_purchase_order": active_id}</field>
+    </record>
+
+    <!-- Botón en la Purchase Order -->
+    <!-- <record id="view_purchase_order_form_inherit_tariff_manager" model="ir.ui.view">
+        <field name="name">purchase.order.form.inherit.tariff.manager</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.view_purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="%(action_tariff_manager)d" type="action" string="Tariff Manager" class="btn-primary"/>
+            </xpath>
+        </field>
+    </record> -->
+    <record id="view_purchase_order_form_inherit_tariff_manager" model="ir.ui.view">
+        <field name="name">purchase.order.form.inherit.tariff.manager</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form" />
+        <field name="arch" type="xml">
+            <div class="oe_button_box" name="button_box">
+                <button name="%(action_tariff_manager)d" type="action" class="oe_stat_button" icon="fa-bars" position="after">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_text">Tariff</span>
+                    </div>
+                </button>
+            </div>
+        </field>
+    </record>
+
+</odoo>

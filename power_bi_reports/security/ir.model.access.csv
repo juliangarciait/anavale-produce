@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_budget_user,Budget User,power_bi_reports.model_purchase_budget,base.group_user,1,0,0,0
+access_budget_manager,Budget Manager,power_bi_reports.model_purchase_budget,base.group_system,1,1,1,1
+

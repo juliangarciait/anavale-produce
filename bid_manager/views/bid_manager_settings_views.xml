@@ -46,15 +46,22 @@
             <div class="mt16 row">
                     <label for="days_calculo_ultimos_dias" class="o_form_label col-lg-2 o_light_label"/>
                     <input type="text" name="days_calculo_ultimos_dias" class="o_field_char o_field_widget o_input oe_inline" id="days_calculo_ultimos_dias"/>		
-            </div>
+            </div> 
             <div class="mt16 row">
                     <label for="commission_buyer_percent" class="o_form_label col-lg-2 o_light_label"/>
                     <input type="text" name="commission_buyer_percent" class="o_field_char o_field_widget o_input oe_inline" id="commission_buyer_percent"/>		
-            </div>
+            </div> 
             <div class="mt16 row">
-                    <label for="commission_seller_percent" class="o_form_label col-lg-2 o_light_label"/>
+                    <label for="commission_saler_percent" class="o_form_label col-lg-2 o_light_label"/>
                     <input type="text" name="commission_seller_percent" class="o_field_char o_field_widget o_input oe_inline" id="commission_seller_percente"/>		
             </div>
+             <h2>Gastos Adicionales</h2>
+                <field name="additional_expense_ids" widget="many2many_list">
+                    <tree editable="bottom">
+                        <field name="name"/>
+                        <field name="percentage"/>
+                    </tree>
+                </field>
 
        </xpath>
     </field>

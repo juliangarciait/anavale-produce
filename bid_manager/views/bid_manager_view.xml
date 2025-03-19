@@ -8,43 +8,98 @@
         <field name="arch" type="xml">
             <form string="Calculadora de Cotización">
                 <sheet>
+                    <group colspan="4" col="4">
+                        <field name="partner_new" readonly="0"/>
+                        <field name="partner_is_mx" readonly="0"  attrs="{'readonly': [('partner_new', '=', False)]}" />
+                        <field name="partner_id" readonly="0" attrs="{'readonly': [('partner_new', '=', True)]}"  />
+                    </group>
                     <group>
-                        <field name="price_type"/>
-                        <field name="commission" attrs="{'invisible': [('price_type', '=', 'closed')]}"/>
-                        <field name="freight_in" readonly="1"/>
-                        <field name="freight_out" readonly="1"/>
-                        <field name="customs"/>
-                        <field name="boxes_cost" readonly="1"/>
-                        <field name="in_out" readonly="1"/>
-                        <field name="commission_buyer" invisible="1"/>
-                        <field name="commission_seller" invisible="1"/>
+                        <div class="d-flex align-items-center" style="width:70%;">
+                            <label for="price_type" class="o_form_label" style="width:70%">Tipo de precio</label>
+                            <field name="price_type" class="me-3" style="width:100%"/>
+                            <label for="commission" class="o_form_label" style="margin-left:20px;width:70%">Comision</label>
+                            <field name="commission" attrs="{'readonly': [('price_type', '=', 'closed')]}" style="width:100%"/>
+                            <!-- <label>%</label> -->
+                        </div>
+                    </group>
+                                        <!-- Tabla de productos -->
+                    <field name="line_ids" mode="tree,kanban">
+                        <tree editable="bottom" string="Lineas de Productos">
+                            <field name="bid_manager_id" invisible="1"  force_save="1"  />
+                            <field name="bid_manager_price_type" invisible="1"  force_save="1"  />
+                            <field name="product_variant_id"  readonly="0" force_save="1" />
+                            <field name="quantity"  readonly="0" force_save="1"  />
+                            <field name="pallets"  readonly="0" force_save="1" />
+                            <field name="price_unit"  readonly="0" force_save="1" attrs="{'readonly': [('bid_manager_price_type', '=', 'open')]}" />  
+                            <field name="price_sale_estimate"  readonly="0" force_save="1" />    
+                            <field name="last_prices"  readonly="1" force_save="1" />  
+                            <field name="last_year_price"  readonly="1" force_save="1" />  
+                        </tree>
+                    </field>
+                    <group>
+                        <div class="d-flex align-items-center" style="width:70%;">
+                            <label for="freight_in" class="o_form_label" style="width:70%">Freight In</label>
+                            <field name="freight_in" class="me-3" style="width:100%" attrs="{'readonly': [('freight_in_check', '=', False)]}"/>
+                            <label for="freight_in_check" class="o_form_label" style="width:70%">Override?</label>
+                            <field name="freight_in_check" class="me-3" style="width:100%"/>
+                        </div>
+                    </group>
+                    <group>
+                        <div class="d-flex align-items-center" style="width:70%;">
+                            <label for="freight_out" class="o_form_label" style="width:70%">Freight In</label>
+                            <field name="freight_out" class="me-3" style="width:100%" attrs="{'readonly': [('freight_out_check', '=', False)]}"/>
+                            <label for="freight_out_check" class="o_form_label" style="width:70%">Override?</label>
+                            <field name="freight_out_check" class="me-3" style="width:100%"/>
+                        </div>
+                    </group>
+                    <group>
+                        <div class="d-flex align-items-center" style="width:70%;">
+                            <label for="customs" class="o_form_label" style="width:70%">Freight In</label>
+                            <field name="customs" class="me-3" style="width:100%" attrs="{'readonly': [('custom_check', '=', False)]}"/>
+                            <label for="custom_check" class="o_form_label" style="width:70%">Override?</label>
+                            <field name="custom_check" class="me-3" style="width:100%"/>
+                        </div>
+                    </group>
+                    <group>
+                        <div class="d-flex align-items-center" style="width:70%;">
+                            <label for="boxes_cost" class="o_form_label" style="width:70%">Freight In</label>
+                            <field name="boxes_cost" class="me-3" style="width:100%" attrs="{'readonly': [('boxes_check', '=', False)]}"/>
+                            <label for="boxes_check" class="o_form_label" style="width:70%">Override?</label>
+                            <field name="boxes_check" class="me-3" style="width:100%"/>
+                        </div>
+                    </group>
+                    <group>
+                        <div class="d-flex align-items-center" style="width:70%;">
+                            <label for="in_out" class="o_form_label" style="width:70%">Freight In</label>
+                            <field name="in_out" class="me-3" style="width:100%" attrs="{'readonly': [('in_out_check', '=', False)]}"/>
+                            <label for="in_out_check" class="o_form_label" style="width:70%">Override?</label>
+                            <field name="in_out_check" class="me-3" style="width:100%"/>
+                        </div>
+                    </group>
+                    <group>
                         <field name="others"/>
                     </group>
-                    <notebook>
-                        <page string="Products">
-                            <field name="line_ids" widget="section_and_note_one2many" mode="tree" >
-                                <tree string="Lines" editable="bottom">
-                                    <control>
-                                        <create name="add_product_control" string="Add a product"/>
-                                        <create name="add_section_control" string="Add a section" context="{'default_display_type': 'line_section'}"/>
-                                        <create name="add_note_control" string="Add a note" context="{'default_display_type': 'line_note'}"/>
-                                    </control>
-                                    <field name="bid_manager_id" invisible="1" />
-                                    <field name="bid_manager_price_type" invisible="1" />
-                                    <field name="product_variant_id"/>
-                                    <field name="quantity"/>
-                                    <field name="pallets"/>
-                                    <field name="last_prices" readonly="1"/>
-                                    <field name="last_year_price" readonly="1"/>
-                                    <field name="price_unit" attrs="{'invisible': [('bid_manager_price_type', '=', 'open')]}"/>
-                                </tree>  
-                            </field>
-                        </page>
-                    </notebook>
+
+                     <group>
+                        <field name="commission_buyer" invisible="0"/>
+                        <field name="commission_saler" invisible="1"/>
+                        <field name="commission_anavale" invisible="1"/>
+                        <field name="gross_profit" readonly="1" invisible="0"/>  
+                        <field name="net_profit" readonly="1" invisible="0"/>
+                        <field name="price_unit_calc" readonly="1" invisible="0" attrs="{'invisible': [('price_type', '=', 'closed')]}" />
+                        <field name="profit_percentage" readonly="1" invisible="0" attrs="{'invisible': [('price_type', '=', 'closed')]}" />
+                        
+                        <field name="pallets" readonly="1" invisible="1"/>
+                        <field name="quantity" readonly="1" invisible="1"/>
+                        <field name="lines_amount_calc" readonly="1" invisible="1"/>
+                        <field name="hidden_cost" readonly="1" invisible="1"/>
+                        <field name="freight_in_calculate" readonly="1" invisible="1"/>    
+                    </group>
                 </sheet>
                 <footer>
                     <button string="Guardar" type="object" name="save" class="btn-primary"/>
                     <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                    <!-- <button name="action_recompute_pallets" string="Recalcular Pallets" type="object" class="btn-primary"/> -->
                 </footer>
             </form>
         </field>
