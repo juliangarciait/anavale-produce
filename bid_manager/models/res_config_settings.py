@@ -16,6 +16,8 @@ class BidManagerSettings(models.TransientModel):
     freight_in_cost = fields.Float(string='Costo de Freight In', config_parameter='bid_manager.freight_in_cost')
     freight_out_cost = fields.Float(string='Costo de Freight Out', config_parameter='bid_manager.freight_out_cost')
     in_out_cost = fields.Float(string='Costo de In/Out', config_parameter='bid_manager.in_out_cost')
+    aduana =  fields.Float(string='Costo de Aduana', config_parameter='bid_manager.aduana')
+    admin_fee_percentage =  fields.Float(string='Porcentaje de Admin Fee', config_parameter='bid_manager.admin_fee_percentage')
     days_calculo_ultimos_dias = fields.Integer(string='Días para cálculo de precios recientes', config_parameter='bid_manager.days_calculo_ultimos_dias')
     commission_buyer_percent = fields.Float(string='Porcentaje Comisión Comprador', config_parameter='bid_manager.commission_buyer_percent')
     commission_saler_percent = fields.Float(string='Porcentaje Comisión Vendedor', config_parameter='bid_manager.commission_saler_percent')
@@ -31,12 +33,14 @@ class BidManagerSettings(models.TransientModel):
         super(BidManagerSettings, self).set_values()
         set_param = self.env['ir.config_parameter'].sudo().set_param
         
-        freight_in_cost = self.freight_in_cost
+        #freight_in_cost = self.freight_in_cost
         #self.env['ir.config_parameter'].sudo().set_param('bid_manager.freight_in_cost', self.freight_in_cost)
         # Guardar los IDs de los registros seleccionados
         additional_expense_ids = self.additional_expense_ids.ids
         set_param('bid_manager.additional_expense_ids', json.dumps(additional_expense_ids))
-        set_param('bid_manager.freight_in_cost', self.freight_in_cost)
+        #set_param('bid_manager.freight_in_cost', self.freight_in_cost)
+        ##set_param("bid_manager.freight_in_cost", self.freight_in_cost or 1)
+        #self.env.ref('bid_manager.freight_in_cost').write({'freight_in_cost': self.freight_in_cost})
 
     @api.model
     def get_values(self):
@@ -44,8 +48,11 @@ class BidManagerSettings(models.TransientModel):
         res = super(BidManagerSettings, self).get_values()
         get_param = self.env['ir.config_parameter'].sudo().get_param
 
-        res['freight_in_cost'] = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.freight_in_cost', default=0))
-        
+
+        #res['freight_in_cost'] = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.freight_in_cost'))
+        ##res.update(
+          #  freight_in_cost=float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.freight_in_cost'))
+        #)
         expense_ids_json = get_param('bid_manager.additional_expense_ids', '[]')
         expense_ids = json.loads(expense_ids_json)
 

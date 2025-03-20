@@ -2,6 +2,7 @@
 from odoo import models, fields, api, tools
 from datetime import timedelta
 import json
+import ast
 
 class BidManagerLine(models.Model):
     _name = 'bid.manager.line'
@@ -216,8 +217,8 @@ class BidManager(models.Model):
     @api.depends('gross_profit')
     def _calc_commission_buyer(self):
             commision_buyer_percentage = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.commission_buyer_percent', 15)) / 100
-            commision_anavale_percentage = .15
-            admin_fee_percentage = 0.05
+            commision_anavale_percentage = self.commission / 100
+            admin_fee_percentage = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.admin_fee_percentage', 5)) / 100
             for record in self:
                 if record.price_type == 'open':
                     commision_anavale_percentage = record.commission / 100
@@ -236,10 +237,16 @@ class BidManager(models.Model):
                     #porcentaje de ganancia
 
 
-    @api.depends('partner_id', 'line_ids')
+    @api.depends('partner_id', 'lines_amount_calc')
     def _calc_hidden_cost(self):
+        percentage_hidden_cost = 0
+        hidden_cost = self.env['ir.config_parameter'].sudo().get_param('bid_manager.additional_expense_ids', '[]')
+        hidden_cost = ast.literal_eval(hidden_cost)
+        hidden_cost = self.env['additional.expense'].sudo().search([('id', 'in', hidden_cost)])
+        for hd in hidden_cost:
+            percentage_hidden_cost += hd.percentage
         for record in self:
-            record.hidden_cost
+            record.hidden_cost = self.lines_amount_calc * (percentage_hidden_cost/100)
 
 
 

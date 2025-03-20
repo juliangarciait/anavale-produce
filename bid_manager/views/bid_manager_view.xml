@@ -92,7 +92,7 @@
                         <field name="pallets" readonly="1" invisible="1"/>
                         <field name="quantity" readonly="1" invisible="1"/>
                         <field name="lines_amount_calc" readonly="1" invisible="1"/>
-                        <field name="hidden_cost" readonly="1" invisible="1"/>
+                        <field name="hidden_cost" readonly="1" invisible="0"/>
                         <field name="freight_in_calculate" readonly="1" invisible="1"/>    
                     </group>
                 </sheet>
