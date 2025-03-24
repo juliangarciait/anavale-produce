@@ -16,7 +16,7 @@
         'account',
     ],
     'data': [
-        #'security/security.xml',
+        'security/security.xml',
         'security/ir.model.access.csv',
         'views/bid_manager_settings_views.xml',
         'views/bid_manager_view.xml'

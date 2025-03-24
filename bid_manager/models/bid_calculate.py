@@ -21,6 +21,7 @@ class BidManagerLine(models.Model):
     price_unit = fields.Float(string='Costo Unitario', required=False)
     price_sale_estimate = fields.Float(string='Precio Venta estimado', required=False)
 
+
     @api.model
     def write(self, vals):
         res = super(BidManagerLine, self).write(vals)
@@ -111,6 +112,15 @@ class BidManager(models.Model):
     price_unit_calc = fields.Float(string='Costo unitario calculado', compute='_calc_gross_profit', store=True)
     profit_percentage = fields.Float(string='Porcentaje de Ganancia', compute='_calc_commission_buyer', store=True)
 
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('to approve', 'To Approve'),
+        ('approved', 'Approved'),
+        ('done', 'Compra'),
+        ('cancel', 'Cancelled')
+    ], string='Status', default='draft', tracking=True)
+    purchase_order = fields.Many2one('purchase.order', string='Purchase')
+
     @api.onchange('partner_new')
     def _partner_new(self):
         for record in self:
@@ -139,6 +149,7 @@ class BidManager(models.Model):
     def _compute_calc_based_partner(self):
         mexico_id = self.env['res.country'].search([('code', '=', 'MX')],limit=1).id
         aduana = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.aduana', 600))
+        freight_out = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.freight_out', 220))
         boxes_prom = 1.8
         in_out_cost = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.in_out_cost', 1.9))
         for record in self:
@@ -154,6 +165,8 @@ class BidManager(models.Model):
                             freight_in += freight.balance
                         freight_in = freight_in / len(freight_cost_calc)
                         record.freight_in = freight_in
+                if record.freight_out_check == False:
+                        record.freight_out = freight_out
                 if record.custom_check == False:
                     if record.partner_id.country_id.id == mexico_id:
                         record.customs = aduana
@@ -175,6 +188,8 @@ class BidManager(models.Model):
                             freight_in += freight.balance
                         freight_in = freight_in / len(freight_cost_calc)
                         record.freight_in = freight_in
+                if record.freight_out_check == False:
+                        record.freight_out = freight_out
                 if record.custom_check == False:   
                     record.customs = aduana
                 if record.boxes_check == False:
@@ -185,6 +200,8 @@ class BidManager(models.Model):
             elif record.partner_new and record.partner_is_mx == False:
                 if record.freight_in_check == False:
                     record.freight_in = 0
+                if record.freight_out_check == False:
+                        record.freight_out = freight_out
                 if record.custom_check == False:   
                     record.customs = 0
                 if record.boxes_check == False:
@@ -201,7 +218,7 @@ class BidManager(models.Model):
             record.commission_saler = venta_calculada
 
     
-    @api.depends('lines_amount_calc','freight_in', 'freight_out', 'boxes_cost', 'customs', 'in_out', 'others', 'hidden_cost', 'price_type')
+    @api.depends('lines_amount_calc','freight_in', 'freight_out', 'boxes_cost', 'customs', 'in_out', 'others', 'hidden_cost', 'price_type', 'commission')
     def _calc_gross_profit(self):
         for record in self:
             if record.price_type == 'open':
@@ -247,6 +264,65 @@ class BidManager(models.Model):
             percentage_hidden_cost += hd.percentage
         for record in self:
             record.hidden_cost = self.lines_amount_calc * (percentage_hidden_cost/100)
+
+
+    def action_submit_for_approval(self):
+        for record in self:
+            record.state = 'to approve'
+
+
+    def action_cancel(self):
+        for record in self:
+            record.state = 'cancel'
+
+    def action_approve(self):
+        for record in self:
+            record.state = 'approved'
+
+    def action_create_purchase(self):
+        PurchaseOrder = self.env['purchase.order']
+        PurchaseOrderLine = self.env['purchase.order.line']
+        # Crear la orden de compra
+        purchase_order = PurchaseOrder.create({
+            'partner_id': self.partner_id.id,
+            'origin': f'Bid #{self.id}',
+            'importacion' : 'Si'
+        })
+
+        # Crear las líneas de orden de compra
+        for line in self.line_ids:
+            PurchaseOrderLine.create({
+                'order_id': purchase_order.id,
+                'product_id': line.product_variant_id.id,
+                'name': line.product_variant_id.name,
+                'product_qty': line.quantity,
+                'pallets' : line.pallets,
+                'product_uom': line.product_variant_id.uom_id.id,
+                'price_unit': 1.0 if self.price_type == 'open' else self.price_unit,
+                'date_planned': fields.Date.today(),
+            })
+
+        # Asociar la orden a la licitación
+        self.purchase_order = purchase_order.id
+        self.state = 'done'
+        return {
+                'type': 'ir.actions.act_window',
+                'name': 'Orden de Compra',
+                'res_model': 'purchase.order',
+                'view_mode': 'form',
+                'res_id': purchase_order.id,
+                'target': 'current',
+                }
+
+    @api.model
+    def name_get(self):
+        result = []
+        for record in self:
+            name = f"Cotizacion #{record.id}"
+            if record.partner_id:
+                name += f" - [{record.partner_id.name}]"
+            result.append((record.id, name))
+        return result
 
 
 

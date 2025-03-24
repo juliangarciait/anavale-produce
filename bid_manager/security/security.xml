@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record model="res.groups" id ="replace_privileges">
-        <field name="name">Change Vendor in Purchase Order</field>
-    </record>
+    <record id="access_bid_manager_autorizador" model="res.groups">
+    <field name="name">Autorizar Cotizaciones</field>
+</record>
 </odoo>

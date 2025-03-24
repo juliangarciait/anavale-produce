@@ -1,7 +1,180 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <!-- Vista tipo lista -->
+    <record id="view_tree_bid_manager" model="ir.ui.view">
+        <field name="name">bid.manager.tree</field>
+        <field name="model">bid.manager</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="partner_new"/>
+                <field name="partner_id"/>
+                <field name="price_type"/>
+                <field name="gross_profit"/>
+                <field name="net_profit"/>
+                <field name="state"/>
 
-    <!-- Vista de formulario para Bid Manager -->
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vista tipo formulario -->
+    <record id="view_form_bid_manager" model="ir.ui.view">
+        <field name="name">bid.manager.form</field>
+        <field name="model">bid.manager</field>
+        <field name="arch" type="xml">
+            <form string="Bid Manager">
+                <header>
+                    <button name="action_submit_for_approval"
+                            string="Solicitar autorización"
+                            type="object"
+                            class="btn-primary"
+                            states="draft"/>
+                    
+                    <button name="action_approve"
+                            string="Aprobar"
+                            type="object"
+                            class="btn-success"
+                            states="to approve"
+                            groups="bid_manager.access_bid_manager_autorizador"/>
+
+                    <button name="action_create_purchase"
+                            string="Pasar a compra"
+                            type="object"
+                            class="btn-primary"
+                            states="approved"/>
+                    <button name="action_cancel"
+                            string="Cancelar"
+                            type="object"
+                            class="btn-primary"
+                            states="draft"/>
+
+                    <field name="state" widget="statusbar" statusbar_visible="draft,to approve,approved,done,cancel"/>
+                </header>
+
+                <sheet>
+                    <group>
+                        <field name="partner_new"/>
+                        <field name="partner_is_mx" readonly="0"  attrs="{'readonly': [('partner_new', '=', False)]}" />
+                        <field name="partner_id" readonly="0" attrs="{'readonly': [('partner_new', '=', True)]}"  />
+
+                        <field name="price_type"/>
+                        <field name="commission" attrs="{'readonly': [('price_type', '=', 'closed')]}" style="width:100%"/>
+                    </group>
+
+                    <notebook>
+                        <page string="Líneas de Producto">
+                            <field name="line_ids">
+                                <tree editable="bottom">
+                                    <field name="product_variant_id"/>
+                                    <field name="quantity"/>
+                                    <field name="bid_manager_price_type" invisible="1"/>
+                                    <field name="pallets"/>
+                                    <field name="last_prices" readonly="1"/>
+                                    <field name="last_year_price" readonly="1"/>
+                                    <field name="price_unit" attrs="{'readonly': [('bid_manager_price_type', '=', 'open')]}"/>
+                                    <field name="price_sale_estimate"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+
+                       
+                    <group>
+                        <div class="d-flex align-items-center" style="width:100%;">
+                            <label for="freight_in" class="o_form_label" style="width:70%">Freight In</label>
+                            <field name="freight_in" class="me-3" style="width:100%" attrs="{'readonly': [('freight_in_check', '=', False)]}"/>
+                            <label for="freight_in_check" class="o_form_label" style="width:70%">Override?</label>
+                            <field name="freight_in_check" class="me-3" style="width:100%"/>
+                        </div>
+                        <div class="d-flex align-items-center" style="width:100%;">
+                            <label for="freight_out" class="o_form_label" style="width:70%">Freight Out</label>
+                            <field name="freight_out" class="me-3" style="width:100%" attrs="{'readonly': [('freight_out_check', '=', False)]}"/>
+                            <label for="freight_out_check" class="o_form_label" style="width:70%">Override?</label>
+                            <field name="freight_out_check" class="me-3" style="width:100%"/>
+                        </div>
+                        <div class="d-flex align-items-center" style="width:100%;">
+                            <label for="customs" class="o_form_label" style="width:70%">Customs</label>
+                            <field name="customs" class="me-3" style="width:100%" attrs="{'readonly': [('custom_check', '=', False)]}"/>
+                            <label for="custom_check" class="o_form_label" style="width:70%">Override?</label>
+                            <field name="custom_check" class="me-3" style="width:100%"/>
+                        </div>
+                        <div class="d-flex align-items-center" style="width:100%;">
+                            <label for="boxes_cost" class="o_form_label" style="width:70%">Boxes cost</label>
+                            <field name="boxes_cost" class="me-3" style="width:100%" attrs="{'readonly': [('boxes_check', '=', False)]}"/>
+                            <label for="boxes_check" class="o_form_label" style="width:70%">Override?</label>
+                            <field name="boxes_check" class="me-3" style="width:100%"/>
+                        </div>
+                        <div class="d-flex align-items-center" style="width:100%;">
+                            <label for="in_out" class="o_form_label" style="width:70%">In/Out</label>
+                            <field name="in_out" class="me-3" style="width:100%" attrs="{'readonly': [('in_out_check', '=', False)]}"/>
+                            <label for="in_out_check" class="o_form_label" style="width:70%">Override?</label>
+                            <field name="in_out_check" class="me-3" style="width:100%"/>
+                        </div>
+                        <div class="d-flex align-items-center" style="width:100%;">
+                            <label for="others" class="o_form_label" style="width:70%">In/Out</label>
+                            <field name="others" class="me-3" style="width:100%" />
+                        </div>
+                    </group>
+                    <group>
+                        <field name="commission_buyer" invisible="1"/>
+                        <field name="commission_anavale" invisible="1"/>
+                        <field name="commission_saler"  invisible="1"/>
+                        <field name="hidden_cost"  invisible="1"/>
+                        <field name="gross_profit"/>
+                        <field name="net_profit"/>
+                        <field name="price_unit_calc"/>
+                        <field name="profit_percentage"/>
+                    </group>  
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción con filtro por creador -->
+    <record id="action_bid_manager_user_filter" model="ir.actions.act_window">
+        <field name="name">Mis Cotizaciones</field>
+        <field name="res_model">bid.manager</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('create_uid', '=', uid), ('state', '!=', 'cancel')]</field>
+        <field name="help" type="html">
+            <p>No tienes cotizaciones todavía.</p>
+        </field>
+    </record>
+
+    <!-- Acción: Vista para Admins (solo "to approve") -->
+    <record id="action_bid_manager_admin_approval" model="ir.actions.act_window">
+        <field name="name">Cotizaciones para Autorizar</field>
+        <field name="res_model">bid.manager</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('state', '=', 'to approve')]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p>No hay cotizaciones pendientes de autorización.</p>
+        </field>
+    </record>
+
+        <menuitem id="menu_bid_manager_root"
+              name="Cotizaciones"
+              parent="purchase.menu_purchase_root"/>
+
+    <!-- Menú dentro de Compras -->
+    <menuitem id="menu_bid_manager_cotizacion"
+              name="Cotizaciones"
+              parent="bid_manager.menu_bid_manager_root"
+              action="action_bid_manager_user_filter"
+              sequence="5"/>
+
+    <menuitem id="menu_bid_manager_admin"
+              name="Cotizaciones por Autorizar"
+              parent="bid_manager.menu_bid_manager_root"
+              action="action_bid_manager_admin_approval"
+              groups="bid_manager.access_bid_manager_autorizador"
+              sequence="10"/>
+</odoo>
+
+<!-- 
+<odoo>
+
     <record id="view_bid_manager_form" model="ir.ui.view">
         <field name="name">bid.manager.form</field>
         <field name="model">bid.manager</field>
@@ -19,10 +192,10 @@
                             <field name="price_type" class="me-3" style="width:100%"/>
                             <label for="commission" class="o_form_label" style="margin-left:20px;width:70%">Comision</label>
                             <field name="commission" attrs="{'readonly': [('price_type', '=', 'closed')]}" style="width:100%"/>
-                            <!-- <label>%</label> -->
+                            <label>%</label> 
                         </div>
                     </group>
-                                        <!-- Tabla de productos -->
+                                        
                     <field name="line_ids" mode="tree,kanban">
                         <tree editable="bottom" string="Lineas de Productos">
                             <field name="bid_manager_id" invisible="1"  force_save="1"  />
@@ -99,7 +272,7 @@
                 <footer>
                     <button string="Guardar" type="object" name="save" class="btn-primary"/>
                     <button string="Cancelar" class="btn-secondary" special="cancel"/>
-                    <!-- <button name="action_recompute_pallets" string="Recalcular Pallets" type="object" class="btn-primary"/> -->
+                    <button name="action_recompute_pallets" string="Recalcular Pallets" type="object" class="btn-primary"/> 
                 </footer>
             </form>
         </field>
@@ -113,6 +286,6 @@
         <field name="target">new</field>
     </record>
 
-    <!-- Menú principal en el módulo de Compras -->
+
     <menuitem id="menu_bid_manager" name="Calculadora de Cotización" parent="purchase.menu_procurement_management" action="action_bid_manager" sequence="5"/>
-</odoo>
+</odoo> -->
