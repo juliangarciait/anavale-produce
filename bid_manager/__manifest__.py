@@ -19,7 +19,8 @@
         'security/security.xml',
         'security/ir.model.access.csv',
         'views/bid_manager_settings_views.xml',
-        'views/bid_manager_view.xml'
+        'views/bid_manager_view.xml',
+        'reports/bid_report_views.xml'
     ],
     'images': [
         

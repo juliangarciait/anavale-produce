@@ -46,7 +46,7 @@
                             string="Cancelar"
                             type="object"
                             class="btn-primary"
-                            states="draft"/>
+                            />
 
                     <field name="state" widget="statusbar" statusbar_visible="draft,to approve,approved,done,cancel"/>
                 </header>
@@ -55,7 +55,8 @@
                     <group>
                         <field name="partner_new"/>
                         <field name="partner_is_mx" readonly="0"  attrs="{'readonly': [('partner_new', '=', False)]}" />
-                        <field name="partner_id" readonly="0" attrs="{'readonly': [('partner_new', '=', True)]}"  />
+                        <field name="partner_id" readonly="0" attrs="{'invisible': [('partner_new', '=', True)]}"  />
+                        <field name="partner_new_name" readonly="0" attrs="{'invisible': [('partner_new', '=',False)]}"  />
 
                         <field name="price_type"/>
                         <field name="commission" attrs="{'readonly': [('price_type', '=', 'closed')]}" style="width:100%"/>
@@ -122,8 +123,8 @@
                         <field name="hidden_cost"  invisible="1"/>
                         <field name="gross_profit"/>
                         <field name="net_profit"/>
-                        <field name="price_unit_calc"/>
-                        <field name="profit_percentage"/>
+                        <field name="price_unit_calc" attrs="{'invisible': [('price_type', '=', 'closed')]}"/>
+                        <field name="profit_percentage" attrs="{'invisible': [('price_type', '=', 'open')]}" widget="percentage"/>
                     </group>  
                 </sheet>
             </form>

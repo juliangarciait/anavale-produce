@@ -5,3 +5,4 @@ access_bid_manager_line_user,Bid Manager Line User,bid_manager.model_bid_manager
 access_bid_manager_line_manager,Bid Manager Line Manager,bid_manager.model_bid_manager_line,base.group_system,1,1,1,1
 access_additional_expense_user,Additional Expense User,bid_manager.model_additional_expense,base.group_user,1,0,0,0
 access_additional_expense_manager,Additional Expense Manager,bid_manager.model_additional_expense,base.group_system,1,1,1,1
+access_bid_report,bid.report,bid_manager.model_bid_report,base.group_system,1,0,0,0

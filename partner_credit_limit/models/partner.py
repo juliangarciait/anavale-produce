@@ -9,7 +9,8 @@ class ResPartner(models.Model):
     over_credit = fields.Boolean('Allow Over Credit?')
     credit_insured = fields.Float(string='Asegurado')
     credit_manual = fields.Float(string='Manual')
-    credit_available = fields.Float(string='Credit Available',compute='_compute_credit_available')
+    credit_available = fields.Float(string='Credit Available',compute='_compute_credit_available', store=True)
+    credit_limit = fields.Float(string='Credit Limit', compute='_compute_credit_limit', store=True)
 
     @api.onchange('over_credit')
     def onchange_over_credit(self):
@@ -18,6 +19,11 @@ class ResPartner(models.Model):
             if rec.over_credit:
                 msg = "Over credit activado\n"
                 rec._origin.message_post(body=msg)
+
+    @api.depends('credit_insured', 'credit_manual')
+    def _compute_credit_limit(self):
+        for rec in self:
+            rec.credit_limit = rec.credit_insured + rec.credit_manual
 
     @api.onchange('credit_insured', 'credit_manual')
     def onchange_credito(self):
@@ -30,11 +36,11 @@ class ResPartner(models.Model):
             if credit_manual_ant != rec.credit_manual:
                 msg += "· Credito Manual cambio de {} a {}\n".format(credit_manual_ant, rec.credit_manual)
             rec._origin.message_post(body=msg)
-            rec.credit_limit = rec.credit_insured + rec.credit_manual
             # rec.credit_limit = rec.credit_insured
             # if rec.credit_manual > rec.credit_insured:
             #     rec.credit_limit = rec.credit_manual
 
+    @api.depends('credit_limit')
     def _compute_credit_available(self):
         #self.ensure_one()
         for rec in self:

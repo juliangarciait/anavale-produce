@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <record id="view_bid_report_pivot" model="ir.ui.view">
+            <field name="name">bid.report.pivot</field>
+            <field name="model">bid.report</field>
+            <field name="arch" type="xml">
+                <pivot string="Bid Report">
+                    <field name="product_id" type="row"/>
+                    <field name="quantity" type="measure"/>
+                </pivot>
+            </field>
+        </record>
+
+        <record id="view_bid_report_graph" model="ir.ui.view">
+            <field name="name">bid.report.graph</field>
+            <field name="model">bid.report</field>
+            <field name="arch" type="xml">
+                <graph string="Bid Graph" type="bar">
+                    <field name="create_date" type="col" interval="month"/>
+                    <field name="quantity" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_bid_manager_pivot">
+            <field name="name">bid.month.pivot</field>
+            <field name="model">bid.report</field>
+            <field name="arch" type="xml">
+                <pivot string="Bid Analysis" disable_linking="True" display_quantity="true">
+                    <field name="product_tmp_id" type="row"/>
+                    <field name="bm_id" type="measure"/>
+                    <field name="price_unit" type="measure"/>
+                    <field name="quantity" type="measure"/>
+                    <field name="total" type="measure"/>
+                </pivot>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="view_bid_order_graph">
+            <field name="name">bid.month.graph</field>
+            <field name="model">bid.report</field>
+            <field name="arch" type="xml">
+                <graph string="Bid Statistics" type="line">
+                    <field name="create_date" interval="day" type="col"/>
+                    <field name="price_unit" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- Custom reports (aka filters) -->
+        <record id="filter_purchase_order_monthly_purchases" model="ir.filters">
+            <field name="name">Monthly Bid</field>
+            <field name="model_id">bid.report</field>
+            <field name="domain">[('state','!=','cancel')]</field>
+            <field name="user_id" eval="False"/>
+        </record>
+        <record id="filter_purchase_order_price_per_supplier" model="ir.filters">
+            <field name="name">Price Per Vendor</field>
+            <field name="model_id">bid.report</field>
+            <field name="domain">[('state','!=','draft'),('state','!=','cancel')]</field>
+            <field name="user_id" eval="False"/>
+            <field name="context">{'group_by': ['partner_id'], 'col_group_by': ['product_id'], 'measures': ['price_unit']}</field>
+        </record>
+      
+
+    <record id="action_bid_report_all" model="ir.actions.act_window">
+        <field name="name">Bid Analysis</field>
+        <field name="res_model">bid.report</field>
+        <field name="view_mode">graph,pivot</field>
+        <!-- <field name="view_id"></field>  force empty -->
+        <field name="help">Purchase Analysis allows you to easily check and analyse your company purchase history and performance. From this menu you can track your negotiation performance, the delivery performance of your vendors, etc.</field>
+        <field name="target">current</field>
+    </record>
+
+
+    <menuitem id="menu_report_bid" name="Bid"  action="action_bid_report_all" parent="purchase.purchase_report" sequence="30" />
+        
+</odoo>
+
+    <!-- purchase.purchase_report    groups="bid_manager.access_bid_manager_autorizador"-->
+
+  <!-- <record id="filter_purchase_order_average_delivery_time" model="ir.filters">
+            <field name="name">Average Delivery Time</field>
+            <field name="model_id">purchase.report</field>
+            <field name="domain">[('state','!=','draft'),('state','!=','cancel')]</field>
+            <field name="user_id" eval="False"/>
+            <field name="context">{'group_by': ['partner_id'], 'measures': ['delay_pass']}</field>
+        </record>
+
+
+        <record id="view_purchase_order_search" model="ir.ui.view">
+        <field name="name">report.purchase.order.search</field>
+        <field name="model">purchase.report</field>
+        <field name="arch" type="xml">
+            <search string="Purchase Orders">
+                <filter string="Requests for Quotation" name="quotes" domain="[('state','in',('draft','sent'))]"/>
+                <filter string="Purchase Orders" name="orders" domain="[('state','!=','draft'), ('state','!=','sent'), ('state','!=','cancel')]"/>
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <group expand="0" string="Extended Filters">
+                    <field name="user_id"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="date_order"/>
+                    <field name="date_approve"/>
+                    <field name="category_id" filter_domain="[('category_id', 'child_of', self)]"/>
+                </group>
+                <group expand="1" string="Group By">
+                    <filter string="Vendor" name="group_partner_id" context="{'group_by':'partner_id'}"/>
+                    <filter string="Vendor Country" name="country_id" context="{'group_by':'country_id'}"/>
+                    <filter string="Purchase Representative" name="user_id" context="{'group_by':'user_id'}"/>
+                    <filter string="Product" name="group_product_id" context="{'group_by':'product_id'}"/>
+                    <filter string="Product Category" name="group_category_id" context="{'group_by':'category_id'}"/>
+                    <filter string="Status" name="status" context="{'group_by':'state'}"/>
+                    <filter string="Company" name="company" context="{'group_by':'company_id'}" groups="base.group_multi_company"/>
+                    <separator/>
+                    <filter string="Order Date" name="order_month" context="{'group_by': 'date_order:month'}"/>
+                    <filter string="Confirmation Date" name="group_date_approve_month" context="{'group_by': 'date_approve:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record> -->

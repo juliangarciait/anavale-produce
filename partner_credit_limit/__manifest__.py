@@ -10,7 +10,7 @@
     'maintainer': 'Serpent Consulting Services Pvt. Ltd.',
     'summary': 'Set credit limit warning',
     'depends': [
-        'sale_management',
+        'sale_management', 'anavale'
     ],
     'data': [
         'views/partner_view.xml',

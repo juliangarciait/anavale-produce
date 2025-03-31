@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, tools
+from odoo.exceptions import UserError, ValidationError
 from datetime import timedelta
 import json
 import ast
@@ -9,15 +10,16 @@ class BidManagerLine(models.Model):
     _description = 'Bid Manager Line'
 
     bid_manager_id = fields.Many2one('bid.manager', string='Bid ID')
-    bid_manager_price_type = fields.Selection([
-        ('open', 'Abierto'),
-        ('closed', 'Cerrado')
-    ], related="bid_manager_id.price_type")
+    # bid_manager_price_type = fields.Selection([
+    #     ('open', 'Abierto'),
+    #     ('closed', 'Cerrado')
+    # ], related="bid_manager_id.price_type")
+    bid_manager_price_type =  fields.Selection(related='bid_manager_id.price_type', readonly=True)
     product_variant_id = fields.Many2one('product.product', string='Producto', required=True)
     quantity = fields.Float(string='Cantidad', required=True)
     pallets = fields.Integer(string='Pallets', required=True)
-    last_prices = fields.Float(string='Últimos Precios', compute='_compute_price')
-    last_year_price = fields.Float(string='Precio Año Anterior', compute='_compute_price')
+    last_prices = fields.Float(string='Últimas Ventas', compute='_compute_price')
+    last_year_price = fields.Float(string='Venta Año Anterior', compute='_compute_price')
     price_unit = fields.Float(string='Costo Unitario', required=False)
     price_sale_estimate = fields.Float(string='Precio Venta estimado', required=False)
 
@@ -44,7 +46,7 @@ class BidManagerLine(models.Model):
         for record in self:
             #calculo ultimos precios
             fecha_calculo = fields.Date.today() - timedelta(days=days)
-            prices = self.env['purchase.order.line'].search([
+            prices = self.env['sale.order.line'].search([
                 ('product_id', '=', record.product_variant_id.id),
                 ('create_date', '>=', fecha_calculo)
             ]).mapped('price_unit')
@@ -53,13 +55,13 @@ class BidManagerLine(models.Model):
             #calculo anio pasado
             fecha_calculo_inicio_ly = fields.Date.today() - timedelta(days=days+365)
             fecha_calculo_final_ly = fields.Date.today() - timedelta(days=365)
-            purchase_lines = self.env['purchase.order.line'].search([
+            sales_lines = self.env['sale.order.line'].search([
                 ('product_id', '=', record.product_variant_id.id),
                 ('create_date', '>', fecha_calculo_inicio_ly),
                 ('create_date', '<', fecha_calculo_final_ly)
             ])
-            price_units = purchase_lines.mapped('price_unit')
-            qty = purchase_lines.mapped('product_qty')
+            price_units = sales_lines.mapped('price_unit')
+            qty = sales_lines.mapped('product_uom_qty')
             # Calcular el precio promedio ponderado
             total_cost = sum(p * q for p, q in zip(price_units, qty))
             total_quantity = sum(qty)
@@ -75,11 +77,12 @@ class BidManager(models.Model):
     partner_id = fields.Many2one('res.partner', string='Proveedor')
     partner_new =  fields.Boolean(string='Nuevo Proveedor')
     partner_is_mx =  fields.Boolean(string='Proveedor es Mexicano')
+    partner_new_name = fields.Char(string='Nombre del Proveedor')
     price_type = fields.Selection([
         ('open', 'Abierto'),
         ('closed', 'Cerrado')
     ], string='Tipo de Precio', default='open')
-    commission = fields.Float(string='Comisión', default=15)
+    commission = fields.Float(string='Comisión', default=8)
     freight_in_check = fields.Boolean(string='Manual?')
     freight_in = fields.Float(string='Freight In', compute="_compute_calc_based_partner", store=True)
     
@@ -224,12 +227,12 @@ class BidManager(models.Model):
             if record.price_type == 'open':
                 record.gross_profit = record.lines_amount_calc - record.freight_in - record.freight_out 
                 record.gross_profit = record.gross_profit - record.boxes_cost - record.customs - record.in_out
-                record.gross_profit = record.gross_profit - record.others - record.hidden_cost - record.commission_saler
+                record.gross_profit = record.gross_profit - record.others - record.hidden_cost 
             else:
                 cost = float(sum(line.price_unit * line.quantity for line in record.line_ids))
                 record.gross_profit = record.lines_amount_calc - record.freight_in - record.freight_out 
                 record.gross_profit = record.gross_profit - record.boxes_cost - record.customs - record.in_out
-                record.gross_profit = record.gross_profit - record.others - record.hidden_cost - cost - record.commission_saler
+                record.gross_profit = record.gross_profit - record.others - record.hidden_cost - cost 
 
     @api.depends('gross_profit')
     def _calc_commission_buyer(self):
@@ -242,28 +245,32 @@ class BidManager(models.Model):
                     record.commission_buyer = record.gross_profit * commision_buyer_percentage
                     record.commission_anavale = record.gross_profit * commision_anavale_percentage
                     admin_fee = record.gross_profit * admin_fee_percentage
-                    record.net_profit = record.gross_profit - record.commission_buyer - record.commission_anavale - admin_fee
+                    record.net_profit = record.gross_profit - record.commission_buyer - record.commission_anavale - admin_fee - record.commission_saler
                     if record.net_profit > 0 and record.quantity > 0:
                         record.price_unit_calc = record.net_profit / record.quantity
                     else: record.price_unit_calc = 0
                 else:
                     record.commission_buyer = record.gross_profit * commision_buyer_percentage
                     admin_fee = record.gross_profit * admin_fee_percentage
-                    record.net_profit = record.gross_profit - record.commission_buyer - admin_fee
-                    record.profit_percentage = record.net_profit / record.lines_amount_calc
+                    record.net_profit = record.gross_profit - record.commission_buyer - admin_fee - record.commission_saler
+                    if record.lines_amount_calc > 0:
+                        record.profit_percentage = record.net_profit / record.lines_amount_calc
+                    else : record.profit_percentage = 0
                     #porcentaje de ganancia
 
 
     @api.depends('partner_id', 'lines_amount_calc')
     def _calc_hidden_cost(self):
-        percentage_hidden_cost = 0
-        hidden_cost = self.env['ir.config_parameter'].sudo().get_param('bid_manager.additional_expense_ids', '[]')
-        hidden_cost = ast.literal_eval(hidden_cost)
-        hidden_cost = self.env['additional.expense'].sudo().search([('id', 'in', hidden_cost)])
-        for hd in hidden_cost:
-            percentage_hidden_cost += hd.percentage
+        # percentage_hidden_cost = 0
+        # hidden_cost = self.env['ir.config_parameter'].sudo().get_param('bid_manager.additional_expense_ids', '[]')
+        # hidden_cost = ast.literal_eval(hidden_cost)
+        # hidden_cost = self.env['additional.expense'].sudo().search([('id', 'in', hidden_cost)])
+        # for hd in hidden_cost:
+        #     percentage_hidden_cost += hd.percentage
+        # for record in self:
+        #     record.hidden_cost = self.lines_amount_calc * (percentage_hidden_cost/100)
         for record in self:
-            record.hidden_cost = self.lines_amount_calc * (percentage_hidden_cost/100)
+            record.hidden_cost = 0
 
 
     def action_submit_for_approval(self):
@@ -282,11 +289,24 @@ class BidManager(models.Model):
     def action_create_purchase(self):
         PurchaseOrder = self.env['purchase.order']
         PurchaseOrderLine = self.env['purchase.order.line']
+        if self.partner_new:
+            chk_partner = self.env['res.partner'].search([('name','=',self.partner_new_name)])
+            if chk_partner:
+                raise ValidationError("el partner que esta tratando de crear ya existe")
+            else:
+                current_uid = self._context.get('uid')
+                user = self.env['res.users'].browse(current_uid)
+                partner_new_created = self.env['res.partner'].create({
+                    'name': self.partner_new_name,
+                    'purchaseperson_id' : user.id
+                })
+                self.partner_id = partner_new_created
         # Crear la orden de compra
         purchase_order = PurchaseOrder.create({
             'partner_id': self.partner_id.id,
             'origin': f'Bid #{self.id}',
-            'importacion' : 'Si'
+            'importacion' : 'Si',
+            'user_id' : user.id
         })
 
         # Crear las líneas de orden de compra
@@ -298,7 +318,7 @@ class BidManager(models.Model):
                 'product_qty': line.quantity,
                 'pallets' : line.pallets,
                 'product_uom': line.product_variant_id.uom_id.id,
-                'price_unit': 1.0 if self.price_type == 'open' else self.price_unit,
+                'price_unit': 1.0 if self.price_type == 'open' else line.price_unit,
                 'date_planned': fields.Date.today(),
             })
 
