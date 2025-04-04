@@ -10,7 +10,8 @@
                 <field name="partner_id"/>
                 <field name="price_type"/>
                 <field name="gross_profit"/>
-                <field name="net_profit"/>
+                <field name="profit_percentage"/>
+                <field name="profit_anavale"/>
                 <field name="state"/>
 
             </tree>
@@ -102,8 +103,8 @@
                         <div class="d-flex align-items-center" style="width:100%;">
                             <label for="boxes_cost" class="o_form_label" style="width:70%">Boxes cost</label>
                             <field name="boxes_cost" class="me-3" style="width:100%" attrs="{'readonly': [('boxes_check', '=', False)]}"/>
-                            <label for="boxes_check" class="o_form_label" style="width:70%">Override?</label>
-                            <field name="boxes_check" class="me-3" style="width:100%"/>
+                            <label for="boxes_check" class="o_form_label" style="width:70%" invisible="1">Override?</label>
+                            <field name="boxes_check" class="me-3" style="width:100%" invisible="1"/>
                         </div>
                         <div class="d-flex align-items-center" style="width:100%;">
                             <label for="in_out" class="o_form_label" style="width:70%">In/Out</label>
@@ -123,8 +124,10 @@
                         <field name="hidden_cost"  invisible="1"/>
                         <field name="gross_profit"/>
                         <field name="net_profit"/>
+                        <field name="profit_anavale"/>
                         <field name="price_unit_calc" attrs="{'invisible': [('price_type', '=', 'closed')]}"/>
                         <field name="profit_percentage" attrs="{'invisible': [('price_type', '=', 'open')]}" widget="percentage"/>
+
                     </group>  
                 </sheet>
             </form>

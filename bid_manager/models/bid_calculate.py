@@ -24,12 +24,12 @@ class BidManagerLine(models.Model):
     price_sale_estimate = fields.Float(string='Precio Venta estimado', required=False)
 
 
-    @api.model
-    def write(self, vals):
-        res = super(BidManagerLine, self).write(vals)
-        if 'pallets' in vals and self.bid_manager_id:
-            self.bid_manager_id._compute_lines_ids()
-        return res
+    # @api.model
+    # def write(self, vals):
+    #     res = super(BidManagerLine, self).write(vals)
+    #     if 'pallets' in vals and self.bid_manager_id:
+    #         self.bid_manager_id._compute_lines_ids()
+    #     return res
 
     
     @api.model
@@ -82,7 +82,7 @@ class BidManager(models.Model):
         ('open', 'Abierto'),
         ('closed', 'Cerrado')
     ], string='Tipo de Precio', default='open')
-    commission = fields.Float(string='Comisión', default=8)
+    commission = fields.Float(string='Comisión %', default=8)
     freight_in_check = fields.Boolean(string='Manual?')
     freight_in = fields.Float(string='Freight In', compute="_compute_calc_based_partner", store=True)
     
@@ -92,7 +92,7 @@ class BidManager(models.Model):
     custom_check = fields.Boolean(string='Manual?', store=True)
     customs = fields.Float(string='Aduanas', compute='_compute_calc_based_partner', store=True)
 
-    boxes_check = fields.Boolean(string='Manual?', store=True)
+    boxes_check = fields.Boolean(string='Manual?', store=True, default=True)
     boxes_cost = fields.Float(string='Cajas', compute='_compute_calc_based_partner', store=True)
 
     in_out_check = fields.Boolean(string='Manual?', store=True)
@@ -114,6 +114,7 @@ class BidManager(models.Model):
     net_profit = fields.Float(string='Ganacia neta', compute='_calc_gross_profit', store=True)
     price_unit_calc = fields.Float(string='Costo unitario calculado', compute='_calc_gross_profit', store=True)
     profit_percentage = fields.Float(string='Porcentaje de Ganancia', compute='_calc_commission_buyer', store=True)
+    profit_anavale = fields.Float(string='Ganancia Anavale', compute='_calc_commission_buyer', store=True)
 
     state = fields.Selection([
         ('draft', 'Draft'),
@@ -237,17 +238,20 @@ class BidManager(models.Model):
     @api.depends('gross_profit')
     def _calc_commission_buyer(self):
             commision_buyer_percentage = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.commission_buyer_percent', 15)) / 100
-            commision_anavale_percentage = self.commission / 100
+            
             admin_fee_percentage = float(self.env['ir.config_parameter'].sudo().get_param('bid_manager.admin_fee_percentage', 5)) / 100
             for record in self:
+                commision_anavale_percentage = record.commission / 100
                 if record.price_type == 'open':
                     commision_anavale_percentage = record.commission / 100
                     record.commission_buyer = record.gross_profit * commision_buyer_percentage
                     record.commission_anavale = record.gross_profit * commision_anavale_percentage
                     admin_fee = record.gross_profit * admin_fee_percentage
                     record.net_profit = record.gross_profit - record.commission_buyer - record.commission_anavale - admin_fee - record.commission_saler
+                    record.profit_anavale = record.commission_anavale
                     if record.net_profit > 0 and record.quantity > 0:
                         record.price_unit_calc = record.net_profit / record.quantity
+                        record.profit_percentage = record.commission
                     else: record.price_unit_calc = 0
                 else:
                     record.commission_buyer = record.gross_profit * commision_buyer_percentage
@@ -255,6 +259,7 @@ class BidManager(models.Model):
                     record.net_profit = record.gross_profit - record.commission_buyer - admin_fee - record.commission_saler
                     if record.lines_amount_calc > 0:
                         record.profit_percentage = record.net_profit / record.lines_amount_calc
+                        record.profit_anavale = record.net_profit
                     else : record.profit_percentage = 0
                     #porcentaje de ganancia
 
@@ -343,6 +348,13 @@ class BidManager(models.Model):
                 name += f" - [{record.partner_id.name}]"
             result.append((record.id, name))
         return result
+
+
+    def write(self, vals): 
+        res = super(BidManager, self).write(vals)
+        if self.price_type == 'open':
+            for line in self.line_ids:
+                line.price_unit = self.price_unit_calc
 
 
 
