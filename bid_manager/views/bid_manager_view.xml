@@ -8,13 +8,47 @@
             <tree>
                 <field name="partner_new"/>
                 <field name="partner_id"/>
+                <field name="main_product_id"/>
                 <field name="price_type"/>
                 <field name="gross_profit"/>
                 <field name="profit_percentage"/>
                 <field name="profit_anavale"/>
                 <field name="state"/>
-
+                <field name="create_uid" invisible="1"/>
+                <field name="create_date" invisible="1"/>
             </tree>
+        </field>
+    </record>
+
+    <!-- Añadimos los filtros de búsqueda -->
+    <record id="view_bid_manager_search" model="ir.ui.view">
+        <field name="name">bid.manager.search</field>
+        <field name="model">bid.manager</field>
+        <field name="arch" type="xml">
+            <search string="Cotizaciones">
+                <!-- Filtros básicos -->
+                <field name="partner_id"/>
+                <field name="partner_new_name"/>
+                
+                <!-- Filtros de estado -->
+                <filter string="Mis cotizaciones" name="my_quotes" domain="[('create_uid', '=', uid)]"/>
+                <filter string="Solicitud de aprobación" name="to_approve" domain="[('state', '=', 'to approve')]"/>
+                <filter string="En espera de compra" name="approved" domain="[('state', '=', 'approved')]"/>
+                <filter string="Proveedor nuevo" name="new_partner" domain="[('partner_new', '=', True)]"/>
+                
+                <!-- Filtros de fecha -->
+                <filter string="Hoy" name="today" domain="[('create_date', '>=', context_today().strftime('%Y-%m-%d')), ('create_date', '&lt;', (context_today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Esta semana" name="this_week" domain="[('create_date', '>=', (context_today() + relativedelta(weeks=-1, days=1, weekday=0)).strftime('%Y-%m-%d')), ('create_date', '&lt;', (context_today() + relativedelta(weeks=0, days=1, weekday=7)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Este mes" name="this_month" domain="[('create_date', '>=', (context_today().replace(day=1)).strftime('%Y-%m-%d')), ('create_date', '&lt;', (context_today() + relativedelta(months=1, day=1)).strftime('%Y-%m-%d'))]"/>
+                
+                <!-- Agrupación -->
+                <group expand="0" string="Agrupar por">
+                    <filter string="Proveedor" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Estado" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Creado por" name="group_create_uid" context="{'group_by': 'create_uid'}"/>
+                    <filter string="Fecha de creación" name="group_create_date" context="{'group_by': 'create_date:month'}"/>
+                </group>
+            </search>
         </field>
     </record>
 
@@ -140,6 +174,7 @@
         <field name="res_model">bid.manager</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('create_uid', '=', uid), ('state', '!=', 'cancel')]</field>
+        <field name="context">{'search_default_my_quotes': 1}</field>
         <field name="help" type="html">
             <p>No tienes cotizaciones todavía.</p>
         </field>
@@ -151,29 +186,47 @@
         <field name="res_model">bid.manager</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('state', '=', 'to approve')]</field>
-        <field name="context">{}</field>
+        <field name="context">{'search_default_to_approve': 1}</field>
         <field name="help" type="html">
             <p>No hay cotizaciones pendientes de autorización.</p>
         </field>
     </record>
 
-        <menuitem id="menu_bid_manager_root"
-              name="Cotizaciones"
-              parent="purchase.menu_purchase_root"/>
+    <!-- Nueva acción: En espera de compra -->
+    <record id="action_bid_manager_approved" model="ir.actions.act_window">
+        <field name="name">En espera de compra</field>
+        <field name="res_model">bid.manager</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('state', '=', 'approved')]</field>
+        <field name="context">{'search_default_approved': 1}</field>
+        <field name="help" type="html">
+            <p>No hay cotizaciones aprobadas en espera de compra.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_bid_manager_root"
+          name="Cotizaciones"
+          parent="purchase.menu_purchase_root"/>
 
     <!-- Menú dentro de Compras -->
     <menuitem id="menu_bid_manager_cotizacion"
-              name="Cotizaciones"
-              parent="bid_manager.menu_bid_manager_root"
-              action="action_bid_manager_user_filter"
-              sequence="5"/>
+          name="Cotizaciones"
+          parent="bid_manager.menu_bid_manager_root"
+          action="action_bid_manager_user_filter"
+          sequence="5"/>
 
     <menuitem id="menu_bid_manager_admin"
-              name="Cotizaciones por Autorizar"
-              parent="bid_manager.menu_bid_manager_root"
-              action="action_bid_manager_admin_approval"
-              groups="bid_manager.access_bid_manager_autorizador"
-              sequence="10"/>
+          name="Cotizaciones por Autorizar"
+          parent="bid_manager.menu_bid_manager_root"
+          action="action_bid_manager_admin_approval"
+          groups="bid_manager.access_bid_manager_autorizador"
+          sequence="10"/>
+          
+    <menuitem id="menu_bid_manager_approved"
+          name="En espera de compra"
+          parent="bid_manager.menu_bid_manager_root"
+          action="action_bid_manager_approved"
+          sequence="15"/>
 </odoo>
 
 <!-- 

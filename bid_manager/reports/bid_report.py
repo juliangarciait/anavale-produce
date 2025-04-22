@@ -14,7 +14,7 @@ class BidReport(models.Model):
     _auto = False
     #_order = 'date_order desc, price_total desc'
 
-    bm_id = fields.Many2one('bid.manager', 'Cotizacion', readonly=True)
+    bm_id = fields.Many2one('bid.manager', 'Cotizacion', readonly=True, group_operator="count")
     partner_id = fields.Many2one('res.partner', 'Proveedor', readonly=True)
     create_date = fields.Datetime('Date', readonly=True, help="Date on which this document has been created")
     state = fields.Selection([
@@ -32,11 +32,11 @@ class BidReport(models.Model):
     product_id = fields.Many2one('product.product', 'Product Variante', readonly=True)
     product_tmp_id = fields.Many2one('product.template', 'Producto', readonly=True)
     price_unit = fields.Float('costo unit', readonly=True, group_operator="avg")
-    pallets = fields.Integer('Pallets', readonly=True)
-    quantity = fields.Float('Cantidad', readonly=True)
+    pallets = fields.Integer('Pallets', readonly=True, group_operator="sum")
+    quantity = fields.Float('Cantidad', readonly=True, group_operator="sum")
     precio_venta_estimate = fields.Float('Precio est. venta', readonly=True)
     purchase_order = fields.Many2one('purchase.order', 'Order', readonly=True)
-    total = fields.Float('Total venta est.', readonly=True)
+    total = fields.Float('Total venta est.', readonly=True, group_operator="sum")
     nbr_lines = fields.Integer('# of Lines', readonly=True)
     user_id = fields.Many2one('res.users', 'Usuario', readonly=True)
 

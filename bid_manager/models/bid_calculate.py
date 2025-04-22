@@ -83,6 +83,10 @@ class BidManager(models.Model):
         ('closed', 'Cerrado')
     ], string='Tipo de Precio', default='open')
     commission = fields.Float(string='Comisión %', default=8)
+    
+    # Nuevo campo computado para el producto principal
+    main_product_id = fields.Many2one('product.template', string='Producto Principal', compute='_compute_main_product', store=True)
+    
     freight_in_check = fields.Boolean(string='Manual?')
     freight_in = fields.Float(string='Freight In', compute="_compute_calc_based_partner", store=True)
     
@@ -355,6 +359,34 @@ class BidManager(models.Model):
         if self.price_type == 'open':
             for line in self.line_ids:
                 line.price_unit = self.price_unit_calc
+
+
+    @api.depends('line_ids', 'line_ids.product_variant_id', 'line_ids.quantity')
+    def _compute_main_product(self):
+        """Calcula el producto con mayor cantidad entre las líneas"""
+        for record in self:
+            max_qty = 0
+            main_product = False
+            products_dict = {}
+            
+            for line in record.line_ids:
+                # Agrupamos por template_id y sumamos cantidades
+                template_id = line.product_variant_id.product_tmpl_id.id
+                if template_id in products_dict:
+                    products_dict[template_id]['qty'] += line.quantity
+                else:
+                    products_dict[template_id] = {
+                        'qty': line.quantity,
+                        'template_id': template_id
+                    }
+            
+            # Buscamos el template con mayor cantidad
+            for template, data in products_dict.items():
+                if data['qty'] > max_qty:
+                    max_qty = data['qty']
+                    main_product = data['template_id']
+            
+            record.main_product_id = main_product
 
 
 

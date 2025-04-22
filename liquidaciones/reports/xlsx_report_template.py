@@ -2,7 +2,7 @@
 
 import time
 from odoo import models, api, _, fields
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tools import float_repr, float_round
 from datetime import datetime
 import string
@@ -1002,6 +1002,8 @@ class XlsxUtilityReport1(models.AbstractModel):
                 aduana_mex = move_line_ids.filtered(lambda line: line.account_id.id == 1392 and line.move_id.state == 'posted')#[]1392
                 adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
                 boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
+                #calcula quantity de venta en account para posterior comparacion
+                sale_qty_update = sum([sale.quantity for sale in sales_lines])
                 sale_update = sum([sale.price_subtotal for sale in sales_lines])
                 freight_in_update = sum([accline.price_subtotal for accline in freight_in])
                 freight_out_update = sum([accline.price_subtotal for accline in freight_out])
@@ -1467,7 +1469,8 @@ class XlsxUtilityReport_noupdate(models.AbstractModel):
                 adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
                 boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
 
-
+                #calcula quantity de venta en account para posterior comparacion
+                sale_qty_update = sum([sale.quantity for sale in sales_lines])
                 sale_update = sum([sale.price_subtotal for sale in sales_lines])
                 freight_in_update = sum([accline.price_subtotal for accline in freight_in])
                 freight_out_update = sum([accline.price_subtotal for accline in freight_out])
@@ -1976,6 +1979,8 @@ class XlsxUtilityReport2(models.AbstractModel):
                     adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
                     boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
                     logistics = move_line_ids.filtered(lambda line: line.account_id.id == 1516 and line.move_id.state == 'posted')
+                    #calcula quantity de venta en account para posterior comparacion
+                    sale_qty_update = sum([sale.quantity for sale in sales_lines])
                     sale_update = sum([sale.price_subtotal for sale in sales_lines])
                     sale_ajust_update = sum([sale.price_subtotal for sale in sales_ajust_lines])
                     sale_update = sale_update - sale_ajust_update
@@ -2103,6 +2108,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                     tb_porfacturar = []
                     tb_stock = []
                     tb_scrap = []
+                    suma_qty_tablas = 0
 
                     for line in settlement_id.settlements_line_ids:
                         #tabla de ventas inicio
@@ -2139,6 +2145,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                                 'precio_prom': (suma_cantidad_facturada/suma_unidades_facturadas),
                                 'total': suma_cantidad_facturada
                                 }
+                            suma_qty_tablas = suma_qty_tablas + suma_unidades_facturadas
                             tb_ventas.append(data_line)
                         if suma_unidades_por_facturadas > 0:
                             data_line = {
@@ -2147,6 +2154,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                                 'precio_prom': line.pending_invoice_price,
                                 'total': (suma_unidades_por_facturadas*line.pending_invoice_price)
                                 }
+                            suma_qty_tablas = suma_qty_tablas + suma_unidades_por_facturadas
                             tb_porfacturar.append(data_line)
                         if stock > 0:
                             data_line = {
@@ -2315,6 +2323,8 @@ class XlsxUtilityReport2(models.AbstractModel):
                     adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
                     boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
                     logistics = move_line_ids.filtered(lambda line: line.account_id.id == 1516 and line.move_id.state == 'posted')
+                    #calcula quantity de venta en account para posterior comparacion
+                    sale_qty_update = sum([sale.quantity for sale in sales_lines])
                     sale_update = sum([sale.price_subtotal for sale in sales_lines])
                     sale_ajust_update = sum([sale.price_subtotal for sale in sales_ajust_lines])
                     sale_update = sale_update - sale_ajust_update
@@ -2424,6 +2434,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                     tb_porfacturar = []
                     tb_stock = []
                     tb_scrap = []
+                    suma_qty_tablas = 0
 
                     #sheet.write(i - 1, 11, (-settlement_id.freight_total-settlement_id.aduana_total-settlement_id.storage_total-settlement_id.maneuvers_total-settlement_id.boxes), light_box_currency)
                     for line in settlement_id.settlements_line_ids:
@@ -2462,6 +2473,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                                 'precio_prom': (suma_cantidad_facturada/suma_unidades_facturadas),
                                 'total': suma_cantidad_facturada
                                 }
+                            suma_qty_tablas = suma_qty_tablas + suma_unidades_facturadas
                             tb_ventas.append(data_line)
                         if suma_unidades_por_facturadas > 0:
                             data_line = {
@@ -2470,6 +2482,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                                 'precio_prom': line.pending_invoice_price,
                                 'total': (suma_unidades_por_facturadas*line.pending_invoice_price)
                                 }
+                            #suma_qty_tablas = suma_qty_tablas + suma_unidades_por_facturadas
                             tb_porfacturar.append(data_line)
                         if stock > 0:
                             data_line = {
@@ -2486,8 +2499,24 @@ class XlsxUtilityReport2(models.AbstractModel):
                                 }
                             tb_scrap.append(data_line)
 
-
                         #tabla de ventas final    
+
+                        #checar si coinciden las cantidades de venta entre los dos metodos
+                        if suma_qty_tablas != sale_qty_update:
+                            sheet.write(0, 1, 'Las cantidades de venta son diferentes en los dos metodos de calculo, revise los tags')
+                            ventas_in_account = [sale.id for sale in sales_lines]
+                            ventas_in_sales = [lin.invoice_lines.id for lin in ventas_lines_lot_facturadas]
+                            #ventas_in_sales += [lin.invoice_lines.id for lin in ventas_lines_lot_porfacturadas]
+                            ventas_faltantes =  list(set(ventas_in_sales).difference(ventas_in_account))
+                            move_line_ids1 = self.env['account.move.line'].search([('id', 'in', ventas_faltantes)])
+                            ii = 1
+                            for move in move_line_ids1:
+                                sheet.write(ii, 1, 'revisar tags de factura {}'.format(str(move.move_id.name)))
+                                ii = ii + 1 
+
+
+
+                        
 
 
                         display_name = line.product_id.display_name.replace(
@@ -2694,6 +2723,8 @@ class XlsxUtilityReport2(models.AbstractModel):
             #sheet.write(i + 12, 14, '', travels_middle_right)
             #sheet.write(i + 14, 14, '', travels_middle_right)
             #sheet.write(i + 15, 14, '', travels_bottom_left)
+
+        
 
 
 class XlsxUtilityReport_firma(models.AbstractModel):    
@@ -3020,6 +3051,8 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                     adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
                     boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
                     logistics = move_line_ids.filtered(lambda line: line.account_id.id == 1516 and line.move_id.state == 'posted')
+                    #calcula quantity de venta en account para posterior comparacion
+                    sale_qty_update = sum([sale.quantity for sale in sales_lines])
                     sale_update = sum([sale.price_subtotal for sale in sales_lines])
                     sale_ajust_update = sum([sale.price_subtotal for sale in sales_ajust_lines])
                     sale_update = sale_update - sale_ajust_update
@@ -3174,6 +3207,7 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                     tb_porfacturar = []
                     tb_stock = []
                     tb_scrap = []
+                    suma_qty_tablas = 0
 
                     for line in settlement_id.settlements_line_ids:
                         #tabla de ventas inicio
@@ -3210,6 +3244,7 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                                 'precio_prom': (suma_cantidad_facturada/suma_unidades_facturadas),
                                 'total': suma_cantidad_facturada
                                 }
+                            suma_qty_tablas = suma_qty_tablas + suma_unidades_facturadas
                             tb_ventas.append(data_line)
                         if suma_unidades_por_facturadas > 0:
                             data_line = {
@@ -3218,6 +3253,7 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                                 'precio_prom': line.pending_invoice_price,
                                 'total': (suma_unidades_por_facturadas*line.pending_invoice_price)
                                 }
+                            suma_qty_tablas = suma_qty_tablas + suma_unidades_por_facturadas
                             tb_porfacturar.append(data_line)
                         if stock > 0:
                             data_line = {
@@ -3513,6 +3549,7 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                     tb_porfacturar = []
                     tb_stock = []
                     tb_scrap = []
+                    suma_qty_tablas = 0
 
                     #sheet.write(i - 1, 11, (-settlement_id.freight_total-settlement_id.aduana_total-settlement_id.storage_total-settlement_id.maneuvers_total-settlement_id.boxes), light_box_currency)
                     for line in settlement_id.settlements_line_ids:
@@ -3551,6 +3588,7 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                                 'precio_prom': (suma_cantidad_facturada/suma_unidades_facturadas),
                                 'total': suma_cantidad_facturada
                                 }
+                            suma_qty_tablas = suma_qty_tablas + suma_unidades_facturadas
                             tb_ventas.append(data_line)
                         if suma_unidades_por_facturadas > 0:
                             data_line = {
@@ -3559,6 +3597,7 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                                 'precio_prom': line.pending_invoice_price,
                                 'total': (suma_unidades_por_facturadas*line.pending_invoice_price)
                                 }
+                            suma_qty_tablas = suma_qty_tablas + suma_unidades_por_facturadas
                             tb_porfacturar.append(data_line)
                         if stock > 0:
                             data_line = {
@@ -3577,6 +3616,20 @@ class XlsxUtilityReport_firma(models.AbstractModel):
 
 
                         #tabla de ventas final    
+
+                        #checar si coinciden las cantidades de venta entre los dos metodos
+                        if suma_qty_tablas != sale_qty_update:
+                            sheet.write(0, 1, 'Las cantidades de venta son diferentes en los dos metodos de calculo, revise los tags')
+                            ventas_in_account = [sale.id for sale in sales_lines]
+                            ventas_in_sales = [lin.invoice_lines.id for lin in ventas_lines_lot_facturadas]
+                            #ventas_in_sales += [lin.invoice_lines.id for lin in ventas_lines_lot_porfacturadas]
+                            ventas_faltantes =  list(set(ventas_in_sales).difference(ventas_in_account))
+                            move_line_ids1 = self.env['account.move.line'].search([('id', 'in', ventas_faltantes)])
+                            ii = 1
+                            for move in move_line_ids1:
+                                sheet.write(ii, 1, 'revisar tags de factura {}'.format(str(move.move_id.name)))
+                                ii = ii + 1 
+
 
 
                         display_name = line.product_id.display_name.replace(

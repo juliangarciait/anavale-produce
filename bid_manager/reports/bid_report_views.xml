@@ -1,5 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+        <!-- Vista Dashboard -->
+        <record id="view_bid_report_dashboard" model="ir.ui.view">
+            <field name="name">bid.report.dashboard</field>
+            <field name="model">bid.report</field>
+            <field name="arch" type="xml">
+                <dashboard>
+                    <view type="graph" ref="view_bid_report_daily_count_graph"/>
+                    <view type="graph" ref="view_bid_report_state_distribution_graph"/>
+                    <view type="graph" ref="view_bid_report_profit_by_vendor_graph"/>
+                    <group>
+                        <group>
+                            <aggregate name="daily_count" field="bm_id" string="Cotizaciones Hoy" domain="[('create_date', '>=', datetime.datetime.combine(context_today(), datetime.time(0,0,0))), ('create_date', '&lt;', datetime.datetime.combine(context_today() + datetime.timedelta(days=1), datetime.time(0,0,0)))]"/>
+                            <aggregate name="count_month" field="bm_id" string="Cotizaciones Este Mes" domain="[('create_date', '>=', (context_today().replace(day=1)).strftime('%Y-%m-%d')), ('create_date', '&lt;', (context_today() + relativedelta(months=1, day=1)).strftime('%Y-%m-%d'))]"/>
+                        </group>
+                        <group>
+                            <aggregate name="total_pending" field="bm_id" string="Pendientes de Aprobación" domain="[('state', '=', 'to approve')]"/>
+                            <aggregate name="total_approved" field="bm_id" string="Aprobadas Pendientes" domain="[('state', '=', 'approved')]"/>
+                        </group>
+                        <group>
+                            <aggregate name="avg_profit" field="total" string="Promedio Venta Est."/>
+                        </group>
+                    </group>
+                    <view type="pivot" ref="view_bid_manager_pivot"/>
+                </dashboard>
+            </field>
+        </record>
+
+        <!-- Gráfico 1: Cotizaciones por día en los últimos 15 días -->
+        <record id="view_bid_report_daily_count_graph" model="ir.ui.view">
+            <field name="name">bid.report.daily.count.graph</field>
+            <field name="model">bid.report</field>
+            <field name="arch" type="xml">
+                <graph string="Cotizaciones por Día (Últimos 15 días)" type="bar" stacked="False">
+                    <field name="create_date" type="row" interval="day"/>
+                    <field name="bm_id" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- Gráfico 2: Distribución de cotizaciones por estado -->
+        <record id="view_bid_report_state_distribution_graph" model="ir.ui.view">
+            <field name="name">bid.report.state.distribution.graph</field>
+            <field name="model">bid.report</field>
+            <field name="arch" type="xml">
+                <graph string="Distribución por Estado" type="pie">
+                    <field name="state" type="row"/>
+                    <field name="bm_id" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- Gráfico 3: Promedio de ganancia por proveedor (top 10) -->
+        <record id="view_bid_report_profit_by_vendor_graph" model="ir.ui.view">
+            <field name="name">bid.report.profit.by.vendor.graph</field>
+            <field name="model">bid.report</field>
+            <field name="arch" type="xml">
+                <graph string="Ganancia por Proveedor" type="bar" stacked="False">
+                    <field name="partner_id" type="row"/>
+                    <field name="total" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
         <record id="view_bid_report_pivot" model="ir.ui.view">
             <field name="name">bid.report.pivot</field>
             <field name="model">bid.report</field>
@@ -61,13 +124,21 @@
             <field name="context">{'group_by': ['partner_id'], 'col_group_by': ['product_id'], 'measures': ['price_unit']}</field>
         </record>
       
+        <!-- Filtro para los últimos 15 días -->
+        <record id="filter_bid_last_15_days" model="ir.filters">
+            <field name="name">Últimos 15 días</field>
+            <field name="model_id">bid.report</field>
+            <field name="domain">[('create_date', '>=', (context_today() - datetime.timedelta(days=15)).strftime('%Y-%m-%d'))]</field>
+            <field name="user_id" eval="False"/>
+            <field name="context">{'group_by': ['create_date:day']}</field>
+        </record>
 
     <record id="action_bid_report_all" model="ir.actions.act_window">
         <field name="name">Bid Analysis</field>
         <field name="res_model">bid.report</field>
-        <field name="view_mode">graph,pivot</field>
-        <!-- <field name="view_id"></field>  force empty -->
-        <field name="help">Purchase Analysis allows you to easily check and analyse your company purchase history and performance. From this menu you can track your negotiation performance, the delivery performance of your vendors, etc.</field>
+        <field name="view_mode">graph,dashboard,pivot</field>
+        <field name="context">{'search_default_filter_bid_last_15_days': 1}</field>
+        <field name="help">El Análisis de Cotizaciones te permite revisar y analizar fácilmente el historial y desempeño de las cotizaciones de tu empresa. Desde este menú puedes hacer seguimiento del rendimiento de negociación y más.</field>
         <field name="target">current</field>
     </record>
 
