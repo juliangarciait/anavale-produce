@@ -1992,7 +1992,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                     aduana_mex_update = sum([accline.price_subtotal for accline in aduana_mex])
                     boxes_update = sum([accline.debit for accline in boxes])
                     adjustment_update = sum([accline.price_subtotal for accline in adjustment])
-                    logistics_update = sum([accline.price_subtotal for accline in logistics])
+                    logistics_update = sum([accline.balance for accline in logistics])
                     exists_st.calcular_update()
 
                     #termina datos actualizables
