@@ -12,6 +12,8 @@ _logger = logging.getLogger(__name__)
 class Picking(models.Model):
     _inherit = "stock.picking"
 
+    note = fields.Text('Notes', tracking=True)
+    
     def get_barcode_view_state(self):
         """ Return the initial state of the barcode view as a dict.
         """
