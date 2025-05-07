@@ -2502,17 +2502,17 @@ class XlsxUtilityReport2(models.AbstractModel):
                         #tabla de ventas final    
 
                         #checar si coinciden las cantidades de venta entre los dos metodos
-                        if suma_qty_tablas != sale_qty_update:
-                            sheet.write(0, 1, 'Las cantidades de venta son diferentes en los dos metodos de calculo, revise los tags')
-                            ventas_in_account = [sale.id for sale in sales_lines]
-                            ventas_in_sales = [lin.invoice_lines.id for lin in ventas_lines_lot_facturadas]
-                            #ventas_in_sales += [lin.invoice_lines.id for lin in ventas_lines_lot_porfacturadas]
-                            ventas_faltantes =  list(set(ventas_in_sales).difference(ventas_in_account))
-                            move_line_ids1 = self.env['account.move.line'].search([('id', 'in', ventas_faltantes)])
-                            ii = 1
-                            for move in move_line_ids1:
-                                sheet.write(ii, 1, 'revisar tags de factura {}'.format(str(move.move_id.name)))
-                                ii = ii + 1 
+                    if suma_qty_tablas != sale_qty_update:
+                        sheet.write(0, 1, 'Las cantidades de venta son diferentes en los dos metodos de calculo, revise los tags')
+                        ventas_in_account = [sale.id for sale in sales_lines]
+                        ventas_in_sales = [line.id for lin in ventas_lines_lot_facturadas for line in lin.invoice_lines if line.parent_state == 'posted']
+                        #ventas_in_sales += [lin.invoice_lines.id for lin in ventas_lines_lot_porfacturadas]
+                        ventas_faltantes =  list(set(ventas_in_sales).difference(ventas_in_account))
+                        move_line_ids1 = self.env['account.move.line'].search([('id', 'in', ventas_faltantes)])
+                        ii = 1
+                        for move in move_line_ids1:
+                            sheet.write(ii, 1, 'revisar tags de factura {}'.format(str(move.move_id.name)))
+                            ii = ii + 1 
 
 
 
