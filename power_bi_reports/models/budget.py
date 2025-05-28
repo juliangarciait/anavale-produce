@@ -16,6 +16,8 @@ class PurchaseBudget(models.Model):
 
     year = fields.Integer(string='Año', required=True, default=date.today().year)
 
+    date_budget = fields.Datetime(string='Fecha presupuesto')
+
     quantity = fields.Float(string='Cantidad Presupuestada', required=True, default=1.0)
 
     _sql_constraints = [

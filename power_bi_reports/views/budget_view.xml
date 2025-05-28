@@ -9,6 +9,7 @@
                 <field name="product_id"/>
                 <field name="month"/>
                 <field name="year"/>
+                <field name="date_budget"/>
                 <field name="quantity"/>
             </tree>
         </field>
