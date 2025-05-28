@@ -38,8 +38,8 @@ class BudgetReport(models.Model):
           WHERE (so.state::text = ANY (ARRAY['sale'::character varying::text, 'done'::character varying::text])) AND date_part('year'::text, so.date_order) = (date_part('year'::text, CURRENT_DATE) - 1::double precision) AND date_part('month'::text, so.date_order) = date_part('month'::text, CURRENT_DATE)
           GROUP BY so.user_id
         )
- SELECT u.id AS salesman_id,
-    rp.name AS salesman_name,
+ SELECT row_number() OVER () AS id,  
+    u.id AS salesman_id,
     COALESCE(st.quantity_sold_today, 0::numeric) AS quantity_sold_today,
     COALESCE(sm.quantity_sold_month, 0::numeric) AS quantity_sold_month,
     COALESCE(sly.quantity_sold_last_year, 0::numeric) AS quantity_sold_last_year
