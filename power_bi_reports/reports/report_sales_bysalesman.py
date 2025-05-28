@@ -5,7 +5,7 @@ class BudgetReport(models.Model):
     _description = 'Reporte Ventas por vendedor'
     _auto = False  # importante: porque es una vista, no tabla
 
-    salesman_id = fields.Many2one('res.user', string='Vendedor')
+    salesman_id = fields.Many2one('res.partner', string='Vendedor')
     quantity_sold_today = fields.Float(string='Venta hoy')
     quantity_sold_month = fields.Float(string='Venta mes')
     quantity_sold_last_year = fields.Float(string='Venta año')
@@ -39,7 +39,7 @@ class BudgetReport(models.Model):
           GROUP BY so.user_id
         )
  SELECT row_number() OVER () AS id,  
-    u.id AS salesman_id,
+    rp.id AS salesman_id,                            
     COALESCE(st.quantity_sold_today, 0::numeric) AS quantity_sold_today,
     COALESCE(sm.quantity_sold_month, 0::numeric) AS quantity_sold_month,
     COALESCE(sly.quantity_sold_last_year, 0::numeric) AS quantity_sold_last_year
