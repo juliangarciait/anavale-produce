@@ -6,10 +6,8 @@ class BudgetReport(models.Model):
     _auto = False  # importante: porque es una vista, no tabla
 
     product_id = fields.Many2one('product.template', string='Producto')
-    purchased_month_to_date = fields.Float(string='Comprado mes')
-    budget_month = fields.Float(string='Presupuesto mes')
-    purchased_year_to_date = fields.Float(string='Comprado año')
-    budget_year = fields.Float(string='Presupuesto año')
+    pallets_mes_actual = fields.Integer(string='Pallets mes')
+    pallets_anio_actual = fields.Integer(string='Pallets year')
 
 
     def init(self):
@@ -17,8 +15,8 @@ class BudgetReport(models.Model):
         tools.drop_view_if_exists(self.env.cr, self._table)
         self.env.cr.execute("""CREATE OR REPLACE VIEW %s AS (
           SELECT
-          pt.id AS template_id,
-          pt.name AS template_name,
+          row_number() OVER () AS id,                    
+          pt.id AS product_id,
           
           -- Total de pallets del mes actual
           COALESCE(SUM(CASE
@@ -28,7 +26,7 @@ class BudgetReport(models.Model):
           -- Total de pallets del año actual
           COALESCE(SUM(CASE
               WHEN date_trunc('year', po.date_order) = date_trunc('year', CURRENT_DATE)
-              THEN pol.pallets ELSE 0 END), 0) AS pallets_ano_actual
+              THEN pol.pallets ELSE 0 END), 0) AS pallets_anio_actual
 
           FROM purchase_order_line pol
           JOIN purchase_order po ON po.id = pol.order_id
