@@ -3,4 +3,5 @@ access_budget_user,Budget User,power_bi_reports.model_purchase_budget,base.group
 access_budget_manager,Budget Manager,power_bi_reports.model_purchase_budget,base.group_system,1,1,1,1
 access_budget_user,Budget User,power_bi_reports.model_report_budget_purchase,base.group_user,1,1,1,1
 access_budget_user,Budget User,power_bi_reports.model_report_pallets_purchase,base.group_user,1,1,1,1
+access_budget_user,Budget User,power_bi_reports.model_report_sales_salesman,base.group_user,1,1,1,1
 
