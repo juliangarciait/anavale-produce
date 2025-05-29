@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- (No hay cron job para repack.order.line, todo se hace desde el asistente) -->
+    </data>
+</odoo> 

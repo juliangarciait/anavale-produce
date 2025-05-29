@@ -1,0 +1,8 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_repack_order_line_user,repack.order.line user,model_repack_order_line,base.group_user,1,1,1,0
+access_repack_order_line_manager,repack.order.line manager,model_repack_order_line,base.group_system,1,1,1,1
+access_repack_order_subline_user,repack.order.subline user,model_repack_order_subline,base.group_user,1,1,1,0
+access_repack_order_subline_manager,repack.order.subline manager,model_repack_order_subline,base.group_system,1,1,1,1
+access_product_size_user,product.size user,model_product_size,base.group_user,1,0,0,0
+access_product_size_manager,product.size manager,model_product_size,base.group_system,1,1,1,1
+access_create_daily_repack_wizard,create.daily.repack.wizard,model_create_daily_repack_wizard,stock.group_stock_manager,1,1,1,1 

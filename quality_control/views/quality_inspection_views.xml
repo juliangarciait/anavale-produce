@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="quality_inspection_list" model="ir.ui.view">
+        <field name="name">quality.inspection.list</field>
+        <field name="model">quality.inspection</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="picking_id"/>
+                <field name="purchase_id"/>
+                <field name="inspection_date"/>
+                <field name="inspector_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="quality_inspection_form" model="ir.ui.view">
+        <field name="name">quality.inspection.form</field>
+        <field name="model">quality.inspection</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_picking" type="object" class="oe_stat_button" icon="fa-truck" attrs="{'invisible': [('picking_id', '=', False)]}">
+                            <field name="picking_id_count" widget="statinfo" string="Albarán"/>
+                        </button>
+                        <button name="action_view_purchase" type="object" class="oe_stat_button" icon="fa-shopping-cart" attrs="{'invisible': [('purchase_id', '=', False)]}">
+                            <field name="purchase_id_count" widget="statinfo" string="Compra"/>
+                        </button>
+                    </div>
+                    <field name="picking_id" readonly="1"/>
+                    <field name="purchase_id" readonly="1"/>
+                    <field name="inspection_date" readonly="1"/>
+                    <field name="inspector_id" readonly="1"/>
+                    <field name="inspection_report" widget="url"/>
+                    <field name="inspection_lines">
+                        <tree editable="bottom">
+                            <field name="product_id"/>
+                            <field name="pieces_per_box"/>
+                            <field name="defective_pieces"/>
+                            <field name="defect_percentage"/>
+                            <field name="product_report" widget="url"/>
+                        </tree>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="quality_inspection_action" model="ir.actions.act_window">
+        <field name="name">Inspecciones de Calidad</field>
+        <field name="res_model">quality.inspection</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="quality_inspection_menu" name="Inspecciones" parent="stock.menu_stock_inventory_control" action="quality_inspection_action" sequence="100"/>
+
+</odoo>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stock_picking_inherit_form" model="ir.ui.view">
+        <field name="name">stock.picking.inherit.form</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_create_quality_inspection" type="object" class="oe_stat_button" icon="fa-check-square-o" string="Inspección de Calidad" attrs="{'invisible': [('state', '!=', 'done')]}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="purchase_order_inherit_form" model="ir.ui.view">
+        <field name="name">purchase.order.inherit.form</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_quality_inspections" type="object" class="oe_stat_button" icon="fa-check-square-o">
+                    <field name="quality_inspection_count" widget="statinfo" string="Inspecciones de Calidad"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

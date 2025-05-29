@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Action to create repack from sale order -->
+    <record id="action_create_repack_from_sale" model="ir.actions.server">
+        <field name="name">Create Repack Order</field>
+        <field name="model_id" ref="sale.model_sale_order_line"/>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="state">code</field>
+        <field name="code">
+            if records:
+                action = records.order_line.filtered(lambda l: l.repack_type != 'none' and not l.repack_processed).create_repack_order()
+                if not action:
+                    action = {
+                        'type': 'ir.actions.client',
+                        'tag': 'display_notification',
+                        'params': {
+                            'title': _('No lines to repack'),
+                            'message': _('There are no sales order lines marked for repack or all have been processed already.'),
+                            'sticky': False,
+                            'type': 'warning',
+                        }
+                    }
+        </field>
+    </record>
+
+    <!-- Add Repack Needed field to sale order line form view -->
+    <record id="view_order_form_inherit_repack" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.repack</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <!-- <xpath expr="//field[@name='order_line']/tree/field[@name='product_id']" position="after">
+                
+            </xpath>
+             -->
+            <!-- Display repack status in confirmed orders -->
+            <xpath expr="//field[@name='order_line']/tree/field[@name='price_subtotal']" position="before">
+                <field name="repack_type" />
+                <field name="repack_processed" invisible="1"/>
+                <field name="repack_status" />
+            </xpath>
+            
+            <xpath expr="//field[@name='order_line']/form//field[@name='product_id']" position="after">
+                <field name="repack_type" attrs="{'invisible': [('product_id', '=', False)]}"/>
+                <field name="repack_processed" invisible="1"/>
+            </xpath>
+            
+            <!-- Add repack status field to line form -->
+            <xpath expr="//field[@name='order_line']/form//field[@name='analytic_tag_ids']" position="after">
+                <field name="repack_status" attrs="{'invisible': ['|', ('parent.state', 'not in', ['sale', 'done']), ('repack_type', '=', False)]}"/>
+                <field name="repack_line_ids" widget="many2many_tags" readonly="1" 
+                       attrs="{'invisible': ['|', ('parent.state', 'not in', ['sale', 'done']), ('repack_type', '=', False)]}"/>
+            </xpath>
+            
+            <!-- Add button to view repacks -->
+            <div name="button_box" position="inside">
+                <button name="action_view_repacks" type="object" class="oe_stat_button" icon="fa-cubes"
+                        attrs="{'invisible': [('repack_count', '=', 0)]}">
+                    <field name="repack_count" widget="statinfo" string="Repacks"/>
+                </button>
+            </div>
+            
+            <!-- Add button to create repack order from sale order -->
+            <button name="action_confirm" position="after">
+                <button name="%(repack_management.action_create_repack_from_sale)d" 
+                        string="Create Repack Order" 
+                        type="action" 
+                        attrs="{'invisible': [('state', 'not in', ['sale', 'done'])]}"
+                        class="btn-primary"/>
+            </button>
+        </field>
+    </record>
+    
+    <!-- Add Repack Status to sale order line list view -->
+    <record id="view_order_line_tree_inherit_repack" model="ir.ui.view">
+        <field name="name">sale.order.line.tree.inherit.repack</field>
+        <field name="model">sale.order.line</field>
+        <field name="inherit_id" ref="sale.view_order_line_tree"/>
+        <field name="arch" type="xml">
+            <field name="price_subtotal" position="before">
+                <field name="repack_type"/>
+                <field name="repack_status"/>
+            </field>
+        </field>
+    </record>
+    
+    <!-- Add Repack fields to sale order line search view -->
+    <record id="view_sales_order_line_filter_inherit_repack" model="ir.ui.view">
+        <field name="name">sale.order.line.search.inherit.repack</field>
+        <field name="model">sale.order.line</field>
+        <field name="inherit_id" ref="sale.view_sales_order_line_filter"/>
+        <field name="arch" type="xml">
+            <filter name="to_invoice" position="after">
+                <filter string="Needs Repack" name="needs_repack" domain="[('repack_type', '=', True)]"/>
+                <filter string="Pending Repack" name="pending_repack" domain="[('repack_type', '=', True), ('repack_status', '!=', 'done')]"/>
+                <filter string="Repack Completed" name="repack_done" domain="[('repack_type', '=', True), ('repack_status', '=', 'done')]"/>
+            </filter>
+            <group position="inside">
+                <filter string="Repack Status" name="groupby_repack_status" context="{'group_by': 'repack_status'}"/>
+            </group>
+        </field>
+    </record>
+
+    <!-- Sale Order Line Tree View: add repack fields -->
+    <record id="view_order_line_tree_repack_inherit" model="ir.ui.view">
+        <field name="name">sale.order.line.tree.repack.inherit</field>
+        <field name="model">sale.order.line</field>
+        <field name="inherit_id" ref="sale.view_order_line_tree"/>
+        <field name="arch" type="xml">
+            <field name="price_subtotal" position="after">
+                <field name="repack_type"/>
+                <field name="repack_processed"/>
+                <field name="repack_status"/>
+            </field>
+        </field>
+    </record>
+    
+    <!-- Sale Order Form: add repack fields -->
+    <record id="view_order_form_repack_inherit" model="ir.ui.view">
+        <field name="name">sale.order.form.repack.inherit</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <!-- <xpath expr="//field[@name='order_line']/tree//field[@name='qty_delivered']" position="after">
+                <field name="repack_type"/>
+                <field name="repack_status"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/form//field[@name='qty_delivered']" position="after">
+                <field name="repack_type" widget="radio"/>
+                <field name="repack_status"/>
+                <field name="repack_processed" invisible="1"/>
+            </xpath>
+             -->
+            <!-- Add button to create repack order -->
+            <xpath expr="//header" position="inside">
+                <button name="action_create_repack" 
+                        string="Create Repack Order" 
+                        type="object" 
+                        attrs="{'invisible': [('state', 'not in', ['sale', 'done'])]}"
+                        groups="stock.group_stock_user"/>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Sale Order Line Form: add repack fields -->
+    <!-- <record id="view_order_line_form_repack_inherit" model="ir.ui.view">
+        <field name="name">sale.order.line.form.repack.inherit</field>
+        <field name="model">sale.order.line</field>
+        <field name="inherit_id" ref="sale.view_order_line_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='invoice']" position="after">
+                <group name="repack" string="Repack Information">
+                    <field name="repack_type" widget="radio"/>
+                    <field name="repack_processed"/>
+                    <field name="repack_status"/>
+                    <field name="repack_line_ids" widget="many2many_tags" readonly="1"/>
+                </group>
+            </xpath>
+        </field>
+    </record> -->
+    
+    <!-- Sale Order Line Search: add repack filters -->
+    <record id="view_sales_order_line_filter_repack_inherit" model="ir.ui.view">
+        <field name="name">sale.order.line.search.repack.inherit</field>
+        <field name="model">sale.order.line</field>
+        <field name="inherit_id" ref="sale.view_sales_order_line_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='salesperson']" position="after">
+                <separator/>
+                <filter string="Needs Repack" name="needs_repack" domain="[('repack_type', '!=', 'none'), ('repack_processed', '=', False)]"/>
+                <filter string="Repack In Process" name="repack_process" domain="[('repack_status', '=', 'process')]"/>
+                <filter string="Repack Complete" name="repack_done" domain="[('repack_status', '=', 'done')]"/>
+                <separator/>
+                <filter string="Repack Only" name="repack_only" domain="[('repack_type', '=', 'repack')]"/>
+                <filter string="Peeled Only" name="peeled_only" domain="[('repack_type', '=', 'peeled')]"/>
+                <filter string="Untailed Only" name="untailed_only" domain="[('repack_type', '=', 'untailed')]"/>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Action to create Repack Order from Sale Lines -->
+    <record id="action_create_repack_from_sale_lines" model="ir.actions.server">
+        <field name="name">Create Repack Order</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_sale_order_line"/>
+        <field name="binding_model_id" ref="model_sale_order_line"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+            if records:
+                action = records.create_repack_order()
+        </field>
+    </record>
+</odoo> 
