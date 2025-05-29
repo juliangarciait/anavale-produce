@@ -112,6 +112,14 @@ class Picking(models.Model):
     quality_check_todo = fields.Boolean('Pending checks', compute='_compute_quality_check_todo')
     create_lot_name = fields.Boolean('Create Lot Names', default=True)
     display_create_lot_name = fields.Boolean(compute='_compute_display_create_lot_name')
+    def _is_custom_state_delivery_editable(self):
+        """Check if the current user can edit the custom_state_delivery field"""
+        self.ensure_one()
+        user = self.env.user
+        if user.has_group('anavale.group_custom_state_delivery_manager'):
+            return True
+        return False
+
     custom_state_delivery = fields.Selection([
         ('draft', 'Draft'),
         ('waiting', 'Waiting Another Operation'),
@@ -119,14 +127,23 @@ class Picking(models.Model):
         ('assigned', 'Ready (No Delivered)'),
         ('done', 'Done (Delivered)'),
         ('cancel', 'Cancel')], string='State Delivery',
-        compute='_compute_sync_with_state', store=True,
+        compute='_compute_sync_with_state', store=True, readonly=False, tracking=True,
         help='Automatic assignation state from state delivery:\n'
-             '\tNote: It can be modified manually')
+             '\tNote: It can be modified manually only by users with special permissions')
 
     @api.model
     def create(self, vals):
         pick = super().create(vals)
         return pick
+        
+    def write(self, vals):
+        """Override write to check permissions for custom_state_delivery"""
+        if 'custom_state_delivery' in vals and not self.env.user.has_group('anavale.group_custom_state_delivery_manager'):
+            # Si el usuario no tiene el permiso, eliminamos el campo del diccionario de valores
+            vals.pop('custom_state_delivery')
+            # También podríamos lanzar una excepción si queremos ser más estrictos
+            # raise UserError(_('No tienes permiso para modificar el Estado de Entrega'))
+        return super(Picking, self).write(vals)
 
 
     @api.depends('state', 'picking_type_id',

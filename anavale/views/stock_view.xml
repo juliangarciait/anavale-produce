@@ -46,7 +46,7 @@
             </field>
 
             <field name="location_id" position="after">
-                <field name="custom_state_delivery" required="1" readonly="0"/>
+                <field name="custom_state_delivery" required="1"/>
             </field>
 
 

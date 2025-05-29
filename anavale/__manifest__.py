@@ -13,6 +13,7 @@
     "website":'http://eadminpro.com/',
     'depends': ['sale_stock', 'percent_field', 'sale', 'stock','purchase', 'liquidaciones', 'account', 'base'],
     'data': [
+            'security/stock_picking_security.xml',
             'security/ir.model.access.csv',
             'views/sale_view.xml',
             'views/stock_view.xml',
