@@ -37,11 +37,11 @@
             <xpath expr="//field[@name='order_line']/tree/field[@name='price_subtotal']" position="before">
                 <field name="repack_type" />
                 <field name="repack_processed" invisible="1"/>
-                <field name="repack_status" />
+                <field name="repack_status"/>
             </xpath>
             
             <xpath expr="//field[@name='order_line']/form//field[@name='product_id']" position="after">
-                <field name="repack_type" attrs="{'invisible': [('product_id', '=', False)]}"/>
+                <field name="repack_type"/>
                 <field name="repack_processed" invisible="1"/>
             </xpath>
             

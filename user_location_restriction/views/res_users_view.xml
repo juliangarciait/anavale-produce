@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_users_form_location_restriction" model="ir.ui.view">
+        <field name="name">res.users.form.location.restriction</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page string="Ubicaciones permitidas">
+                    <group>
+                        <group string="Limitar Ubicaciones" name="locations">
+                            <field name="restrict_locations" string="Usuario Warehouse Externo"/>
+                            <field name="location_ids" widget="many2many_tags" attrs="{'invisible': [('restrict_locations','=',False)]}"/>
+                            <!-- <label for="lang"/>
+                            <div class="o_row">
+                                <field name="lang"/>
+                                <button type="action" name="55" class="btn-sm btn-link mb4 fa fa-globe" aria-label="More languages" title="More languages"/>
+                            </div>
+                            <field name="tz" widget="timezone_mismatch" options="{'tz_offset_field': 'tz_offset'}"/>
+                            <field name="tz_offset" invisible="1"/> -->
+                        </group>
+                    </group>
+                    
+                    
+                </page>
+            </notebook>
+        </field>
+    </record>
+</odoo> 

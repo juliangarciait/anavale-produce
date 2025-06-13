@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_res_users,res.users,base.model_res_users,base.group_system,1,0,0,0
+access_stock_location,stock.location,stock.model_stock_location,base.group_system,1,0,0,0
+access_stock_picking_warehouse_external,stock.picking,stock.model_stock_picking,user_location_restriction.group_warehouse_external_user,1,0,0,0 

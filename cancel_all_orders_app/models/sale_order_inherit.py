@@ -9,6 +9,8 @@ class sale_order(models.Model):
 
     def action_cancel(self):
         for picking in self.picking_ids:
+            if picking.custom_state_delivery in ['assigned', 'done']: 
+                raise ValidationError (_('You cant cancel this sales order because it has a picking in state assigned or done'))
             if picking.state != 'cancel':
                 if self.env.user.has_group('cancel_all_orders_app.group_cancel_sale_order_basic') and picking.state != 'done': 
                     picking.action_cancel()
@@ -18,6 +20,7 @@ class sale_order(models.Model):
                     self.cancel_invoice()
                 else: 
                     raise ValidationError (_('You dont have the required permissions to cancel this sales order'))
+            
         res = super(sale_order, self).action_cancel()
         return res
 

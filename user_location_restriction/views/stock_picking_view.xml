@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_picking_form_warehouse_external_user" model="ir.ui.view">
+        <field name="name">stock.picking.form.warehouse.external.user</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="groups_id" eval="[(4, ref('user_location_restriction.group_warehouse_external_user'))]"/>
+        <field name="arch" type="xml">
+            <!-- Hacer todos los campos readonly excepto custom_state_delivery -->
+            <xpath expr="//field[@name='custom_state_delivery']" position="attributes">
+                <attribute name="readonly">0</attribute>
+            </xpath>
+            <xpath expr="//form" position="attributes">
+                <attribute name="edit">0</attribute>
+            </xpath>
+            <!-- Ocultar botones de validar y cancelar -->
+            <xpath expr="//button[@name='button_validate']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_cancel']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo> 

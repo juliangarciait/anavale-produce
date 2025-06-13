@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_quality_inspect_form" model="ir.ui.view">
+        <field name="name">quality.inspect.form</field>
+        <field name="model">quality.inspect</field>
+        <field name="arch" type="xml">
+            <form string="Quality Inspection">
+                <sheet>
+                    <group>
+                        <field name="stock_picking_id"/>
+                        <field name="lote"/>
+                        <field name="total_boxes"/>
+                        <field name="boxes_per_pallet"/>
+                        <field name="temp_recorder"/>
+                        <field name="defect_percentage"/>
+                        <field name="inspector"/>
+                        <field name="notes"/>
+                        <field name="inspection_document_url"/>
+                        <field name="inspection_document_pdf"/>
+                    </group>
+                    <notebook>
+    <page string="Inspection Lines">
+        <field name="inspect_line_ids">
+            <tree editable="bottom">
+                <field name="variant_id"/>
+                <field name="label"/>
+                <field name="packaging_id"/>
+                <field name="weight"/>
+                <field name="pieces_per_box"/>
+            </tree>
+            <form string="Inspection Line">
+                <group>
+                    <field name="variant_id"/>
+                    <field name="label"/>
+                    <field name="packaging_id"/>
+                    <field name="weight"/>
+                    <field name="pieces_per_box"/>
+                </group>
+                <notebook>
+                    <page string="Defects">
+                        <field name="defects" editable="bottom">
+    <tree editable="bottom">
+        <field name="defect_id"/>
+        <field name="quantity"/>
+    </tree>
+    <form string="Defect Line">
+        <field name="defect_id"/>
+        <field name="quantity"/>
+    </form>
+</field>
+                    </page>
+                </notebook>
+            </form>
+        </field>
+        <button name="action_open_inspect_line_form" string="Agregar línea" type="object" class="oe_highlight"/>
+    </page>
+</notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_quality_inspect_tree" model="ir.ui.view">
+        <field name="name">quality.inspect.tree</field>
+        <field name="model">quality.inspect</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="stock_picking_id"/>
+                <field name="lote"/>
+                <field name="total_boxes"/>
+                <field name="defect_percentage"/>
+                <field name="inspector"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_quality_inspect" model="ir.actions.act_window">
+        <field name="name">Quality Inspections</field>
+        <field name="res_model">quality.inspect</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- <menuitem id="menu_quality_inspect_root" name="Quality Inspection" sequence="10"/> -->
+    <!-- <menuitem id="menu_quality_inspect" name="Inspections" parent="menu_quality_inspect_root" action="action_quality_inspect"/> -->
+</odoo>

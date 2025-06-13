@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_quality_inspect_user,access.quality.inspect,model_quality_inspect,base.group_user,1,1,1,1
+access_quality_inspect_line_user,access.quality.inspect.line,model_quality_inspect_line,base.group_user,1,1,1,1
+access_defect_line_user,access.defect.line,model_defect_line,base.group_user,1,1,1,1
+access_defect_user,access.defect,model_defect,base.group_user,1,1,1,1
