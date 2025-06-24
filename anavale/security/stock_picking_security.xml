@@ -8,6 +8,14 @@
         <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
 
+    <!-- Grupo para ver campos de cálculo de ventas por lotes -->
+    <record id="group_sale_lot_calculation" model="res.groups">
+        <field name="name">Cálculo Ventas Lotes</field>
+        <field name="category_id" ref="base.module_category_inventory"/>
+        <field name="comment">Usuarios que pueden ver los campos sale_order_quantity y available_quantity en stock.quant</field>
+        <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
     <!-- Regla para restringir la modificación del campo custom_state_delivery -->
     <record id="rule_stock_picking_custom_state_delivery" model="ir.rule">
         <field name="name">Modificación de Estado de Entrega</field>

@@ -9,14 +9,21 @@ class StockQuant(models.Model):
     sale_order_quantity = fields.Float(
         'Quantity in Sale Order', compute='_compute_sale_order_qty',
         help='Quantity of products in this quant in Sale Orders but not yet Reserved in a Stock Picking , in the default unit of measure of the product',
-        store=True, readonly=True)
+        store=True, readonly=True, groups='anavale.group_sale_lot_calculation')
         
     available_quantity = fields.Float(
         'Quantity available for Sell', compute='_compute_sale_order_qty',
         help='Quantity of products in this quant avaiable for Sell including in-transit stock, in the default unit of measure of the product',
-        store=True, readonly=True)
+        store=True, readonly=True, groups='anavale.group_sale_lot_calculation')
         
     def _compute_sale_order_qty(self):
+        # Solo calcular si el usuario tiene permisos para ver estos campos
+        if not self.env.user.has_group('anavale.group_sale_lot_calculation'):
+            for quant in self:
+                quant.sale_order_quantity = 0
+                quant.available_quantity = quant.quantity
+            return
+            
         for quant in self.sudo():
             args = [quant.product_id.id]
             sql = """
@@ -44,14 +51,16 @@ class StockQuant(models.Model):
     @api.model
     def _quant_tasks(self):
         res = super(StockQuant, self)._quant_tasks()
-        date = fields.Datetime.today() - relativedelta(months=2,day=15)
-        self._cr.execute("""
-                            SELECT id 
-                                FROM stock_quant
-                            WHERE create_date > %s and location_id in (8, 9, 25, 26) and quantity > 0
-                        """, (date, ))
-        ids = [item.get('id') for item in self._cr.dictfetchall()]
-        self.sudo().browse(ids)._compute_sale_order_qty()
+        # Solo ejecutar cálculos pesados si hay usuarios con el grupo correspondiente
+        if self.env['res.users'].search([('groups_id', 'in', self.env.ref('anavale.group_sale_lot_calculation').id)]):
+            date = fields.Datetime.today() - relativedelta(months=2,day=15)
+            self._cr.execute("""
+                                SELECT id 
+                                    FROM stock_quant
+                                WHERE create_date > %s and location_id in (8, 9, 25, 26) and quantity > 0
+                            """, (date, ))
+            ids = [item.get('id') for item in self._cr.dictfetchall()]
+            self.sudo().browse(ids)._compute_sale_order_qty()
         return res
 
     def call_view_sale_order(self):
@@ -60,6 +69,10 @@ class StockQuant(models.Model):
             Tree view.
             Displays Tree view of all sale.order
             composing self.sale_order_quantity """
+        # Verificar que el usuario tenga permisos
+        if not self.env.user.has_group('anavale.group_sale_lot_calculation'):
+            raise ValidationError('No tienes permisos para ver esta información')
+            
         self.ensure_one()             
         domain = [('product_id', '=', self.product_id.id),
             ('order_id.state', '=', 'sale'),

@@ -6,10 +6,10 @@
         <field name="inherit_id" ref="stock.view_stock_quant_tree_editable"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='reserved_quantity']" position="after">
-                <field name="sale_order_quantity"/>
+                <field name="sale_order_quantity" groups="anavale.group_sale_lot_calculation"/>
                 <button name="call_view_sale_order" attrs="{'invisible': [('sale_order_quantity', '&lt;=', 0)]}"  
-                        string="View Sale Order" type="object" class="oe_highlight"/>   
-                <field name="available_quantity"/>
+                        string="View Sale Order" type="object" class="oe_highlight" groups="anavale.group_sale_lot_calculation"/>   
+                <field name="available_quantity" groups="anavale.group_sale_lot_calculation"/>
             </xpath>
         </field>
     </record>
@@ -20,10 +20,10 @@
         <field name="inherit_id" ref="stock.view_stock_quant_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='reserved_quantity']" position="after">
-                <field name="sale_order_quantity"/>
+                <field name="sale_order_quantity" groups="anavale.group_sale_lot_calculation"/>
                 <button name="call_view_sale_order" attrs="{'invisible': [('sale_order_quantity', '&lt;=', 0)]}"  
-                        string="View Sale Order" type="object" class="oe_highlight"/>   
-                <field name="available_quantity"/>
+                        string="View Sale Order" type="object" class="oe_highlight" groups="anavale.group_sale_lot_calculation"/>   
+                <field name="available_quantity" groups="anavale.group_sale_lot_calculation"/>
             </xpath>
         </field>
     </record>
@@ -34,8 +34,8 @@
         <field name="inherit_id" ref="stock.view_stock_quant_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='quantity']" position="after">
-                <field name="sale_order_quantity"/>
-                <field name="available_quantity"/>
+                <field name="sale_order_quantity" groups="anavale.group_sale_lot_calculation"/>
+                <field name="available_quantity" groups="anavale.group_sale_lot_calculation"/>
             </xpath>
         </field>
     </record>
@@ -44,6 +44,7 @@
         <field name="name">stock.quant.view.pivot.in.sale.order</field>
         <field name="model">stock.quant</field>
         <field name="inherit_id" ref="stock.view_stock_quant_pivot"/>
+        <field name="groups_id" eval="[(4, ref('anavale.group_sale_lot_calculation'))]"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='quantity']" position="after">
                 <field name="sale_order_quantity" type="measure"/>
@@ -52,16 +53,27 @@
         </field>
     </record>
 
+    <!-- Vista pivot base sin campos de cálculo para usuarios sin permisos -->
+    <!-- <record id="view_stock_quant_pivot_basic" model="ir.ui.view">
+        <field name="name">stock.quant.view.pivot.basic</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_pivot"/>
+        <field name="priority">90</field>
+        <field name="arch" type="xml"> -->
+            <!-- Mantener solo los campos básicos, sin campos de cálculo -->
+        <!-- </field>
+    </record> -->
+
     <record id="view_stock_quant_tree_editable_in_sale_order_user" model="ir.ui.view">
         <field name="name">stock.quant.view.tree.editable.in.sale.order.user</field>
         <field name="model">stock.quant</field>
         <field name="inherit_id" ref="stock.view_stock_quant_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='reserved_quantity']" position="after">
-                <field name="sale_order_quantity"/>
+                <field name="sale_order_quantity" groups="anavale.group_sale_lot_calculation"/>
                 <button name="call_view_sale_order" attrs="{'invisible': [('sale_order_quantity', '&lt;=', 0)]}"  
-                        string="View Sale Order" type="object" class="oe_highlight"/>   
-                <field name="available_quantity"/>
+                        string="View Sale Order" type="object" class="oe_highlight" groups="anavale.group_sale_lot_calculation"/>   
+                <field name="available_quantity" groups="anavale.group_sale_lot_calculation"/>
             </xpath>
         </field>
     </record>
@@ -87,6 +99,21 @@
     <menuitem id="menu_stock_cajas" name="Inventario Cajas"
             parent="stock.menu_warehouse_report" sequence="110"
             action="location_open_quants_box"/>
+
+    <!-- Acción window para usuarios con permisos de cálculo de ventas -->
+     <record id="action_stock_quant_with_sales" model="ir.actions.act_window">
+        <field name="name">Stock con Cálculos de Venta</field>
+        <field name="res_model">stock.quant</field>
+        <field name="view_mode">tree,pivot,form</field>
+        <field name="groups_id" eval="[(4, ref('anavale.group_sale_lot_calculation'))]"/>
+        <field name="context">{'pivot_measures': ['quantity', 'sale_order_quantity', 'available_quantity'], 'pivot_column_groupby': ['location_id'], 'pivot_row_groupby': ['product_id', 'lot_id']}</field>
+        <field name="domain">[('on_hand', '=', True)]</field>
+    </record> 
+    <!-- Menú específico para usuarios con permisos -->
+    <menuitem id="menu_stock_quant_with_sales" name="Stock con Ventas"
+            parent="stock.menu_warehouse_report" sequence="111"
+            action="action_stock_quant_with_sales"
+            groups="anavale.group_sale_lot_calculation"/>
 
 
 

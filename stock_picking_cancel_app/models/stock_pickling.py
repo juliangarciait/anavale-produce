@@ -16,6 +16,16 @@ class Inventory_picking(models.Model):
 
 	def action_cancel(self):
 		for picking in self :
+			# Si el picking ya está cancelado, no hacer nada
+			if picking.state == 'cancel':
+				continue
+				
+			# Si la cancelación viene desde el sale order, omitir validación
+			if not self.env.context.get('cancel_from_sale_order', False):
+				if picking.sale_id and picking.sale_id.state != 'cancel':  # Si el picking tiene una orden de venta activa, no se puede cancelar
+					raise ValidationError (_('You cant cancel this picking with an active sales order (%s), please cancel the sales order first') % picking.sale_id.name)
+			
+			# Proceder con la cancelación
 			if picking.state == 'done':
 				picking.mapped('move_lines').cancel_stock_picking()
 				picking.move_lines._do_unreserve()
