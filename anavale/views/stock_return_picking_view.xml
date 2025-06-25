@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Herencia de la vista del wizard de devolución para agregar campo lot_id -->
+    <record id="view_stock_return_picking_form_inherit" model="ir.ui.view">
+        <field name="name">stock.return.picking.form.inherit</field>
+        <field name="model">stock.return.picking</field>
+        <field name="inherit_id" ref="stock.view_stock_return_picking_form"/>
+        <field name="arch" type="xml">
+            <!-- Agregar campo lot_id en las líneas del wizard -->
+            <xpath expr="//field[@name='product_return_moves']/tree/field[@name='product_id']" position="after">
+                <field name="lot_id" groups="stock.group_production_lot" readonly="1" />
+            </xpath>
+        </field>
+    </record>
+
+</odoo> 

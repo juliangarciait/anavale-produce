@@ -26,7 +26,7 @@
             </xpath>
 
             <xpath expr="//button[@name='action_assign']" position="attributes">
-                <attribute name="invisible">0</attribute>
+                <attribute name="invisible">1</attribute>
             </xpath>
         
             <!-- Boton Quality -->
