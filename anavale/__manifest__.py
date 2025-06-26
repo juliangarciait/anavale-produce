@@ -38,6 +38,7 @@
             'data/purchase_order_action_server.xml',
             'report/sale_report.xml',
             'report/sale_report_templates.xml',
+            'report/sale_report_templates_new.xml',
             'report/quality_report_views.xml',
             'report/report_quality.xml',
             'report/sale_report_avg_views.xml',

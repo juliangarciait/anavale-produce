@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-<template id="report_saleorder_document_no_amounts">
+<template id="report_saleorder_document_no_new">
     <t t-call="web.external_layout">
         <t t-set="doc" t-value="doc.with_context(lang=doc.partner_id.lang)" />
         <t t-set="address">
@@ -91,50 +91,6 @@
                 </tbody>
             </table>
 
-            <!-- <div class="clearfix" name="so_total_summary"> -->
-                <!-- <div id="total" class="row" name="total"> -->
-                    <!-- <div t-attf-class="#{'col-4' if report_type != 'html' else 'col-sm-7 col-md-5'} ml-auto"> -->
-                        <!-- <table class="table table-sm"> -->
-                            <!-- <tr class="border-black o_subtotal" style=""> -->
-                                <!-- <td name="td_amount_untaxed_label"><strong>Subtotal</strong></td> -->
-                                <!-- <td name="td_amount_untaxed" class="text-right"> -->
-                                    <!-- <span t-field="doc.amount_untaxed"/> -->
-                                <!-- </td> -->
-                            <!-- </tr> -->
-                            <!-- <t t-foreach="doc.amount_by_group" t-as="amount_by_group"> -->
-                                <!-- <tr style=""> -->
-                                    <!-- <t t-if="amount_by_group[5] == 1 and doc.amount_untaxed == amount_by_group[2]"> -->
-                                        <!-- <td name="td_amount_by_group_label_3"> -->
-                                            <!-- <span t-esc="amount_by_group[0]"/> -->
-                                            <!-- <span>&amp;nbsp;<span>on</span>&amp;nbsp;<t t-esc="amount_by_group[2]" t-options='{"widget": "monetary", "display_currency": doc.pricelist_id.currency_id}'/></span> -->
-                                        <!-- </td> -->
-                                        <!-- <td name="td_amount_by_group_3" class="text-right o_price_total"> -->
-                                            <!-- <span t-esc="amount_by_group[1]" -->
-                                                <!-- t-options='{"widget": "monetary", "display_currency": doc.pricelist_id.currency_id}'/> -->
-                                        <!-- </td> -->
-                                    <!-- </t> -->
-                                    <!-- <t t-else =""> -->
-                                        <!-- <td name="td_amount_by_group_label"> -->
-                                            <!-- <span t-esc="amount_by_group[0]"/> -->
-                                        <!-- </td> -->
-                                        <!-- <td name="td_amount_by_group" class="text-right o_price_total"> -->
-                                            <!-- <span t-esc="amount_by_group[1]" -->
-                                                <!-- t-options='{"widget": "monetary", "display_currency": doc.pricelist_id.currency_id}'/> -->
-                                        <!-- </td> -->
-                                    <!-- </t> -->
-                                <!-- </tr> -->
-                            <!-- </t> -->
-                            <!-- <tr class="border-black o_total"> -->
-                                <!-- <td name="td_amount_total_label"><strong>Total</strong></td> -->
-                                <!-- <td name="td_amount_total" class="text-right"> -->
-                                    <!-- <span t-field="doc.amount_total"/> -->
-                                <!-- </td> -->
-                            <!-- </tr> -->
-                        <!-- </table> -->
-                    <!-- </div> -->
-                <!-- </div> -->
-            <!-- </div> -->
-
             <table class="table table-sm o_anavale_table">
                 <tbody>
                     <tr class="border-black"><td name="observaciones" class="text-justify" style="font-size: 8px !important;">Received, subject to individually determined rates or contracts that have been agreed upon in writing between the carrier and shipper, if
@@ -184,22 +140,12 @@ product was picked by the buyer. No adjustments will be accepted.
 </template>
 
 
-<template id="report_saleorder_no_amounts">
+<template id="report_saleorder_no_new">
     <t t-call="web.html_container">
         <t t-foreach="docs" t-as="doc">
-            <t t-call="anavale.report_saleorder_document_no_amounts" t-lang="doc.partner_id.lang"/>
+            <t t-call="anavale.report_saleorder_document_no_new" t-lang="doc.partner_id.lang"/>
         </t>
     </t>
 </template>
-
-
-<!-- <template id="report_saleorder_pro_forma"> -->
-    <!-- <t t-call="web.html_container"> -->
-        <!-- <t t-set="is_pro_forma" t-value="True"/> -->
-        <!-- <t t-foreach="docs" t-as="doc"> -->
-            <!-- <t t-call="sale.report_saleorder_document" t-lang="doc.partner_id.lang"/> -->
-        <!-- </t> -->
-    <!-- </t> -->
-<!-- </template> -->
 
 </odoo>
