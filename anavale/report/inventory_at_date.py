@@ -30,7 +30,7 @@ class InventoryatdateReport(models.Model):
         fecha_final = datetime.combine(fecha, mytime)
         mytime = time(18,0,0)
         fecha_inicial = datetime.combine(fecha, mytime) - relativedelta(months=3)
-        fecha_final = fecha_final + relativedelta(hours=18)
+        fecha_final = fecha_final + relativedelta(hours=23)
         print(fecha_inicial)
         print(fecha_final)
         tools.drop_view_if_exists(self.env.cr, "inventoryatdate_report")
