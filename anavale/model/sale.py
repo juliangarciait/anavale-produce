@@ -289,7 +289,16 @@ class SaleOrderLine(models.Model):
             for line in vals:
                 try:
                     if not line['lot_id']:
-                        raise UserError("Can't create line without lot")
+                        if self.env['product.product'].browse(line['product_id']).tracking == 'lot':
+                            raise UserError("Can't create line without lot")
                 except:
                     raise UserError("Can't create line without lot")
         res = super(SaleOrderLine, self).create(vals)
+
+
+            #     for line in lines:
+            # if line.analytic_tag_ids != line.lot_id.analytic_tag_ids: 
+            #     line.analytic_tag_ids = line.lot_id.analytic_tag_ids.ids
+            # if line.lot_id.product_id.tracking == 'lot':
+            #     if not line.lot_id:
+            #         raise UserError("Can't confirm without lot ")
