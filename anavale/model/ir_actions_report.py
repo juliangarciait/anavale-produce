@@ -7,7 +7,7 @@ class IrActionsReport(models.Model):
     _inherit = 'ir.actions.report'
 
     class SaleOrderReport(models.AbstractModel):
-        _name = 'report.anavale.report_saleorder_no_new'
+        _name = 'report.anavale.report_saleorder_no_amounts'
         _description = 'Sale order Report'
 
         def _get_report_values(self, docids, data=None):

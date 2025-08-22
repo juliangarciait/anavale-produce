@@ -2,12 +2,12 @@
 <odoo>
     <data>
         <report 
-            id="action_report_saleorder_no_new"
+            id="action_report_saleorder_no_amounts"
             string="Bill of Lading"
             model="sale.order" 
             report_type="qweb-html"
-            file="anavale.report_saleorder_no_new" 
-            name="anavale.report_saleorder_no_new"
+            file="anavale.report_saleorder_no_amounts" 
+            name="anavale.report_saleorder_no_amounts"
             print_report_name="(object.state in ('draft', 'sent') and 'Quotation - %s' % (object.name)) or 'Order - %s' % (object.name)"
         />
 
