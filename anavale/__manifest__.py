@@ -56,7 +56,8 @@
             'wizard/inventory_at_date.xml',
             'report/inventory_at_date_view.xml',
             'views/ir_sequence_view.xml',
-            'views/report_account_aged_partner_view.xml'
+            'views/report_account_aged_partner_view.xml',
+            'report/report_picking.xml'
              ],
     'demo': [],
     'test': [],

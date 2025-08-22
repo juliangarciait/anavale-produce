@@ -2,8 +2,8 @@
 <odoo>
     <!-- Repack Line Tree View -->
     <record id="view_repack_line_tree" model="ir.ui.view">
-        <field name="name">repack.order.line.tree</field>
-        <field name="model">repack.order.line</field>
+        <field name="name">repack.order.tree</field>
+        <field name="model">repack.order</field>
         <field name="arch" type="xml">
             <tree decoration-info="line_state == 'draft'" 
                   decoration-warning="line_state == 'process'" 
@@ -27,8 +27,8 @@
     
     <!-- Repack Line Form View -->
     <record id="view_repack_line_form" model="ir.ui.view">
-        <field name="name">repack.order.line.form</field>
-        <field name="model">repack.order.line</field>
+        <field name="name">repack.order.form</field>
+        <field name="model">repack.order</field>
         <field name="arch" type="xml">
             <form string="Repack Line">
                 <header>
@@ -65,9 +65,9 @@
                     </group>
                     <notebook>
                         <page string="Output Products">
-                            <field name="subline_ids" attrs="{'readonly': [('line_state', '!=', 'process')]}">
+                            <field name="line_ids" attrs="{'readonly': [('line_state', '!=', 'process')]}">
                                 <tree editable="bottom">
-                                    <field name="line_id" invisible="1"/>
+                                    <field name="repack_id" invisible="1"/>
                                     <field name="product_id" options="{'no_create': True, 'no_create_edit':True}" required="1"/>
                                     <field name="qty_1"/>
                                     <field name="qty_2"/>
@@ -79,9 +79,9 @@
                                 <form>
                                     <group>
                                         <group>
-                                            <field name="line_id" invisible="1"/>
+                                            <field name="repack_id" invisible="1"/>
                                             <field name="parent_template_id" invisible="1"/>
-                                            <field name="product_id" required="1" options="{'no_create': True, 'no_create_edit':True}" domain="[('product_tmpl_id', '=', line_id.product_id.product_tmpl_id)]"/>
+                                            <field name="product_id" required="1" options="{'no_create': True, 'no_create_edit':True}" domain="[('product_tmpl_id', '=', repack_id.product_id.product_tmpl_id)]"/>
                                             <field name="qty_1"/>
                                             <field name="qty_2"/>
                                         </group>
@@ -102,8 +102,8 @@
     
     <!-- Repack Line Search View -->
     <record id="view_repack_line_search" model="ir.ui.view">
-        <field name="name">repack.order.line.search</field>
-        <field name="model">repack.order.line</field>
+        <field name="name">repack.order.search</field>
+        <field name="model">repack.order</field>
         <field name="arch" type="xml">
             <search string="Search Repack Lines">
                 <field name="sale_line_id"/>
@@ -131,11 +131,11 @@
     
     <!-- Repack Subline Tree View -->
     <record id="view_repack_subline_tree" model="ir.ui.view">
-        <field name="name">repack.order.subline.tree</field>
-        <field name="model">repack.order.subline</field>
+        <field name="name">repack.order.line.tree</field>
+        <field name="model">repack.order.line</field>
         <field name="arch" type="xml">
             <tree>
-                <field name="line_id"/>
+                <field name="repack_id"/>
                 <field name="product_id"/>
                 <field name="qty_1"/>
                 <field name="qty_2"/>
@@ -147,17 +147,17 @@
     </record>
     
     <!-- Repack Subline Form View -->
-    <record id="view_repack_subline_form" model="ir.ui.view">
-        <field name="name">repack.order.subline.form</field>
-        <field name="model">repack.order.subline</field>
+    <record id="view_repack_sline_form" model="ir.ui.view">
+        <field name="name">repack.order.line.form</field>
+        <field name="model">repack.order.line</field>
         <field name="arch" type="xml">
             <form>
                 <sheet>
                     <group>
                         <group>
-                            <field name="line_id" invisible="1"/>
+                            <field name="repack_id" invisible="1"/>
                             <field name="parent_template_id" invisible="1"/>
-                            <field name="product_id" options="{'no_create': True}" domain="[('product_tmpl_id', '=', line_id.product_id.product_tmpl_id)]"/>
+                            <field name="product_id" options="{'no_create': True}" domain="[('product_tmpl_id', '=', repack_id.product_id.product_tmpl_id)]"/>
                             <field name="qty_1"/>
                             <field name="qty_2"/>
                         </group>
@@ -174,18 +174,18 @@
     
     <!-- Repack Subline Search View -->
     <record id="view_repack_subline_search" model="ir.ui.view">
-        <field name="name">repack.order.subline.search</field>
-        <field name="model">repack.order.subline</field>
+        <field name="name">repack.order.line.search</field>
+        <field name="model">repack.order.line</field>
         <field name="arch" type="xml">
             <search string="Search Output Products">
-                <field name="line_id"/>
+                <field name="repack_id"/>
                 <field name="product_id"/>
                 <field name="lot_id"/>
                 <separator/>
                 <filter string="With Quantity #1" name="with_qty1" domain="[('qty_1', '>', 0)]"/>
                 <filter string="With Quantity #2" name="with_qty2" domain="[('qty_2', '>', 0)]"/>
                 <group expand="0" string="Group By">
-                    <filter string="Repack Line" name="line" context="{'group_by': 'line_id'}"/>
+                    <filter string="Repack Line" name="line" context="{'group_by': 'repack_id'}"/>
                     <filter string="Product" name="product" context="{'group_by': 'product_id'}"/>
                     <filter string="Process Type" name="process_type" context="{'group_by': 'process_type'}"/>
                 </group>
@@ -196,7 +196,7 @@
     <!-- Repack Line Action -->
     <record id="action_repack_lines" model="ir.actions.act_window">
         <field name="name">Repack Lines</field>
-        <field name="res_model">repack.order.line</field>
+        <field name="res_model">repack.order</field>
         <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_repack_line_search"/>
         <field name="context">{'search_default_status': 1}</field>
@@ -210,7 +210,7 @@
     <!-- Repack Subline Action -->
     <record id="action_repack_sublines" model="ir.actions.act_window">
         <field name="name">Output Products</field>
-        <field name="res_model">repack.order.subline</field>
+        <field name="res_model">repack.order.line</field>
         <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_repack_subline_search"/>
         <field name="context">{'search_default_output_type': 1}</field>

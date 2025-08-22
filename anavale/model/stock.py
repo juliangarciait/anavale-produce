@@ -343,7 +343,7 @@ class Picking(models.Model):
         # Second Lot_ID is change or Qty lot ID Change.
         for move_line in self.move_line_ids:
             line_founded = False
-            for line in self.sale_id.order_line:
+            for line in self.sale_id.order_line:  #hace busqueda en lineas de la orden de venta para encontrar el mismo lote, producto y cantidad.  en caso de no encontrarlo retorna true
                 if (line.lot_id == move_line.lot_id
                         and line.product_id == move_line.product_id
                         and line.product_uom_qty == move_line.qty_done):

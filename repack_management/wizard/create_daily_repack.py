@@ -45,7 +45,7 @@ class CreateDailyRepack(models.TransientModel):
         for line in sale_lines:
             if not line.product_id or line.product_id.tracking != 'lot':
                 continue
-            repack_line = self.env['repack.order.line'].create({
+            repack_line = self.env['repack.order'].create({
                 'product_id': line.product_id.id,
                 'qty_to_repack': line.product_uom_qty,
                 'process_type': line.repack_type,
@@ -66,7 +66,7 @@ class CreateDailyRepack(models.TransientModel):
         action = {
             'name': _('Created Repack Lines'),
             'type': 'ir.actions.act_window',
-            'res_model': 'repack.order.line',
+            'res_model': 'repack.order',
             'view_mode': 'tree,form',
             'domain': [('id', 'in', repack_lines)],
             'context': {'create': False},

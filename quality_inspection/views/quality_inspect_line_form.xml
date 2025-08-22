@@ -11,21 +11,36 @@
                     <field name="variant_id" domain="[('id', 'in', available_variant_ids)]" options="{'no_create': True, 'no_create_edit': True}"/>
                     <field name="label"/>
                     <field name="packaging_id" options="{'no_create': True, 'no_create_edit': True}"/>
-                    <field name="weight"/>
-                    <field name="pieces_per_box"/>
                 </group>
                 <notebook>
-                    <page string="Defects">
-                        <field name="defects" editable="bottom">
+                    <page string="Inspected Boxes">
+                        <field name="inspected_boxes">
                             <tree editable="bottom">
-                                <field name="defect_id" options="{'no_create': True, 'no_create_edit': True}"/>
-                                <field name="quantity"/>
+                                <field name="weight"/>
+                                <field name="pieces_per_box"/>
                             </tree>
-                            <form string="Defect Line">
-                                <field name="defect_id" options="{'no_create': True, 'no_create_edit': True}"/>
-                                <field name="quantity"/>
+                            <form string="Inspected Box">
+                                <group>
+                                    <field name="weight"/>
+                                    <field name="pieces_per_box"/>
+                                </group>
+                                <notebook>
+                                    <page string="Defects">
+                                        <field name="defects">
+                                            <tree editable="bottom">
+                                                <field name="defect_id" options="{'no_create': True, 'no_create_edit': True}"/>
+                                                <field name="quantity"/>
+                                            </tree>
+                                            <form string="Defect Line">
+                                                <field name="defect_id" options="{'no_create': True, 'no_create_edit': True}"/>
+                                                <field name="quantity"/>
+                                            </form>
+                                        </field>
+                                    </page>
+                                </notebook>
                             </form>
                         </field>
+                        <button name="action_open_inspected_boxes_form" string="Add Inspected Box" type="object" class="oe_highlight"/>
                     </page>
                 </notebook>
             </form>

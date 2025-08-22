@@ -18,8 +18,8 @@ class ProductProduct(models.Model):
 
 
 class RepackLine(models.Model):
-    _name = 'repack.order.line'
-    _description = 'Repack Order Line'
+    _name = 'repack.order'
+    _description = 'Repack Order'
     _order = 'id desc'
     
     product_id = fields.Many2one('product.product', string='Product Variant', required=True)
@@ -44,9 +44,10 @@ class RepackLine(models.Model):
     ], string='Line Status', default='draft', tracking=True, copy=False)
     sale_line_id = fields.Many2one('sale.order.line', string='Sales Order Line')
     location_id = fields.Many2one('stock.location', string="Location")
+    creation_date = fields.Datetime(string='Creation Date', readonly=True)
     processed_date = fields.Datetime(string='Processed Date', readonly=True)
     processed_by = fields.Many2one('res.users', string='Processed By', readonly=True)
-    subline_ids = fields.One2many('repack.order.subline', 'line_id', string='Output Sublines')
+    line_ids = fields.One2many('repack.order.line', 'repack_id', string='Output Sublines')
     can_be_peeled = fields.Boolean(related='product_id.can_be_peeled', string='Can be Peeled')
     can_be_untailed = fields.Boolean(related='product_id.can_be_untailed', string='Can be Untailed')
     inventory_id = fields.Many2one('stock.inventory', string='Inventory Adjustment', readonly=True)
@@ -70,11 +71,11 @@ class RepackLine(models.Model):
         return max_r + 1  # siguiente R
 
     
-    @api.depends('subline_ids.qty_1', 'subline_ids.qty_2')
+    @api.depends('line_ids.qty_1', 'line_ids.qty_2')
     def _compute_output_quantities(self):
         for line in self:
-            line.qty_repacked = sum(line.subline_ids.mapped('qty_1'))
-            line.qty_secondary = sum(line.subline_ids.mapped('qty_2'))
+            line.qty_repacked = sum(line.line_ids.mapped('qty_1'))
+            line.qty_secondary = sum(line.line_ids.mapped('qty_2'))
     
     @api.depends('qty_supplied', 'qty_repacked', 'qty_secondary')
     def _compute_qty_scrap(self):
@@ -89,9 +90,9 @@ class RepackLine(models.Model):
             return
         self.write({'line_state': 'process'})
         # Si es tipo repack, crear sublínea automática con el mismo producto si no existe
-        if self.process_type == 'repack' and not self.subline_ids.filtered(lambda s: s.product_id == self.product_id):
-            self.env['repack.order.subline'].create({
-                'line_id': self.id,
+        if self.process_type == 'repack' and not self.line_ids.filtered(lambda s: s.product_id == self.product_id):
+            self.env['repack.order.line'].create({
+                'repack_id': self.id,
                 'product_id': self.product_id.id,
                 'qty_1': 0.0,
                 'qty_2': 0.0,
@@ -113,7 +114,7 @@ class RepackLine(models.Model):
             raise UserError(_("Line must be in 'In Process' state to complete it."))
         if not self.qty_supplied:
             raise UserError(_("You must supply a quantity before completing the line."))
-        if not self.subline_ids:
+        if not self.line_ids:
             raise UserError(_("You must add at least one output line with product and quantity."))
         total_output = self.qty_repacked + self.qty_secondary
         if round(total_output + self.qty_scrap, 2) != round(self.qty_supplied, 2):
@@ -142,37 +143,37 @@ class RepackLine(models.Model):
         lote_venta = ''
         quants_lot = self.env['stock.quant'].search([('lot_id', '=', self.lot_id.id),('location_id', 'in', internal_location.ids),('quantity', '>', 0)])
         inventory_lines = []
-        for subline in self.subline_ids:
-            for idx, qty in enumerate([subline.qty_1, subline.qty_2], start=1):
+        for line in self.line_ids:
+            for idx, qty in enumerate([line.qty_1, line.qty_2], start=1):
                 if qty <= 0:
                     continue
                 # Determinar nombre de lote
 
 
-                if subline.product_id.id == 999:
+                if line.product_id.id == 999:
                     lot_name = f"{original_lot_name}#{idx}"
                 else:
-                    product_size_name = subline.product_id.product_template_attribute_value_ids.name
-                    product_prefix = subline.product_id.lot_code_prefix
+                    product_size_name = line.product_id.product_template_attribute_value_ids.name
+                    product_prefix = line.product_id.lot_code_prefix
                     lot_name = f"{product_prefix}{lote}{product_size_name}#{idx}-R{repacknumber}"
                         
                     vals =({
                         'name': lot_name,
-                        'product_id': subline.product_id.id,
+                        'product_id': line.product_id.id,
                         'company_id': self.lot_id.company_id.id,
                         'parent_lod_id': lot_padre if lot_padre else self.lot_id.id,
                         'analytic_tag_ids': [(4, tag.id) for tag in self.lot_id.analytic_tag_ids],
                     })
                     lot_creado = self.env['stock.production.lot'].sudo().create(vals)
-                    if (subline.product_id.id == self.product_id.id) and idx == 1:
+                    if (line.product_id.id == self.product_id.id) and idx == 1:
                         lote_venta = lot_creado
                 #lot_creado = self.env['stock.production.lot'].browse(lot_creado)
-                subline.lot_id =  lot_creado
-                created_lots[(subline.product_id.id, idx)] = lot_creado
+                line.lot_id =  lot_creado
+                created_lots[(line.product_id.id, idx)] = lot_creado
                 # Preparar línea de inventario
                 inventory_lines.append((0, 0, {
                     'company_id': self.lot_id.company_id.id,
-                    'product_id': subline.product_id.id,
+                    'product_id': line.product_id.id,
                     'prod_lot_id': lot_creado.id,
                     'product_qty': qty,
                     'location_id': self.location_id.id,
@@ -232,38 +233,38 @@ class RepackLine(models.Model):
         return True
 
 
-class RepackOrderSubline(models.Model):
-    _name = 'repack.order.subline'
-    _description = 'Repack Order Subline for Output Products'
+class RepackOrderLine(models.Model):
+    _name = 'repack.order.line'
+    _description = 'Repack Order line for Output Products'
     _order = 'id desc'
     
-    line_id = fields.Many2one('repack.order.line', string='Repack Line', required=True, ondelete='cascade')
+    repack_id = fields.Many2one('repack.order', string='Repack Order', required=True, ondelete='cascade')
     product_id = fields.Many2one('product.product', string='Product Variant', required=True,
                                 domain="[('product_tmpl_id', '=', parent_template_id)]")
-    parent_template_id = fields.Many2one(related='line_id.product_id.product_tmpl_id', 
+    parent_template_id = fields.Many2one(related='repack_id.product_id.product_tmpl_id', 
                                         string='Parent Product Template', store=True)
     qty_1 = fields.Float(string='Output Quantity #1', digits='Product Unit of Measure')
     qty_2 = fields.Float(string='Output Quantity #2', digits='Product Unit of Measure')
     lot_id = fields.Many2one('stock.production.lot', string='Created Lot', readonly=True)
-    process_type = fields.Selection(related='line_id.process_type', store=True)
-    state = fields.Selection(related='line_id.line_state', string='Status', store=True)
+    process_type = fields.Selection(related='repack_id.process_type', store=True)
+    state = fields.Selection(related='repack_id.line_state', string='Status', store=True)
     _sql_constraints = [
-        ('unique_product', 'unique(line_id, product_id)', 
+        ('unique_product', 'unique(repack_id, product_id)', 
          'You cannot have two lines with the same product variant!')
     ]
-    @api.onchange('line_id')
-    def _onchange_line_id(self):
-        for subline in self:
-            if subline.line_id and subline.line_id.product_id:
-                subline.parent_template_id = subline.line_id.product_id.product_tmpl_id.id
+    @api.onchange('repack_id')
+    def _onchange_repack_id(self):
+        for line in self:
+            if line.repack_id and line.repack_id.product_id:
+                line.parent_template_id = line.repack_id.product_id.product_tmpl_id.id
     @api.model
     def default_get(self, fields_list):
-        res = super(RepackOrderSubline, self).default_get(fields_list)
-        if 'line_id' in self.env.context:
-            line_id = self.env.context.get('line_id')
-            if line_id:
-                line = self.env['repack.order.line'].browse(line_id)
-                if line and line.product_id:
-                    res['line_id'] = line_id
-                    res['parent_template_id'] = line.product_id.product_tmpl_id.id
+        res = super(RepackOrderLine, self).default_get(fields_list)
+        if 'repack_id' in self.env.context:
+            repack_id = self.env.context.get('repack_id')
+            if repack_id:
+                repack = self.env['repack.order'].browse(repack_id)
+                if repack and repack.product_id:
+                    res['repack_id'] = repack_id
+                    res['parent_template_id'] = repack.product_id.product_tmpl_id.id
         return res 

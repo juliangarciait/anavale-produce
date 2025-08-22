@@ -1979,6 +1979,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                     adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
                     boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
                     logistics = move_line_ids.filtered(lambda line: line.account_id.id == 1516 and line.move_id.state == 'posted')
+                    tariff = move_line_ids.filtered(lambda line: line.account_id.id == 1563 and line.move_id.state == 'posted')
                     #calcula quantity de venta en account para posterior comparacion
                     sale_qty_update = sum([sale.quantity for sale in sales_lines])
                     sale_update = sum([sale.price_subtotal for sale in sales_lines])
@@ -1993,6 +1994,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                     boxes_update = sum([accline.debit for accline in boxes])
                     adjustment_update = sum([accline.price_subtotal for accline in adjustment])
                     logistics_update = sum([accline.balance for accline in logistics])
+                    tariff_update = sum([accline.balance for accline in tariff])
                     exists_st.calcular_update()
 
                     #termina datos actualizables
@@ -2066,8 +2068,9 @@ class XlsxUtilityReport2(models.AbstractModel):
                         sheet.write(i + 10, 13, 'FREIGHT OUT', travels_middle_left_red)
                         sheet.write(i + 11, 13, 'CAJAS', travels_middle_left_red)
                         sheet.write(i + 12, 13, 'LOGISTICS', travels_middle_left_red)
-                        sheet.write(i + 13, 13, 'UTILIDAD', travels_middle_left)
-                        sheet.write(i, 14, po.name, name)
+                        sheet.write(i + 13, 13, 'ARANCELES', travels_middle_left_red)
+                        sheet.write(i + 14, 13, 'UTILIDAD', travels_middle_left)
+                        sheet.write(i, 15, po.name, name)
                         sheet.write(i + 1, 14, sale_update, travels_title_top_right)
                         sheet.write(i + 2, 14, exists_st.pending_invoice_value, travels_middle_right)
                         sheet.write(i + 3, 14, exists_st.stock_value, travels_middle_right)
@@ -2079,7 +2082,8 @@ class XlsxUtilityReport2(models.AbstractModel):
                         sheet.write(i + 10, 14, freight_out_update, travels_middle_right_red)
                         sheet.write(i + 11, 14, boxes_update, travels_middle_right_red)
                         sheet.write(i + 12, 14, logistics_update, travels_middle_right_red)
-                        sheet.write(i + 13, 14, settlement_id.utility, travels_middle_right)
+                        sheet.write(i + 13, 14, tariff_update, travels_middle_right_red)
+                        sheet.write(i + 14, 14, settlement_id.utility, travels_middle_right)
                         sheet.write(i + 15, 14, str(float_round(settlement_id.utility_percentage, precision_digits=2)) + "%", travels_bottom_right)
                         #sheet.write(i + 2, 13, '', travels_middle_left)
                         #sheet.write(i + 3, 13, '', travels_middle_left)
@@ -2323,6 +2327,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                     adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
                     boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
                     logistics = move_line_ids.filtered(lambda line: line.account_id.id == 1516 and line.move_id.state == 'posted')
+                    tariff = move_line_ids.filtered(lambda line: line.account_id.id == 1563 and line.move_id.state == 'posted')
                     #calcula quantity de venta en account para posterior comparacion
                     sale_qty_update = sum([sale.quantity for sale in sales_lines])
                     sale_update = sum([sale.price_subtotal for sale in sales_lines])
@@ -2336,6 +2341,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                     aduana_mex_update = sum([accline.price_subtotal for accline in aduana_mex])
                     boxes_update = sum([accline.debit for accline in boxes])
                     logistics_update = sum([accline.debit for accline in logistics])
+                    tariff_update = sum([accline.balance for accline in tariff])
                     adjustment_update = sum([accline.price_subtotal for accline in adjustment])
 
                     exists_st.calcular_update()
@@ -2394,7 +2400,8 @@ class XlsxUtilityReport2(models.AbstractModel):
                         sheet.write(i + 10, 8, 'FREIGHT OUT', travels_middle_left_red)
                         sheet.write(i + 11, 8, 'CAJAS', travels_middle_left_red)
                         sheet.write(i + 12, 8, 'LOGISTICS', travels_middle_left_red)
-                        sheet.write(i + 13, 8, 'UTILIDAD', travels_middle_left)
+                        sheet.write(i + 13, 8, 'ARANCELES', travels_middle_left_red)
+                        sheet.write(i + 14, 8, 'UTILIDAD', travels_middle_left)
                         sheet.write(i, 9, po.name, name)
                         sheet.write(i + 1, 9, sale_update, travels_title_top_right)
                         sheet.write(i + 2, 9, exists_st.pending_invoice_value, travels_middle_right)
@@ -2407,19 +2414,20 @@ class XlsxUtilityReport2(models.AbstractModel):
                         sheet.write(i + 10, 9, freight_out_update, travels_middle_right_red)
                         sheet.write(i + 11, 9, boxes_update, travels_middle_right_red)
                         sheet.write(i + 12, 9, logistics_update, travels_middle_right_red)
-                        sheet.write(i + 13, 9, settlement_id.utility, travels_middle_right)
+                        sheet.write(i + 13, 9, tariff_update, travels_middle_right_red)
+                        sheet.write(i + 14, 9, settlement_id.utility, travels_middle_right)
                         sheet.write(i + 15, 9, str(float_round(settlement_id.utility_percentage, precision_digits=2)) + "%", travels_bottom_right)
                         #sheet.write(i + 2, 13, '', travels_middle_left)
                         #sheet.write(i + 3, 13, '', travels_middle_left)
                         #sheet.write(i + 11, 13, '', travels_middle_left)
                         #sheet.write(i + 12, 8, '', travels_middle_left)
-                        sheet.write(i + 14, 8, '', travels_middle_left)
+                        sheet.write(i + 15, 8, '', travels_middle_left)
                         #sheet.write(i + 2, 14, '', travels_middle_right)
                         #sheet.write(i + 3, 14, '', travels_middle_right)
                         sheet.write(i + 4, 9, settlement_id.settlement, travels_middle_right)
                         #sheet.write(i + 11, 14, '', travels_middle_right)
                         #sheet.write(i + 12, 9, '', travels_middle_right)
-                        sheet.write(i + 14, 9, '', travels_middle_right)
+                        sheet.write(i + 15, 9, '', travels_middle_right)
                         sheet.write(i + 15, 8, '', travels_bottom_left)
                     
                     exists_st.actualizacion = True
@@ -2627,8 +2635,8 @@ class XlsxUtilityReport2(models.AbstractModel):
                     sheet.write(i+1, 6, "=sum(g{}:g{})".format(str(inicio_i), str(i+1)), light_box_currency)
                     sheet.write(liquidacion_ubicacion, 9, "=g{}".format(str(i+2)), travels_middle_right)
                     liquidaciones.append(liquidacion_ubicacion)
-                    sheet.write(liquidacion_ubicacion+9, 9, "=(j{}+j{}+j{})-sum(j{}:j{})".format(str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion),str(liquidacion_ubicacion+1),str(liquidacion_ubicacion+9)), travels_middle_right)
-                    sheet.write(liquidacion_ubicacion+11, 9, "=(j{}/(j{}+j{}+j{}))".format(str(liquidacion_ubicacion+10),str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion)), light_box_percentage)
+                    sheet.write(liquidacion_ubicacion+10, 9, "=(j{}+j{}+j{})-sum(j{}:j{})".format(str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion),str(liquidacion_ubicacion+1),str(liquidacion_ubicacion+10)), travels_middle_right) #aqui2
+                    sheet.write(liquidacion_ubicacion+11, 9, "=(j{}/(j{}+j{}+j{}))".format(str(liquidacion_ubicacion+11),str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion)), light_box_percentage)
                     i += 7
 
                     total_total += sale_update
@@ -2711,7 +2719,7 @@ class XlsxUtilityReport2(models.AbstractModel):
             sheet.write(i + 9, 14, total_storage, travels_middle_right_red)
             sheet.write(i + 10, 14, total_freight_out , travels_middle_right_red)
             sheet.write(i + 11, 14, total_boxes, travels_middle_right_red)
-            sheet.write(i + 13, 14, "=(o{}+o{}+o{})-sum(o{}:o{})".format(str(i+2),str(i+3),str(i+4),str(i+5),str(i+13)), travels_middle_right)
+            sheet.write(i + 14, 14, "=(o{}+o{}+o{})-sum(o{}:o{})".format(str(i+2),str(i+3),str(i+4),str(i+5),str(i+13)), travels_middle_right) #aqui
             sheet.write(i + 15, 14, "=(o{}/(o{}+o{}+o{}))".format(str(i+14),str(i+2),str(i+3),str(i+4)), light_box_percentage)
 
             #sheet.write(i + 2, 13, '', travels_middle_left)
@@ -3054,6 +3062,7 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                     adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
                     boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
                     logistics = move_line_ids.filtered(lambda line: line.account_id.id == 1516 and line.move_id.state == 'posted')
+                    tariff = move_line_ids.filtered(lambda line: line.account_id.id == 1563 and line.move_id.state == 'posted')
                     #calcula quantity de venta en account para posterior comparacion
                     sale_qty_update = sum([sale.quantity for sale in sales_lines])
                     sale_update = sum([sale.price_subtotal for sale in sales_lines])
@@ -3068,6 +3077,7 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                     boxes_update = sum([accline.debit for accline in boxes])
                     adjustment_update = sum([accline.price_subtotal for accline in adjustment])
                     logistics_update = sum([accline.price_subtotal for accline in logistics])
+                    tariff_update = sum([accline.balance for accline in tariff])
                     exists_st.calcular_update()
 
                     #termina datos actualizables
@@ -3443,6 +3453,7 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                     adjustment = move_line_ids.filtered(lambda line: line.account_id.id == 1378 and line.move_id.state == 'posted')
                     boxes = move_line_ids.filtered(lambda line: line.account_id.id == 1509 and line.move_id.state == 'posted')
                     logistics = move_line_ids.filtered(lambda line: line.account_id.id == 1516 and line.move_id.state == 'posted')
+                    tariff = move_line_ids.filtered(lambda line: line.account_id.id == 1563 and line.move_id.state == 'posted')
                     sale_update = sum([sale.price_subtotal for sale in sales_lines])
                     sale_ajust_update = sum([sale.price_subtotal for sale in sales_ajust_lines])
                     sale_update = sale_update - sale_ajust_update
@@ -3454,6 +3465,7 @@ class XlsxUtilityReport_firma(models.AbstractModel):
                     aduana_mex_update = sum([accline.price_subtotal for accline in aduana_mex])
                     boxes_update = sum([accline.debit for accline in boxes])
                     logistics_update = sum([accline.debit for accline in logistics])
+                    tariff_update = sum([accline.balance for accline in tariff])
                     adjustment_update = sum([accline.price_subtotal for accline in adjustment])
 
                     exists_st.calcular_update()

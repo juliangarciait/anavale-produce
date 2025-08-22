@@ -9,7 +9,7 @@ class SaleOrder(models.Model):
 
     def _compute_repack_count(self):
         for order in self:
-            order.repack_count = self.env['repack.order.line'].search_count([
+            order.repack_count = self.env['repack.order'].search_count([
                 ('sale_line_id', 'in', order.order_line.ids)
             ])
 
@@ -43,7 +43,7 @@ class SaleOrderLine(models.Model):
     ], string='Repack Status', copy=False, default=False, 
        help="Status of the repack process")
     
-    repack_line_ids = fields.One2many('repack.order.line', 'sale_line_id', string='Repack Lines')
+    repack_line_ids = fields.One2many('repack.order', 'sale_line_id', string='Repack Lines')
     
     def create_repack_order(self):
         if not self:
@@ -52,12 +52,12 @@ class SaleOrderLine(models.Model):
         for line in self:
             if not line.product_id or line.product_id.tracking != 'lot':
                 continue
-            repack_line = self.env['repack.order.line'].create({
+            repack_line = self.env['repack.order'].create({
                 'product_id': line.product_id.id,
                 'qty_to_repack': line.product_uom_qty,
                 'process_type': line.repack_type,
                 'sale_line_id': line.id,
-                'lot_id': getattr(line, 'lot_id', False),
+                'lot_id': getattr(line, 'lot_id', False).id,
             })
             line.write({
                 'repack_line_ids': [(4, repack_line.id)],

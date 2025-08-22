@@ -7,16 +7,26 @@
             <form string="Quality Inspection">
                 <sheet>
                     <group>
-                        <field name="stock_picking_id"/>
-                        <field name="lote"/>
-                        <field name="total_boxes"/>
-                        <field name="boxes_per_pallet"/>
-                        <field name="temp_recorder"/>
-                        <field name="defect_percentage"/>
-                        <field name="inspector"/>
-                        <field name="notes"/>
-                        <field name="inspection_document_url"/>
-                        <field name="inspection_document_pdf"/>
+                        <group>
+                            <field name="stock_picking_id"/>
+                            <field name="purchase_order_id"/>
+                            <field name="repack_order_id"/>
+                            <field name="lote"/>
+                            <field name="inspector"/>
+                        </group>
+                        <group>
+                            <field name="total_boxes"/>
+                            <field name="boxes_per_pallet"/>
+                            <field name="temp_recorder"/>
+                            <field name="defect_percentage"/>
+                            <field name="inspection_document_url"/>
+                        </group>
+                        <group colspan="2">
+                            <field name="notes"/>
+                        </group>
+                        <group colspan="2">
+                            <field name="inspection_document_pdf"/>
+                        </group>
                     </group>
                     <notebook>
     <page string="Inspection Lines">
@@ -25,29 +35,41 @@
                 <field name="variant_id"/>
                 <field name="label"/>
                 <field name="packaging_id"/>
-                <field name="weight"/>
-                <field name="pieces_per_box"/>
             </tree>
             <form string="Inspection Line">
                 <group>
                     <field name="variant_id"/>
                     <field name="label"/>
                     <field name="packaging_id"/>
-                    <field name="weight"/>
-                    <field name="pieces_per_box"/>
                 </group>
                 <notebook>
-                    <page string="Defects">
-                        <field name="defects" editable="bottom">
-    <tree editable="bottom">
-        <field name="defect_id"/>
-        <field name="quantity"/>
-    </tree>
-    <form string="Defect Line">
-        <field name="defect_id"/>
-        <field name="quantity"/>
-    </form>
-</field>
+                    <page string="Inspected Boxes">
+                        <field name="inspected_boxes">
+                            <tree editable="bottom">
+                                <field name="weight"/>
+                                <field name="pieces_per_box"/>
+                            </tree>
+                            <form string="Inspected Box">
+                                <group>
+                                    <field name="weight"/>
+                                    <field name="pieces_per_box"/>
+                                </group>
+                                <notebook>
+                                    <page string="Defects">
+                                        <field name="defects">
+                                            <tree editable="bottom">
+                                                <field name="defect_id"/>
+                                                <field name="quantity"/>
+                                            </tree>
+                                            <form string="Defect Line">
+                                                <field name="defect_id"/>
+                                                <field name="quantity"/>
+                                            </form>
+                                        </field>
+                                    </page>
+                                </notebook>
+                            </form>
+                        </field>
                     </page>
                 </notebook>
             </form>
@@ -66,6 +88,8 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="stock_picking_id"/>
+                <field name="purchase_order_id"/>
+                <field name="repack_order_id"/>
                 <field name="lote"/>
                 <field name="total_boxes"/>
                 <field name="defect_percentage"/>

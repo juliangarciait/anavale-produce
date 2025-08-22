@@ -66,8 +66,11 @@ class SaleOrder(models.Model):
         for line in lines:
             if line.analytic_tag_ids != line.lot_id.analytic_tag_ids: 
                 line.analytic_tag_ids = line.lot_id.analytic_tag_ids.ids
-            if not line.lot_id:
-                raise UserError("Can't confirm without lot ")
+            if line.lot_id.product_id.tracking == 'lot':
+                if not line.lot_id:
+                    raise UserError("Can't confirm without lot ")
+            # if not line.lot_id:
+            #     raise UserError("Can't confirm without lot ")
         if not self.env.context.get('is_force'):
             self.check_still_quantity()
         date_order_default = self.date_order or fields.Datetime.now()

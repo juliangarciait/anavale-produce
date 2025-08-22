@@ -6,27 +6,45 @@
         <field name="model">tariff.manager</field>
         <field name="arch" type="xml">
             <form string="Tariff Manager">
-                <sheet>
-                    <group>
-                        <field name="purchase_order" readonly="0"/>
-                        <field name="amount_payable_to_importer" readonly="0"/>
-                        <field name="sale_price_mx" readonly="0"/>
-                        <field name="surcharge_to_buyer"/>
-                        <field name="sales_commission"/>
-                        <field name="us_freight"/>
-                        <field name="loading_unloading"/>
-                        <field name="inspection_costs"/>
-                        <field name="repack"/>
-                        <field name="dump"/>
-                        <field name="expense_allocation"/>
-                        <field name="foreign_inland_freight"/>
-                        <field name="us_custom_brokers"/>
-                        <field name="custom_duties"/>
-                        <field name="total_costs_subtracted"/>
-                        <field name="assists"/>
-                        <field name="total_costs_added"/>
-                        <field name="duties_value"/>
-                        <field name="duty_payable"/>
+                <style>
+                    .custom_tariff_form .o_group .o_form_label {
+                        width: 40% !important;
+                        min-width: 200px !important;
+                        text-align: left !important;
+                        padding-right: 10px !important;
+                    }
+                    .custom_tariff_form .o_group .o_field_widget {
+                        width: 55% !important;
+                        max-width: 150px !important;
+                    }
+                </style>
+                <sheet class="custom_tariff_form">
+                    <group name="tariff_resume" string="Resume" col="2" class="o_label_nowrap">
+                        <field name="purchase_order" readonly="0" class="o_field_widget" style="width: 60%;"/>
+                        <field name="amount_payable_to_importer" readonly="0" class="o_field_widget" style="width: 60%;"/>
+                        <field name="sale_price_mx" readonly="0" class="o_field_widget" style="width: 60%;"/>
+                        <field name="surcharge_to_buyer" class="o_field_widget" style="width: 60%;"/>
+                    </group>
+                    <group name="tariff_deductions" string="Deductions" col="2" class="o_label_nowrap">
+                        <field name="sales_commission" class="o_field_widget" style="width: 60%;"/>
+                        <field name="us_freight" class="o_field_widget" style="width: 60%;"/>
+                        <field name="loading_unloading" class="o_field_widget" style="width: 60%;"/>
+                        <field name="inspection_costs" class="o_field_widget" style="width: 60%;"/>
+                        <field name="repack" class="o_field_widget" style="width: 60%;"/>
+                        <field name="dump" class="o_field_widget" style="width: 60%;"/>
+                        <field name="expense_allocation" class="o_field_widget" style="width: 60%;"/>
+                        <field name="foreign_inland_freight" class="o_field_widget" style="width: 60%;"/>
+                        <field name="us_custom_brokers" class="o_field_widget" style="width: 60%;"/>
+                        <field name="custom_duties" class="o_field_widget" style="width: 60%;"/>
+                        <field name="total_costs_subtracted" class="o_field_widget" style="width: 60%;"/>
+                    </group>
+                    <group name="tariff_assists" string="Assists" col="2" class="o_label_nowrap">    
+                        <field name="assists" class="o_field_widget" style="width: 60%;"/>
+                        <field name="total_costs_added" class="o_field_widget" style="width: 60%;"/>
+                    </group>
+                    <group name="tariff_duties" string="Duties Calculation" col="2" class="o_label_nowrap">
+                        <field name="dutiable_value" class="o_field_widget" style="width: 60%;"/>
+                        <field name="duty_payable" class="o_field_widget" style="width: 60%;"/>
                     </group>
                 </sheet>
                 <footer>

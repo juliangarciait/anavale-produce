@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_inspected_boxes_line_form" model="ir.ui.view">
+        <field name="name">inspected.boxes.line.form</field>
+        <field name="model">inspected.boxes.line</field>
+        <field name="arch" type="xml">
+            <form string="Inspected Box">
+                <group>
+                    <field name="inspect_boxes_line_id" invisible="1"/>
+                    <field name="weight"/>
+                    <field name="pieces_per_box"/>
+                </group>
+                <notebook>
+                    <page string="Defects">
+                        <field name="defects">
+                            <tree editable="bottom">
+                                <field name="defect_id" options="{'no_create': True, 'no_create_edit': True}"/>
+                                <field name="quantity"/>
+                            </tree>
+                        </field>
+                    </page>
+                </notebook>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_inspected_boxes_line_tree" model="ir.ui.view">
+        <field name="name">inspected.boxes.line.tree</field>
+        <field name="model">inspected.boxes.line</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="weight"/>
+                <field name="pieces_per_box"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_inspected_boxes_line_popup_form" model="ir.ui.view">
+        <field name="name">inspected.boxes.line.popup.form</field>
+        <field name="model">inspected.boxes.line</field>
+        <field name="arch" type="xml">
+            <form string="Inspected Box">
+                <group>
+                    <field name="inspect_boxes_line_id" invisible="1"/>
+                    <field name="weight"/>
+                    <field name="pieces_per_box"/>
+                </group>
+                <notebook>
+                    <page string="Defects">
+                        <field name="defects">
+                            <tree editable="bottom">
+                                <field name="defect_id" options="{'no_create': True, 'no_create_edit': True}"/>
+                                <field name="quantity"/>
+                            </tree>
+                            <form string="Defect Line">
+                                <field name="defect_id" options="{'no_create': True, 'no_create_edit': True}"/>
+                                <field name="quantity"/>
+                            </form>
+                        </field>
+                    </page>
+                </notebook>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_inspected_boxes_line" model="ir.actions.act_window">
+        <field name="name">Inspected Boxes</field>
+        <field name="res_model">inspected.boxes.line</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

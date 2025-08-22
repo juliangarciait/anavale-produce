@@ -4,7 +4,9 @@ class QualityInspect(models.Model):
     _name = 'quality.inspect'
     _description = 'Quality Inspection'
 
-    stock_picking_id = fields.Many2one('stock.picking', string='Stock Picking', required=True)
+    stock_picking_id = fields.Many2one('stock.picking', string='Stock Picking', required=False)
+    purchase_order_id = fields.Many2one('purchase.order', string='Purchase Order', required=False)
+    repack_order_id = fields.Many2one('repack.order', string='Repack Order', required=False)
     lote = fields.Char(string='Lote')
     total_boxes = fields.Integer(string='Total Boxes')
     boxes_per_pallet = fields.Integer(string='Boxes per Pallet')
@@ -20,12 +22,14 @@ class QualityInspect(models.Model):
         'product.product', compute='_compute_product_variant_ids', string='Product Variants in Picking', store=False
     )
 
-    @api.depends('stock_picking_id')
+    @api.depends('stock_picking_id', 'repack_order_id')
     def _compute_product_variant_ids(self):
         for rec in self:
             if rec.stock_picking_id:
                 # Usar move_lines para obtener los productos del picking
                 rec.product_variant_ids = rec.stock_picking_id.move_lines.mapped('product_id')
+            elif rec.repack_order_id:
+                rec.product_variant_ids = rec.repack_order_id.product_id
             else:
                 rec.product_variant_ids = False
 
@@ -44,6 +48,7 @@ class QualityInspect(models.Model):
             },
         }
 
+
 class QualityInspectLine(models.Model):
     _name = 'quality.inspect.line'
     _description = 'Quality Inspection Line'
@@ -53,9 +58,10 @@ class QualityInspectLine(models.Model):
     available_variant_ids = fields.Many2many('product.product', string='Available Variants')
     label = fields.Char(string='Label')
     packaging_id = fields.Many2one('product.packaging', string='Packaging')
-    weight = fields.Float(string='Weight')
-    pieces_per_box = fields.Integer(string='Pieces per Box')
-    defects = fields.One2many('defect.line', 'inspect_line_id', string='Defect Lines')
+    inspected_boxes = fields.One2many('inspected.boxes.line', 'inspect_boxes_line_id', string='Inspected Boxes')
+    # weight = fields.Float(string='Weight')
+    # pieces_per_box = fields.Integer(string='Pieces per Box')
+    # defects = fields.One2many('defect.line', 'inspect_line_id', string='Defect Lines')
 
     @api.onchange('inspect_id')
     def _onchange_inspect_id(self):
@@ -63,11 +69,35 @@ class QualityInspectLine(models.Model):
             self.available_variant_ids = [(6, 0, self.inspect_id.stock_picking_id.move_lines.mapped('product_id').ids)]
         else:
             self.available_variant_ids = [(5, 0, 0)]
+    
+    def action_open_inspected_boxes_form(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Add Inspected Box',
+            'res_model': 'inspected.boxes.line',
+            'view_mode': 'form',
+            'view_id': self.env.ref('quality_inspection.view_inspected_boxes_line_popup_form').id,
+            'target': 'new',
+            'context': {
+                'default_inspect_boxes_line_id': self.id,
+            },
+        }
+
+class InspectBoxesLine(models.Model):
+    _name = 'inspected.boxes.line'
+    _description = 'Inspected Boxes Line'
+
+    inspect_boxes_line_id = fields.Many2one('quality.inspect.line', string='Inspection Line', required=True, ondelete='cascade')
+    weight = fields.Float(string='Weight')
+    pieces_per_box = fields.Integer(string='Pieces per Box')
+    defects = fields.One2many('defect.line', 'inspect_boxes_line_id', string='Defect Lines')
+
 
 class DefectLine(models.Model):
     _name = 'defect.line'
     _description = 'Defect Line'
 
-    inspect_line_id = fields.Many2one('quality.inspect.line', string='Inspection Line', required=True, ondelete='cascade')
+    inspect_boxes_line_id = fields.Many2one('inspected.boxes.line', string='Inspection Boxes Line', required=True, ondelete='cascade')
     defect_id = fields.Many2one('defect', string='Defect', required=True)
     quantity = fields.Integer(string='Quantity')
