@@ -2070,7 +2070,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                         sheet.write(i + 12, 13, 'LOGISTICS', travels_middle_left_red)
                         sheet.write(i + 13, 13, 'ARANCELES', travels_middle_left_red)
                         sheet.write(i + 14, 13, 'UTILIDAD', travels_middle_left)
-                        sheet.write(i, 15, po.name, name)
+                        sheet.write(i, 14, po.name, name)
                         sheet.write(i + 1, 14, sale_update, travels_title_top_right)
                         sheet.write(i + 2, 14, exists_st.pending_invoice_value, travels_middle_right)
                         sheet.write(i + 3, 14, exists_st.stock_value, travels_middle_right)
@@ -2089,7 +2089,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                         #sheet.write(i + 3, 13, '', travels_middle_left)
                         #sheet.write(i + 11, 13, '', travels_middle_left)
                         #sheet.write(i + 12, 13, '', travels_middle_left)
-                        sheet.write(i + 14, 13, '', travels_middle_left)
+                        ##sheet.write(i + 14, 13, '', travels_middle_left)
                         #sheet.write(i + 2, 14, '', travels_middle_right)
                         #sheet.write(i + 3, 14, '', travels_middle_right)
                         sheet.write(i + 4, 14, settlement_id.settlement, travels_middle_right)
@@ -2284,8 +2284,8 @@ class XlsxUtilityReport2(models.AbstractModel):
                     sheet.write(loc_total_gastos_row, 10, "=-(f{}+g{}+h{}+i{})".format(str(i+2), str(i+2),str(i+2),str(i+2)), light_box_currency)
                     sheet.write(liquidacion_ubicacion, 14, "=k{}".format(str(i+2)), travels_middle_right)
                     liquidaciones.append(liquidacion_ubicacion)
-                    sheet.write(liquidacion_ubicacion+9, 14, "=(o{}+o{}+o{})-sum(o{}:o{})".format(str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion),str(liquidacion_ubicacion+1),str(liquidacion_ubicacion+9)), travels_middle_right)
-                    sheet.write(liquidacion_ubicacion+11, 14, "=(o{}/(o{}+o{}+o{}))".format(str(liquidacion_ubicacion+10),str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion)), light_box_percentage)
+                    sheet.write(liquidacion_ubicacion+10, 14, "=(o{}+o{}+o{})-sum(o{}:o{})".format(str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion),str(liquidacion_ubicacion+1),str(liquidacion_ubicacion+10)), travels_middle_right)
+                    sheet.write(liquidacion_ubicacion+11, 14, "=(o{}/(o{}+o{}+o{}))".format(str(liquidacion_ubicacion+11),str(liquidacion_ubicacion-2),str(liquidacion_ubicacion-1),str(liquidacion_ubicacion)), light_box_percentage)
                     i += 7
 
                     total_total += sale_update
