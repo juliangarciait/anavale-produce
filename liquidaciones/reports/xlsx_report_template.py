@@ -1939,6 +1939,8 @@ class XlsxUtilityReport2(models.AbstractModel):
         total_storage = 0
         total_freight_out = 0
         total_boxes = 0
+        total_logistics = 0
+        total_tariff = 0
         total_utility = 0
         total_utility_percentage = 0
         total_porfacturar = 0
@@ -2299,6 +2301,8 @@ class XlsxUtilityReport2(models.AbstractModel):
                     total_freight_out += freight_out_update
                     total_utility += settlement_id.utility
                     total_boxes += boxes_update
+                    total_logistics += logistics_update
+                    total_tariff += tariff_update
 
                     total_utility_percentage = float_round(settlement_id.utility_percentage, precision_digits=2)
                     utility_per_qty += 1
@@ -2400,7 +2404,7 @@ class XlsxUtilityReport2(models.AbstractModel):
                         sheet.write(i + 10, 8, 'FREIGHT OUT', travels_middle_left_red)
                         sheet.write(i + 11, 8, 'CAJAS', travels_middle_left_red)
                         sheet.write(i + 12, 8, 'LOGISTICS', travels_middle_left_red)
-                        sheet.write(i + 13, 8, 'ARANCELES', travels_middle_left_red)
+                        sheet.write(i + 13, 8, 'ARANCELES2', travels_middle_left_red)
                         sheet.write(i + 14, 8, 'UTILIDAD', travels_middle_left)
                         sheet.write(i, 9, po.name, name)
                         sheet.write(i + 1, 9, sale_update, travels_title_top_right)
@@ -2705,9 +2709,10 @@ class XlsxUtilityReport2(models.AbstractModel):
             sheet.write(i + 8, 13, 'AJUSTE', travels_middle_left_red)
             sheet.write(i + 9, 13, 'STORAGE', travels_middle_left_red)
             sheet.write(i + 10, 13, 'FREIGHT OUT', travels_middle_left_red)
-            sheet.write(i + 13, 13, 'UTILIDAD', travels_middle_left)
+            sheet.write(i + 14, 13, 'UTILIDAD', travels_middle_left)
             sheet.write(i + 11, 13, 'CAJAS', travels_middle_left)
             sheet.write(i + 12, 13, 'LOGISTICS', travels_middle_left)
+            sheet.write(i + 13, 13, 'ARANCELES', travels_middle_left)
             sheet.write(i + 1, 14, total_total, travels_title_top_right)
             sheet.write(i + 2, 14, total_porfacturar , travels_middle_right)
             sheet.write(i + 3, 14, total_stock, travels_middle_right)
@@ -2719,14 +2724,16 @@ class XlsxUtilityReport2(models.AbstractModel):
             sheet.write(i + 9, 14, total_storage, travels_middle_right_red)
             sheet.write(i + 10, 14, total_freight_out , travels_middle_right_red)
             sheet.write(i + 11, 14, total_boxes, travels_middle_right_red)
+            sheet.write(i + 12, 14, total_logistics, travels_middle_right_red)
+            sheet.write(i + 13, 14, total_tariff, travels_middle_right_red)
             sheet.write(i + 14, 14, "=(o{}+o{}+o{})-sum(o{}:o{})".format(str(i+2),str(i+3),str(i+4),str(i+5),str(i+13)), travels_middle_right) #aqui
-            sheet.write(i + 15, 14, "=(o{}/(o{}+o{}+o{}))".format(str(i+14),str(i+2),str(i+3),str(i+4)), light_box_percentage)
+            sheet.write(i + 15, 14, "=(o{}/(o{}+o{}+o{}))".format(str(i+15),str(i+2),str(i+3),str(i+4)), light_box_percentage)
 
             #sheet.write(i + 2, 13, '', travels_middle_left)
             #sheet.write(i + 3, 13, '', travels_middle_left)
             #sheet.write(i + 11, 1, '', travels_middle_left)
-            sheet.write(i + 12, 13, '', travels_middle_left)
-            sheet.write(i + 14, 13, '', travels_middle_left)
+            #sheet.write(i + 12, 13, '', travels_middle_left)
+            #sheet.write(i + 14, 13, '', travels_middle_left)
             #sheet.write(i + 2, 14, '', travels_middle_right)
             #sheet.write(i + 3, 14, '', travels_middle_right)
             #sheet.write(i + 4, 14, '', travels_middle_right)

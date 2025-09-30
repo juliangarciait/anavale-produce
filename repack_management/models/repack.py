@@ -28,7 +28,8 @@ class RepackLine(models.Model):
     process_type = fields.Selection([
         ('repack', 'Repack'),
         ('peeled', 'Peeled'),
-        ('untailed', 'Untailed')
+        ('untailed', 'Untailed'),
+        ('rot', 'Remove rot')
     ], string='Process Type', default='repack', required=True)
     qty_to_repack = fields.Float(string='Quantity Needed', digits='Product Unit of Measure')
     qty_supplied = fields.Float(string='Quantity Supplied', digits='Product Unit of Measure')
@@ -51,7 +52,9 @@ class RepackLine(models.Model):
     can_be_peeled = fields.Boolean(related='product_id.can_be_peeled', string='Can be Peeled')
     can_be_untailed = fields.Boolean(related='product_id.can_be_untailed', string='Can be Untailed')
     inventory_id = fields.Many2one('stock.inventory', string='Inventory Adjustment', readonly=True)
-
+    comments = fields.Text(string='Comments')
+    bill_id = fields.Many2one('account.move', string='Bill', readonly=True)
+    bill_line_id = fields.Many2one('account.move.line', string='Bill Line', readonly=True)
 
     def get_next_reprocess_index(self, base_code):
         Lot = self.env['stock.production.lot']
@@ -232,6 +235,86 @@ class RepackLine(models.Model):
             self.sale_line_id.write({'lot_id': lote_venta.id })
         return True
 
+    def create_bills(self):
+        """Create bills for selected repack orders in done state"""
+        # Filter only done repack orders that don't have a bill yet
+        done_repacks = self.filtered(lambda r: r.line_state == 'done' and not r.bill_id)
+        
+        if not done_repacks:
+            raise UserError(_("No valid repack orders found. Only 'Done' status orders without existing bills can be processed."))
+        
+        # Group by company if needed (assuming single company for now)
+        AccountMove = self.env['account.move']
+        
+        # Create the bill
+        bill_vals = {
+            'type': 'in_invoice',  # Vendor bill
+            'partner_id': self.env.company.partner_id.id,  # Use company as vendor for now
+            'date': fields.Date.today(),
+            'ref': f"Repack Bill",
+            'invoice_line_ids': []
+        }
+        
+        # Create invoice lines for each repack order
+        for repack in done_repacks:
+            if repack.qty_supplied > 0:  # Only create line if there's quantity
+                # Get lot analytic tags
+                analytic_tag_ids = []
+                if repack.lot_id and repack.lot_id.analytic_tag_ids:
+                    analytic_tag_ids = [(6, 0, repack.lot_id.analytic_tag_ids.ids)]
+                
+                line_vals = {
+                    'name': repack.lot_id.name if repack.lot_id else f"Repack {repack.id}",
+                    'account_id': 1390,  # Fixed account ID as requested
+                    'quantity': repack.qty_supplied,
+                    'price_unit': 1.0,  # Fixed price as requested
+                    'analytic_tag_ids': analytic_tag_ids,
+                }
+                bill_vals['invoice_line_ids'].append((0, 0, line_vals))
+        
+        # Create the bill only if there are lines
+        if bill_vals['invoice_line_ids']:
+            bill = AccountMove.create(bill_vals)
+            
+            # Link each repack order to its corresponding bill line
+            line_index = 0
+            for repack in done_repacks:
+                if repack.qty_supplied > 0:
+                    bill_line = bill.invoice_line_ids[line_index]
+                    repack.write({
+                        'bill_id': bill.id,
+                        'bill_line_id': bill_line.id
+                    })
+                    line_index += 1
+            
+            # For repack orders with zero quantity, only link the bill
+            zero_qty_repacks = done_repacks.filtered(lambda r: r.qty_supplied <= 0)
+            if zero_qty_repacks:
+                zero_qty_repacks.write({'bill_id': bill.id})
+            
+            # Return action to view the created bill
+            return {
+                'name': _('Created Bill'),
+                'view_mode': 'form',
+                'res_model': 'account.move',
+                'res_id': bill.id,
+                'type': 'ir.actions.act_window',
+                'target': 'current',
+            }
+        else:
+            raise UserError(_("No lines to create in the bill. All selected repack orders have zero quantity."))
+        
+        return True
+    
+    def name_get(self):
+        res = []
+        for record in self:
+            name = ''
+            if record.sale_line_id.display_name:
+                name = record.sale_line_id.display_name + ' - '+record.lot_id.display_name
+            res.append((record.id,name))
+        return res
+
 
 class RepackOrderLine(models.Model):
     _name = 'repack.order.line'
@@ -268,3 +351,101 @@ class RepackOrderLine(models.Model):
                     res['repack_id'] = repack_id
                     res['parent_template_id'] = repack.product_id.product_tmpl_id.id
         return res 
+
+
+class RepackCreateWizard(models.TransientModel):
+    _name = 'repack.create.wizard'
+    _description = 'Create Repack from Sale Order'
+
+    sale_id = fields.Many2one('sale.order', required=True, readonly=True)
+    line_ids = fields.One2many('repack.create.wizard.line', 'wizard_id')
+
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        sale = self.env['sale.order'].browse(self.env.context.get('active_id'))
+        if not sale:
+            raise UserError(_('No active Sale Order.'))
+        res['sale_id'] = sale.id
+        res['line_ids'] = [(0, 0, {
+            'sale_line_id': so_line.id,
+            'product_id': so_line.product_id.id,
+            'qty': so_line.product_uom_qty,
+            'lot_id': so_line.lot_id.id,
+            'repack_type': (so_line.repack_type or 'none'),
+            'repack_comments': so_line.repack_comments,
+        }) for so_line in sale.order_line]
+        return res
+
+    def action_create_repack(self):
+        self.ensure_one()
+        # Asegura que lo editado en el árbol ya esté “bajado”:
+        self.flush()
+        self.line_ids.flush()
+
+        Repack = self.env['repack.order']
+        created = []
+
+        for wl in self.line_ids:
+            # Solo crear si se seleccionó un tipo válido
+            if wl.repack_type and wl.repack_type != 'none':
+                # Fallbacks robustos a la SOL
+                product = wl.product_id or wl.sale_line_id.product_id
+                qty = wl.qty if wl.qty not in (False, None) else wl.sale_line_id.product_uom_qty
+                lot = wl.lot_id  # puede quedar vacío si no manejas lote aquí
+
+                if not product:
+                    # Si lo quieres opcional, cambia a "continue"
+                    raise UserError(_("Missing product on a wizard line."))
+
+                vals = {
+                    'product_id': product.id,
+                    'lot_id': lot.id if lot else False,
+                    'process_type': wl.repack_type,
+                    'qty_to_repack': qty or 0.0,
+                    'sale_line_id': wl.sale_line_id.id,
+                    'comments': wl.repack_comments,
+                    'creation_date': fields.Datetime.now(),
+                }
+                rep = Repack.create(vals)
+                created.append(rep.id)
+
+                # Sincroniza con la línea de venta
+                wl.sale_line_id.sudo().write({
+                    'repack_processed': True,
+                    'repack_status': 'process',
+                    'repack_type': wl.repack_type,
+                    'repack_comments': wl.repack_comments,
+                })
+
+        if not created:
+            return {'type': 'ir.actions.act_window_close'}
+
+        action = self.env.ref('yrepack_management.action_repack_order', raise_if_not_found=False)
+        if action:
+            act = action.read()[0]
+            act['domain'] = [('id', 'in', created)]
+            return act
+        return {'type': 'ir.actions.act_window_close'}
+
+
+class RepackCreateWizardLine(models.TransientModel):
+    _name = 'repack.create.wizard.line'
+    _description = 'Create Repack Wizard Line'
+
+    wizard_id = fields.Many2one('repack.create.wizard', required=True, ondelete='cascade')
+    sale_line_id = fields.Many2one('sale.order.line', string='Sales Line', readonly=True)
+    product_id = fields.Many2one('product.product', string='Product', readonly=True)
+    lot_id = fields.Many2one(
+        'stock.production.lot', string='Lot',
+        domain="[('product_id', '=', product_id)]"
+    )
+    qty = fields.Float(string='Qty')  # (puedes añadir precision si quieres)
+    repack_type = fields.Selection([
+        ('none', 'No Repack'),
+        ('repack', 'Repack'),
+        ('peeled', 'Peeled'),
+        ('untailed', 'Untailed'),
+        ('rot', 'Remove rot'),
+    ], string='Repack Type', default='none')
+    repack_comments = fields.Text(string='Comments')

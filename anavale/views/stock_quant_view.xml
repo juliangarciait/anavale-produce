@@ -25,6 +25,9 @@
                         string="View Sale Order" type="object" class="oe_highlight" groups="anavale.group_sale_lot_calculation"/>   
                 <field name="available_quantity" groups="anavale.group_sale_lot_calculation"/>
             </xpath>
+            <xpath expr="//field[@name='location_id']" position="after">
+                <field name="lot_tag"/>
+            </xpath>
         </field>
     </record>
 

@@ -215,6 +215,7 @@ class Picking(models.Model):
                             {'name': lot_name, 'product_id': line.product_id.id,
                              'company_id': line.move_id.company_id.id,
                              'analytic_tag_ids': tax_tag_lot_ids,
+                             'lot_tag': line.lot_tag.id
                              }
                         )
                         line.write({'lot_name': lot.name, 'lot_id': lot.id})
@@ -722,6 +723,11 @@ class StockMove(models.Model):
 
 class StockMoveLine(models.Model):
     _inherit = 'stock.move.line'
+
+    lot_tag = fields.Many2one(
+        'stock.production.lot.tag',
+        string='Etiqueta'
+    )
 
     @api.onchange('lot_id')
     def _onchange_lot_id(self):

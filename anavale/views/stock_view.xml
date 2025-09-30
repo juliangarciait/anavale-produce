@@ -119,4 +119,23 @@
     </record>
 
 
+    <!-- Aqui empieza lo que metemos en el stock move line -->
+
+  <record id="view_stock_move_line_operation_tree_inherit_lot_tag" model="ir.ui.view">
+    <field name="name">stock.move.line.inherit.lot.tag</field>
+    <field name="model">stock.move.line</field>
+    <field name="inherit_id" ref="stock.view_stock_move_line_operation_tree"/>
+    <field name="arch" type="xml">
+
+      <!-- 1) Después de lot_name, si existe -->
+      <xpath expr="//field[@name='qty_done']" position="after">
+        <field name="lot_tag" options="{'no_open': True}"/>
+      </xpath>
+
+      <!-- 2) Si en tu vista no hay lot_name y usan lot_id, prueba también este -->
+
+    </field>
+  </record>
+
+
 </odoo>

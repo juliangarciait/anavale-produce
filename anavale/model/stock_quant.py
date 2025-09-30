@@ -5,6 +5,12 @@ from odoo.exceptions import ValidationError
 
 class StockQuant(models.Model):
     _inherit = 'stock.quant'
+
+    lot_tag = fields.Char(
+        string="Etiqueta",
+        related="lot_id.lot_tag.name",  # reemplaza por el nombre real de tu campo en stock.production.lot
+        store=True
+    )
     
     sale_order_quantity = fields.Float(
         'Quantity in Sale Order', compute='_compute_sale_order_qty',

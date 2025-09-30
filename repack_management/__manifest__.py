@@ -16,6 +16,7 @@
         'stock',
         'sale_management',
         'product',
+        'anavale'
     ],
     'data': [
         'security/ir.model.access.csv',

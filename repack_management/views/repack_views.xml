@@ -19,6 +19,8 @@
                 <field name="qty_secondary"/>
                 <field name="qty_scrap"/>
                 <field name="line_state"/>
+                <field name="bill_id"/>
+                <field name="bill_line_id"/>
                 <button name="action_process_line" type="object" icon="fa-check" 
                         string="Complete Line" attrs="{'invisible': [('line_state', '!=', 'process')]}"/>
             </tree>
@@ -52,6 +54,7 @@
                                domain="[('usage','in',['internal', 'transit'])]"
                                widget="selection"/>
                             <field name="process_type" widget="radio"/>
+                            <field name="comments"/>
                         </group>
                         <group>
                             <field name="qty_to_repack"/>
@@ -61,6 +64,8 @@
                             <field name="qty_scrap" readonly="1"/>
                             <field name="processed_date" readonly="1" attrs="{'invisible': [('line_state', '!=', 'done')]}"/>
                             <field name="processed_by" readonly="1" attrs="{'invisible': [('line_state', '!=', 'done')]}"/>
+                            <field name="bill_id" readonly="1" attrs="{'invisible': [('bill_id', '=', False)]}"/>
+                            <field name="bill_line_id" readonly="1" attrs="{'invisible': [('bill_line_id', '=', False)]}"/>
                         </group>
                     </group>
                     <notebook>
@@ -221,6 +226,20 @@
         </field>
     </record>
     
+    <!-- Action to create bills from repack orders -->
+    <record id="action_create_bills_from_repack" model="ir.actions.server">
+        <field name="name">Crear Facturas</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_repack_order"/>
+        <field name="binding_model_id" ref="model_repack_order"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+            if records:
+                action = records.create_bills()
+        </field>
+    </record>
+
     <!-- Menu Items -->
     <menuitem id="menu_repack_root" name="Repack" sequence="50"/>
     <menuitem id="menu_repack_lines"

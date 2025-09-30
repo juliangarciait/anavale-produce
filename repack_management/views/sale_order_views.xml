@@ -35,19 +35,26 @@
              -->
             <!-- Display repack status in confirmed orders -->
             <xpath expr="//field[@name='order_line']/tree/field[@name='price_subtotal']" position="before">
-                <field name="repack_type" />
+                <field name="repack_type" attrs="{'column_invisible': [('parent.state', 'not in', ['sale', 'done'])]}" readonly="1"/>
                 <field name="repack_processed" invisible="1"/>
-                <field name="repack_status"/>
+                <field name="repack_status" attrs="{'column_invisible': [('parent.state', 'not in', ['sale', 'done'])]}" readonly="1"/>
+            </xpath>
+            
+            <!-- Add button to open repack form at the end of each line -->
+            <xpath expr="//field[@name='order_line']/tree/field[@name='price_subtotal']" position="after">
+                <button name="open_repack_form" type="object" string="Edit Repack" icon="fa-edit" 
+                        attrs="{'column_invisible': [('parent.state', 'not in', ['sale', 'done'])]}"/>
             </xpath>
             
             <xpath expr="//field[@name='order_line']/form//field[@name='product_id']" position="after">
-                <field name="repack_type"/>
+                <field name="repack_type" attrs="{'invisible': [('parent.state', 'not in', ['sale', 'done'])]}"/>
                 <field name="repack_processed" invisible="1"/>
             </xpath>
             
             <!-- Add repack status field to line form -->
             <xpath expr="//field[@name='order_line']/form//field[@name='analytic_tag_ids']" position="after">
                 <field name="repack_status" attrs="{'invisible': ['|', ('parent.state', 'not in', ['sale', 'done']), ('repack_type', '=', False)]}"/>
+                <field name="repack_comments" attrs="{'invisible': ['|', ('parent.state', 'not in', ['sale', 'done']), ('repack_type', '=', False)]}"/>
                 <field name="repack_line_ids" widget="many2many_tags" readonly="1" 
                        attrs="{'invisible': ['|', ('parent.state', 'not in', ['sale', 'done']), ('repack_type', '=', False)]}"/>
             </xpath>
@@ -61,13 +68,29 @@
             </div>
             
             <!-- Add button to create repack order from sale order -->
-            <button name="action_confirm" position="after">
+             <!-- <button name="action_confirm" position="after">
                 <button name="%(repack_management.action_create_repack_from_sale)d" 
                         string="Create Repack Order" 
                         type="action" 
                         attrs="{'invisible': [('state', 'not in', ['sale', 'done'])]}"
                         class="btn-primary"/>
-            </button>
+            </button> -->
+            
+            <!-- Add Repack Lines page after Order Lines -->
+            <!-- <xpath expr="//page[@name='order_lines']" position="after">
+                <page string="Repack Lines" name="repack_lines" attrs="{'invisible': [('state', 'not in', ['sale', 'done'])]}">
+                    <field name="order_line" mode="tree" context="{'repack_view': True}">
+                        <tree string="Repack Lines" editable="bottom" create="false" delete="false">
+                            <field name="product_id" string="Product" readonly="1"/>
+                            <field name="lot_id" string="Lot" readonly="1"/>
+                            <field name="product_uom_qty" string="Quantity" readonly="1"/>
+                            <field name="repack_type" string="Repack Type"/>
+                            <field name="repack_status" string="Repack Status"/>
+                            <field name="repack_processed" invisible="1"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath> -->
         </field>
     </record>
     
@@ -116,22 +139,11 @@
     </record>
     
     <!-- Sale Order Form: add repack fields -->
-    <record id="view_order_form_repack_inherit" model="ir.ui.view">
+    <!-- <record id="view_order_form_repack_inherit" model="ir.ui.view">
         <field name="name">sale.order.form.repack.inherit</field>
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
-            <!-- <xpath expr="//field[@name='order_line']/tree//field[@name='qty_delivered']" position="after">
-                <field name="repack_type"/>
-                <field name="repack_status"/>
-            </xpath>
-            <xpath expr="//field[@name='order_line']/form//field[@name='qty_delivered']" position="after">
-                <field name="repack_type" widget="radio"/>
-                <field name="repack_status"/>
-                <field name="repack_processed" invisible="1"/>
-            </xpath>
-             -->
-            <!-- Add button to create repack order -->
             <xpath expr="//header" position="inside">
                 <button name="action_create_repack" 
                         string="Create Repack Order" 
@@ -140,7 +152,7 @@
                         groups="stock.group_stock_user"/>
             </xpath>
         </field>
-    </record>
+    </record> -->
     
     <!-- Sale Order Line Form: add repack fields -->
     <!-- <record id="view_order_line_form_repack_inherit" model="ir.ui.view">
@@ -179,7 +191,7 @@
     </record>
     
     <!-- Action to create Repack Order from Sale Lines -->
-    <record id="action_create_repack_from_sale_lines" model="ir.actions.server">
+    <!-- <record id="action_create_repack_from_sale_lines" model="ir.actions.server">
         <field name="name">Create Repack Order</field>
         <field name="type">ir.actions.server</field>
         <field name="model_id" ref="model_sale_order_line"/>
@@ -190,5 +202,88 @@
             if records:
                 action = records.create_repack_order()
         </field>
-    </record>
+    </record> -->
+    
+    <!-- Form view for editing repack information -->
+    <!-- <record id="view_sale_order_line_repack_form" model="ir.ui.view">
+        <field name="name">sale.order.line.repack.form</field>
+        <field name="model">sale.order.line</field>
+        <field name="arch" type="xml">
+            <form string="Edit Repack Information">
+                <group>
+                    <group>
+                        <field name="product_id" readonly="1"/>
+                        <field name="product_uom_qty" readonly="1"/>
+                        <field name="lot_id" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="repack_type"/>
+                        <field name="repack_comments"/>
+                        <field name="repack_status" readonly="1"/>
+                    </group>
+                </group>
+                <footer>
+                    <button string="Save" class="btn-primary" special="save"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record> -->
+
+
+
+    <!-- Action to open repack wizard -->
+ <record id="view_order_form_inherit_repack_btn" model="ir.ui.view">
+    <field name="name">sale.order.form.inherit.repack.btn</field>
+    <field name="model">sale.order</field>
+    <field name="inherit_id" ref="sale.view_order_form"/>
+    <field name="arch" type="xml">
+      <xpath expr="//header" position="inside">
+        <button name="action_open_repack_wizard"
+                type="object"
+                string="Create Repack"
+                class="oe_highlight"
+                attrs="{'invisible': [('state','in',('cancel','done'))]}"/>
+      </xpath>
+    </field>
+  </record> 
+
+  <!-- Vista del Wizard -->
+    <record id="view_repack_create_wizard_form" model="ir.ui.view">
+    <field name="name">repack.create.wizard.form</field>
+    <field name="model">repack.create.wizard</field>
+    <field name="arch" type="xml">
+      <form string="Create Repack">
+        <sheet>
+          <group>
+            <field name="sale_id" readonly="1"/>
+          </group>
+
+          <!-- IMPORTANTE: sin context aquí -->
+          <field name="line_ids">
+            <tree editable="bottom">
+              <field name="sale_line_id" invisible="1" force_save="1"/>
+              <field name="product_id" readonly="1" force_save="1"/>
+              <field name="lot_id" groups="stock.group_production_lot"
+                     domain="[('product_id', '=', product_id)]" readonly="1" force_save="1"/>
+              <field name="qty" readonly="1" force_save="1"/>
+              <field name="repack_type"/>
+              <field name="repack_comments"/>
+            </tree>
+          </field>
+        </sheet>
+        <footer>
+          <button string="Create" type="object" name="action_create_repack" class="btn-primary"/>
+          <button string="Cancel" special="cancel" class="btn-secondary"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+
+  <!-- (Opcional) Acción para repack.order, útil para devolver a la vista tras crear -->
+  <!-- <record id="action_repack_order" model="ir.actions.act_window">
+    <field name="name">Repack Orders</field>
+    <field name="res_model">repack.order</field>
+    <field name="view_mode">tree,form</field>
+  </record> -->
 </odoo> 
