@@ -368,6 +368,7 @@ class PurchaseOrderLine(models.Model):
     total_invoiced = fields.Float(compute='_compute_total_invoiced', string="Billed Total", store=True)
     purchase_lot = fields.Many2one('stock.production.lot', 'Lote')
     pallets = fields.Integer(string='Pallets', help="Número de pallets asociados a esta línea de pedido.")
+    lot_tag = fields.Many2one('stock.production.lot.tag',string='Etiqueta')
 
     @api.constrains('pallets')
     def _check_pallets_positive(self):

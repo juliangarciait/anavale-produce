@@ -8,3 +8,4 @@ class StockProductionLotTag(models.Model):
 
     name = fields.Char(string= 'nombre', required=True)
     lot_id = fields.One2many('stock.production.lot', 'id', string='Lot ID')
+    suffix = fields.Char(string='Suffix')

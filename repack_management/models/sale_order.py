@@ -31,6 +31,26 @@ class SaleOrder(models.Model):
             'target': 'new',
             'context': {'active_id': self.id},
         }
+    
+    def action_view_repacks(self):
+        self.ensure_one()
+        # Usa tu acción (ajusta el módulo si difiere)
+        action = self.env.ref('repack_management.action_repack_order', raise_if_not_found=False)
+        if action:
+            act = action.read()[0]
+            act['domain'] = [('sale_line_id.order_id', '=', self.id)]
+            # (opcional) foco en tree primero
+            act.setdefault('view_mode', 'tree,form')
+            return act
+        # Fallback por si la ref no existe aún
+        return {
+            'name': _('Repack Orders'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'repack.order',
+            'view_mode': 'tree,form',
+            'domain': [('sale_line_id.order_id', '=', self.id)],
+            'target': 'current',
+        }
 
 
 class SaleOrderLine(models.Model):

@@ -24,11 +24,11 @@ class LotData(models.Model):
 
     lot_tag = fields.Many2one('stock.production.lot.tag',string='Etiqueta')
 
-    def name_get(self):
-        res = []
-        for record in self:
-            lot_tag_name = ''
-            if record.lot_tag.name:
-                lot_tag_name = ' - '+record.lot_tag.name
-            res.append((record.id,record.name+'{}'.format(lot_tag_name)))
-        return res
+    # def name_get(self):
+    #     res = []
+    #     for record in self:
+    #         lot_tag_name = ''
+    #         if record.lot_tag.name:
+    #             lot_tag_name = ' - '+record.lot_tag.name
+    #         res.append((record.id,record.name+'{}'.format(lot_tag_name)))
+    #     return res

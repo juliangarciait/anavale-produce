@@ -211,13 +211,22 @@ class Picking(models.Model):
                         lot_name = self.get_next_lot_name(line.product_id, line.picking_id, next_number)
                         # Ensure Tag Tax Lot Ids
                         tax_tag_lot_ids = self.get_lot_tax_tag(line.product_id, line.picking_id, next_number)
-                        lot = self.env['stock.production.lot'].create(
-                            {'name': lot_name, 'product_id': line.product_id.id,
-                             'company_id': line.move_id.company_id.id,
-                             'analytic_tag_ids': tax_tag_lot_ids,
-                             'lot_tag': line.lot_tag.id
-                             }
-                        )
+                        #agregamos opcion de etiqueta
+                        if line.move_id.purchase_line_id.lot_tag:
+                            lot_tag = line.move_id.purchase_line_id.lot_tag
+                            lot_name = lot_name + '-' + lot_tag.suffix
+                            lot = self.env['stock.production.lot'].create(
+                                {'name': lot_name, 'product_id': line.product_id.id,
+                                 'company_id': line.move_id.company_id.id,
+                                 'analytic_tag_ids': tax_tag_lot_ids,
+                                 'lot_tag': lot_tag.id
+                                 }) 
+                        else:
+                            lot = self.env['stock.production.lot'].create(
+                                {'name': lot_name, 'product_id': line.product_id.id,
+                                 'company_id': line.move_id.company_id.id,
+                                 'analytic_tag_ids': tax_tag_lot_ids,
+                                 })
                         line.write({'lot_name': lot.name, 'lot_id': lot.id})
                         purchase_lot1 = line.move_id.purchase_line_id
                         purchase_lot1.write({'purchase_lot': lot.id})
@@ -724,10 +733,10 @@ class StockMove(models.Model):
 class StockMoveLine(models.Model):
     _inherit = 'stock.move.line'
 
-    lot_tag = fields.Many2one(
-        'stock.production.lot.tag',
-        string='Etiqueta'
-    )
+    # lot_tag = fields.Many2one(
+    #     'stock.production.lot.tag',
+    #     string='Etiqueta'
+    # )
 
     @api.onchange('lot_id')
     def _onchange_lot_id(self):

@@ -128,6 +128,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='product_qty']" position="before">
                     <field name="pallets" required="1"/>
+                    <field name="lot_tag"/>
                 </xpath>
             </field>
         </record>

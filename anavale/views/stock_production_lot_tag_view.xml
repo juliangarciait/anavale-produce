@@ -20,6 +20,7 @@
         <field name="arch" type="xml">
             <tree editable="bottom" create="1" edit="1">
                 <field name="name" />
+                <field name="suffix" />
             </tree>
         </field>
     </record>
