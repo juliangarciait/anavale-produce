@@ -18,7 +18,7 @@
                     groups="stock.group_production_lot" 
                     class="oe_inline"
                     options="{'no_create_edit':True, 'no_create': True}"/>
-                <field name="lot_available_sell" class="oe_inline" force_save="1" attrs="{'column_invisible': [('parent.state','!=','draft')]}"/>
+                <field name="lot_available_sell" class="oe_inline" force_save="1" />
             </xpath>
             <xpath expr="//field[@name='order_line']/tree/widget[@name='qty_at_date_widget']" position="attributes">
                 <attribute name="invisible">1</attribute>

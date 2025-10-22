@@ -213,14 +213,16 @@ class Picking(models.Model):
                         tax_tag_lot_ids = self.get_lot_tax_tag(line.product_id, line.picking_id, next_number)
                         #agregamos opcion de etiqueta
                         if line.move_id.purchase_line_id.lot_tag:
-                            lot_tag = line.move_id.purchase_line_id.lot_tag
-                            lot_name = lot_name + '-' + lot_tag.suffix
-                            lot = self.env['stock.production.lot'].create(
-                                {'name': lot_name, 'product_id': line.product_id.id,
-                                 'company_id': line.move_id.company_id.id,
-                                 'analytic_tag_ids': tax_tag_lot_ids,
-                                 'lot_tag': lot_tag.id
-                                 }) 
+                            if line.move_id.purchase_line_id.lot_tag.suffix:
+                                lot_tag = line.move_id.purchase_line_id.lot_tag
+                                lot_name = lot_name + '-' + lot_tag.suffix
+                                lot = self.env['stock.production.lot'].create(
+                                    {'name': lot_name, 'product_id': line.product_id.id,
+                                    'company_id': line.move_id.company_id.id,
+                                    'analytic_tag_ids': tax_tag_lot_ids,
+                                    'lot_tag': lot_tag.id
+                                    })
+                            else: raise UserError("The lot tag %s don't have suffix" % (line.move_id.purchase_line_id.lot_tag.name))
                         else:
                             lot = self.env['stock.production.lot'].create(
                                 {'name': lot_name, 'product_id': line.product_id.id,
