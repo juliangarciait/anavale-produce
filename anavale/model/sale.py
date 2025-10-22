@@ -233,7 +233,7 @@ class SaleOrderLine(models.Model):
         
         domain = [('product_id', '=', self.product_id.id)]
         so_domain = [('product_id', '=', self.product_id.id),
-            ('qty_to_deliver', '>', 0),
+            #('qty_to_deliver', '>', 0),
             ('order_id.state', '=', 'sale')]
         if lot_id:
             domain += [('lot_id', '=', lot_id)]
@@ -246,7 +246,7 @@ class SaleOrderLine(models.Model):
             
         # Quants already in stock
         locations = self.env['stock.location'].search([('usage', '=', 'internal')])
-        for quant in self.env['stock.quant'].search(domain + [('location_id', 'in', locations.ids)]): #'child_of', self.order_id.warehouse_id.lot_stock_id.id)]):
+        for quant in self.env['stock.quant'].search(domain + [('location_id', 'in', [28, 25, 8, 26, 27])]): #'child_of', self.order_id.warehouse_id.lot_stock_id.id)]):
             avail.setdefault(quant.lot_id.id, {'lot': quant.lot_id.id, 'qty': 0.0})
             avail[quant.lot_id.id]['qty'] += quant.quantity 
         
